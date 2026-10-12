@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: clarity
+      POSTGRES_USER: clarity
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required, see .env.example}
+    volumes:
+      - postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clarity"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - database
+
+  api:
+    build: ./api
+    restart: unless-stopped
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      PUBLIC_URL: ${PUBLIC_URL:?PUBLIC_URL is required, see .env.example}
+      ENABLE_BANKING_APPLICATION_ID: ${ENABLE_BANKING_APPLICATION_ID:-}
+      BANKING_REDIRECT_URL: ${BANKING_REDIRECT_URL:-}
+    volumes:
+      - ./secrets:/app/secrets:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - database
+      - web
+
+  panel:
+    build: ./panel
+    restart: unless-stopped
+    ports:
+      # Only reachable from this machine by default. To use Clarity on your
+      # phone, put Tailscale in front instead of opening this port.
+      - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8080}:8080"
+    depends_on:
+      - api
+    networks:
+      - web
+
+networks:
+  # The database has no way out and nothing but the api can reach it.
+  database:
+    internal: true
+  web:
+
+volumes:
+  postgres:
