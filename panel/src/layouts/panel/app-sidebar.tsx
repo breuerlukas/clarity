@@ -6,6 +6,7 @@ import {
   ChartColumnBig,
   Landmark,
   LayoutDashboard,
+  Repeat,
 } from "lucide-react";
 import {
   Sidebar,
@@ -23,6 +24,7 @@ export function appNavigation(t: TFunction): NavGroup[] {
       items: [
         { title: t("nav.overview"), url: "/", icon: LayoutDashboard },
         { title: t("nav.transactions"), url: "/transactions", icon: ArrowLeftRight },
+        { title: t("nav.subscriptions"), url: "/subscriptions", icon: Repeat },
         { title: t("nav.statistics"), url: "/statistics", icon: ChartColumnBig },
       ],
     },

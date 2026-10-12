@@ -7,6 +7,7 @@ import { LoginPage } from "@/pages/login-page";
 import { OverviewPage } from "@/pages/overview/overview-page";
 import { TransactionsPage } from "@/pages/transactions/transactions-page";
 import { StatisticsPage } from "@/pages/statistics/statistics-page";
+import { SubscriptionsPage } from "@/pages/subscriptions/subscriptions-page";
 import { AccountsPage } from "@/pages/accounts/accounts-page";
 import { ConnectCallbackPage } from "@/pages/accounts/connect-callback-page";
 
@@ -20,6 +21,7 @@ export default function App() {
           <Route index element={<OverviewPage />} />
           <Route path="transactions" element={<TransactionsPage />} />
           <Route path="statistics" element={<StatisticsPage />} />
+          <Route path="subscriptions" element={<SubscriptionsPage />} />
           <Route path="accounts" element={<AccountsPage />} />
         </Route>
         <Route path="connect/callback" element={<ConnectCallbackPage />} />
