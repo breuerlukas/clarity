@@ -46,6 +46,14 @@ export function LoginPage() {
     login.error instanceof ApiError ? login.error.code : undefined;
   return (
     <AuthLayout>
+      {import.meta.env.VITE_DEMO === "true" && (
+        <div className="mb-6 grid gap-3 rounded-2xl bg-brand/10 p-4 text-sm">
+          <p>{t("login.demo")}</p>
+          <Button type="button" onClick={() => login.mutate()} disabled={login.isPending}>
+            {t("login.demo_back")}
+          </Button>
+        </div>
+      )}
       <form onSubmit={submit} className="grid gap-6">
         <h1 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em]">
           {t("login.title")}
