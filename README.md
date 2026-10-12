@@ -3,7 +3,8 @@
 A self-hosted overview of your bank accounts. Clarity reads your accounts
 through the open banking interface (PSD2) every bank in the EU has to provide,
 sorts the transactions into categories, finds subscriptions and other fixed
-costs on its own, and shows what is left until the end of the month.
+costs on its own, and tells you how much you can still spend until your next
+salary, once everything that is due before it is paid.
 
 React and Tailwind in the panel, Spring Boot on Java 25 and Postgres behind it.
 Bank access goes through [Enable Banking](https://enablebanking.com).

@@ -31,12 +31,14 @@ interface FixedCost {
   day: number;
   /** Months it is booked in; all when missing. */
   months?: number[];
+  /** The price since the current month, to show a price increase. */
+  raisedTo?: number;
 }
 
 const FIXED_COSTS: FixedCost[] = [
   { counterparty: "Hausverwaltung Schmidt GmbH", category: "HOUSING", amount: 1050, day: 1 },
   { counterparty: "Trade Republic", category: "SAVINGS", amount: 250, day: 2 },
-  { counterparty: "Netflix International B.V.", category: "SUBSCRIPTIONS", amount: 13.99, day: 3 },
+  { counterparty: "Netflix International B.V.", category: "SUBSCRIPTIONS", amount: 13.99, day: 3, raisedTo: 15.99 },
   { counterparty: "Spotify AB", category: "SUBSCRIPTIONS", amount: 10.99, day: 5 },
   { counterparty: "Telekom Deutschland GmbH", category: "UTILITIES", amount: 39.95, day: 7 },
   { counterparty: "Stadtwerke München", category: "UTILITIES", amount: 74, day: 10 },
@@ -98,9 +100,11 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
     });
   };
   for (const month of months(today)) {
+    const thisMonth = month.getMonth() === today.getMonth() && month.getFullYear() === today.getFullYear();
     for (const cost of FIXED_COSTS) {
       if (!cost.months || cost.months.includes(month.getMonth() + 1)) {
-        add("giro", day(month, cost.day), -cost.amount, cost.counterparty, cost.category);
+        const amount = thisMonth && cost.raisedTo ? cost.raisedTo : cost.amount;
+        add("giro", day(month, cost.day), -amount, cost.counterparty, cost.category);
       }
     }
     add("giro", day(month, 27), 3140, "Brightline Software GmbH", "SALARY", "Gehalt");
@@ -128,12 +132,12 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
     }
   }
   transactions.sort((first, second) => second.date.localeCompare(first.date));
-  return { connections: connections(today), transactions, recurring: recurring(today) };
+  return { connections: connections(today), transactions, recurring: recurring(today, transactions) };
 }
 
 function connections(today: Date): Connection[] {
   const synced = today.getTime() - 1000 * 60 * 47;
-  const account = (id: string, name: string, iban: string | null, balance: number): Account => ({
+  const account = (id: string, name: string, iban: string | null, balance: number, spending = true): Account => ({
     id,
     name,
     iban,
@@ -141,6 +145,7 @@ function connections(today: Date): Connection[] {
     balance,
     last_synced_at: synced,
     sync_failure: null,
+    spending,
   });
   return [
     {
@@ -149,8 +154,8 @@ function connections(today: Date): Connection[] {
       bank_country: "DE",
       valid_until: today.getTime() + 1000 * 60 * 60 * 24 * 142,
       accounts: [
-        account("giro", "Girokonto", "DE89370400440532013000", 3482.15),
-        account("savings", "Tagesgeld", "DE12500105170648489890", 12500),
+        account("giro", "Girokonto", "DE89370400440532013000", 1284.15),
+        account("savings", "Tagesgeld", "DE12500105170648489890", 12500, false),
       ],
     },
     {
@@ -163,7 +168,7 @@ function connections(today: Date): Connection[] {
   ];
 }
 
-function recurring(today: Date): RecurringPayment[] {
+function recurring(today: Date, transactions: Transaction[]): RecurringPayment[] {
   return FIXED_COSTS.map((cost) => {
     const yearly = Boolean(cost.months);
     let last = day(today, cost.day);
@@ -178,15 +183,18 @@ function recurring(today: Date): RecurringPayment[] {
     const next = yearly
       ? new Date(last.getFullYear() + 1, last.getMonth(), last.getDate())
       : day(new Date(last.getFullYear(), last.getMonth() + 1, 1), cost.day);
+    const [latest, previous] = transactions.filter((entry) => entry.counterparty === cost.counterparty);
+    const amount = latest ? -latest.amount : cost.amount;
     return {
       counterparty: cost.counterparty,
       category: cost.category,
-      amount: cost.amount,
+      amount,
+      previous_amount: previous ? -previous.amount : amount,
       currency: "EUR",
       cycle: yearly ? ("YEARLY" as const) : ("MONTHLY" as const),
       last_date: isoDate(last),
       next_date: isoDate(next),
-      monthly_amount: Math.round((yearly ? cost.amount / 12 : cost.amount) * 100) / 100,
+      monthly_amount: Math.round((yearly ? amount / 12 : amount) * 100) / 100,
     };
   }).sort((first, second) => second.monthly_amount - first.monthly_amount);
 }
