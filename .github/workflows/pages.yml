@@ -1,0 +1,65 @@
+name: Demo on GitHub Pages
+
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ "panel/**", ".github/workflows/pages.yml" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push replaces a queued one but never
+# cancels a deployment that is already running.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: panel
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: panel/package-lock.json
+
+      - run: npm ci
+      - run: npm test
+
+      # The demo answers every api call in the browser with sample data, so
+      # the static build is all GitHub Pages needs. 404.html is the same page,
+      # which lets deep links like /statistics load the app too.
+      - name: Build the demo
+        env:
+          VITE_DEMO: 'true'
+          VITE_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          npx tsc -b
+          npx vite build --base="/${{ github.event.repository.name }}/"
+          cp dist/index.html dist/404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: panel/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
