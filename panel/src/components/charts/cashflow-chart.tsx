@@ -21,10 +21,13 @@ export function CashflowChart({
   statistics,
   height,
   compact = false,
+  legend = true,
 }: {
   statistics: MonthStatistic[];
   height: number;
   compact?: boolean;
+  /** Off when the card shows the legend in its heading instead. */
+  legend?: boolean;
 }) {
   const { t } = useTranslation();
   const data = statistics.map((statistic) => ({
@@ -33,16 +36,7 @@ export function CashflowChart({
   }));
   return (
     <div className="grid gap-3">
-      <Legend>
-        <span className="flex items-center gap-2">
-          <Swatch color="var(--series-in)" />
-          {t("statistics.money_in")}
-        </span>
-        <span className="flex items-center gap-2">
-          <Swatch color="var(--series-out)" />
-          {t("statistics.money_out")}
-        </span>
-      </Legend>
+      {legend && <CashflowLegend />}
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} stackOffset="sign" margin={{ top: 4, right: 0, bottom: 0, left: 0 }} barCategoryGap="22%">
@@ -89,5 +83,20 @@ export function CashflowChart({
         </ResponsiveContainer>
       </div>
     </div>
+  );
+}
+export function CashflowLegend() {
+  const { t } = useTranslation();
+  return (
+    <Legend>
+      <span className="flex items-center gap-2">
+        <Swatch color="var(--series-in)" />
+        {t("statistics.money_in")}
+      </span>
+      <span className="flex items-center gap-2">
+        <Swatch color="var(--series-out)" />
+        {t("statistics.money_out")}
+      </span>
+    </Legend>
   );
 }

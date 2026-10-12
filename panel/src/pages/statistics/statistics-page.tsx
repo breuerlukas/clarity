@@ -1,77 +1,85 @@
-import { useState } from "react";
+import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { PageHeader, Panel } from "@/components/panel";
+import { ChartColumnBig, Shapes, Store } from "lucide-react";
+import { PageHeader } from "@/components/panel";
+import { PeriodPicker } from "@/components/period-picker";
 import { Notice } from "@/components/notice";
-import { BalanceChart } from "@/components/charts/balance-chart";
-import { CashflowChart } from "@/components/charts/cashflow-chart";
-import { useConnections, useHistory, useRecurringPayments } from "@/hooks/use-finances";
-import { total } from "@/lib/overview";
-import { balanceHistory, lastMonths, monthlyStatistics } from "@/lib/statistics";
-import { Segmented } from "@/components/segmented";
-import { KeyFigures } from "@/pages/statistics/key-figures";
-import { CategoryTable } from "@/pages/statistics/category-table";
-import { TopCounterparties } from "@/pages/statistics/top-counterparties";
-import { LargestExpenses } from "@/pages/statistics/largest-expenses";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useConnections, useRecurringPayments, useTransactionsBetween } from "@/hooks/use-finances";
+import { usePeriodParam } from "@/hooks/use-period-param";
+import { isoDate } from "@/lib/dates";
+import { periodMonths, periodRange } from "@/lib/period";
+import { OverviewTab } from "@/pages/statistics/overview-tab";
+import { CategoriesTab } from "@/pages/statistics/categories-tab";
+import { CounterpartiesTab } from "@/pages/statistics/counterparties-tab";
 
-const RANGES = [3, 6, 12] as const;
+const TABS = ["overview", "categories", "counterparties"] as const;
+type Tab = (typeof TABS)[number];
 
+/**
+ * The longer view, split into tabs so each question gets its own page:
+ * how money flows, where it goes by category, and to whom.
+ */
 export function StatisticsPage() {
   const { t } = useTranslation();
-  const [range, setRange] = useState<(typeof RANGES)[number]>(6);
-  const history = useHistory();
+  const [params, setParams] = useSearchParams();
+  const [period, setPeriod] = usePeriodParam("rolling");
+  const tab: Tab = TABS.find((entry) => entry === params.get("tab")) ?? "overview";
+  const range = periodRange(period);
+  const fromStartToToday = useTransactionsBetween(range.from, isoDate(new Date()));
   const connections = useConnections();
   const recurring = useRecurringPayments();
-  const months = lastMonths(range);
-  const inRange = (history.data ?? []).filter(
-    (transaction) => transaction.date >= `${months[0]}-01`,
-  );
-  const statistics = monthlyStatistics(inRange, months);
-  const balance = total(
-    (connections.data ?? []).flatMap((connection) =>
-      connection.accounts.map((account) => account.balance ?? 0),
-    ),
-  );
-  const curve = balanceHistory(history.data ?? [], balance).filter(
-    (point) => point.date >= `${months[0]}-01`,
-  );
+  const months = periodMonths(period);
+  const inPeriod = (fromStartToToday.data ?? []).filter((transaction) => transaction.date <= range.to);
+  const setTab = (next: string) =>
+    setParams(
+      (previous) => {
+        const updated = new URLSearchParams(previous);
+        if (next === "overview") {
+          updated.delete("tab");
+        } else {
+          updated.set("tab", next);
+        }
+        return updated;
+      },
+      { replace: true },
+    );
   return (
     <>
-      <PageHeader title={t("nav.statistics")}>
-        <Segmented
-          label={t("statistics.range")}
-          value={String(range)}
-          options={RANGES.map((option) => ({
-            value: String(option),
-            label: t("statistics.months", { count: option }),
-          }))}
-          onChange={(value) => setRange(Number(value) as (typeof RANGES)[number])}
-        />
-      </PageHeader>
-      {history.isError && <Notice className="mb-6">{t("common.error")}</Notice>}
-      {history.data ? (
-        <div className="grid gap-6">
-          <KeyFigures statistics={statistics} payments={recurring.data} />
-          <div className="grid gap-6 xl:grid-cols-2">
-            <Panel title={t("statistics.cashflow")}>
-              <CashflowChart statistics={statistics} height={260} />
-            </Panel>
-            <Panel title={t("statistics.balance")}>
-              {curve.length > 1 ? (
-                <BalanceChart data={curve} height={288} label={t("statistics.balance")} />
-              ) : (
-                <p className="text-muted-foreground">{t("statistics.not_enough")}</p>
-              )}
-            </Panel>
-          </div>
-          <CategoryTable transactions={inRange} months={months} />
-          <div className="grid gap-6 lg:grid-cols-2">
-            <TopCounterparties transactions={inRange} />
-            <LargestExpenses transactions={inRange} payments={recurring.data} />
-          </div>
+      <PageHeader title={t("nav.statistics")} />
+      {fromStartToToday.isError && <Notice className="mb-6">{t("common.error")}</Notice>}
+      <Tabs value={tab} onValueChange={setTab}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <TabsList>
+            <TabsTrigger value="overview"><ChartColumnBig />{t("statistics.tab_overview")}</TabsTrigger>
+            <TabsTrigger value="categories"><Shapes />{t("statistics.tab_categories")}</TabsTrigger>
+            <TabsTrigger value="counterparties"><Store />{t("statistics.tab_counterparties")}</TabsTrigger>
+          </TabsList>
+          <PeriodPicker period={period} kinds={["quarter", "year", "rolling"]} onChange={setPeriod} />
         </div>
-      ) : (
-        <div className="h-96" aria-busy="true" />
-      )}
+        {fromStartToToday.data ? (
+          <>
+            <TabsContent value="overview">
+              <OverviewTab
+                transactions={inPeriod}
+                untilToday={fromStartToToday.data}
+                months={months}
+                connections={connections.data}
+                payments={recurring.data}
+                from={range.from}
+              />
+            </TabsContent>
+            <TabsContent value="categories">
+              <CategoriesTab transactions={inPeriod} months={months} />
+            </TabsContent>
+            <TabsContent value="counterparties">
+              <CounterpartiesTab transactions={inPeriod} payments={recurring.data} />
+            </TabsContent>
+          </>
+        ) : (
+          <div className="mt-6 h-96 rounded-3xl border bg-card" aria-busy="true" />
+        )}
+      </Tabs>
     </>
   );
 }
