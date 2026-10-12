@@ -73,6 +73,7 @@ public final class ConnectionController {
     information.put("balance", account.balance());
     information.put("last_synced_at", account.lastSyncedAt());
     information.put("sync_failure", account.syncFailure());
+    information.put("spending", account.isSpendingAccount());
     return information;
   }
 }

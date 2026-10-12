@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogClose,
@@ -74,7 +75,7 @@ function AccountRow({ account }: { account: Account }) {
       ? t("accounts.last_synced", { time: formatRelative(account.last_synced_at) })
       : t("accounts.never_synced");
   return (
-    <li className="zebra-row grid gap-1 rounded-md px-2 py-3">
+    <li className="zebra-row grid gap-1 rounded-xl px-2 py-3">
       <div className="grid grid-cols-[1fr_auto] items-baseline gap-4">
         <span className="min-w-0 truncate font-medium">{account.name}</span>
         <span className="figures font-semibold">
@@ -87,6 +88,7 @@ function AccountRow({ account }: { account: Account }) {
         <span className="figures">{maskIban(account.iban)}</span>
         {status && <span>{status}</span>}
       </div>
+      <SpendingSwitch account={account} />
       {account.sync_failure && (
         <Notice className="mt-1 text-sm">
           {account.sync_failure === "consent"
@@ -140,5 +142,29 @@ function RemoveDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+/** Whether this account's money counts towards the room until payday. */
+function SpendingSwitch({ account }: { account: Account }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const toggle = useMutation({
+    mutationFn: (spending: boolean) => api.markSpending(account.id, spending),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["connections"] }),
+  });
+  const id = `spending-${account.id}`;
+  return (
+    <div className="mt-1 flex items-center justify-between gap-4 text-sm">
+      <label htmlFor={id} className="grid">
+        <span className="font-bold">{t("accounts.spending")}</span>
+        <span className="text-xs text-muted-foreground">{t("accounts.spending_hint")}</span>
+      </label>
+      <Switch
+        id={id}
+        checked={account.spending}
+        disabled={toggle.isPending}
+        onCheckedChange={(checked) => toggle.mutate(checked)}
+      />
+    </div>
   );
 }

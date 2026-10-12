@@ -85,6 +85,8 @@ export interface Account {
   balance: number | null;
   last_synced_at: number;
   sync_failure: string | null;
+  /** Counts towards the room left until payday. */
+  spending: boolean;
 }
 
 export interface Connection {
@@ -99,6 +101,7 @@ export interface RecurringPayment {
   counterparty: string;
   category: Category;
   amount: number;
+  previous_amount: number;
   currency: string;
   cycle: "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
   last_date: string;
@@ -160,6 +163,8 @@ export const api = {
     }),
   recurring: () => get<{ payments: RecurringPayment[] }>("/recurring/"),
   connections: () => get<{ connections: Connection[] }>("/connections/"),
+  markSpending: (id: string, spending: boolean) =>
+    post("/accounts/spending/", { id, spending }),
   synchronize: () => post<{ started: boolean }>("/connections/sync/"),
   removeConnection: (id: string) => post("/connections/delete/", { id }),
   banks: (country: string) =>

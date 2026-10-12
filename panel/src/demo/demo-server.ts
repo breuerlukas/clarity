@@ -50,6 +50,8 @@ export async function handleDemoRequest(
       return ok({ closed: 1 });
     case "GET /connections/":
       return ok({ connections: database.connections });
+    case "POST /accounts/spending/":
+      return markSpending(String(body.id), Boolean(body.spending));
     case "POST /connections/sync/":
       return ok({ started: true });
     case "POST /connections/delete/":
@@ -96,5 +98,14 @@ function removeConnection(id: string) {
   const accounts = new Set(connection.accounts.map((account) => account.id));
   database.connections.splice(database.connections.indexOf(connection), 1);
   database.transactions = database.transactions.filter((entry) => !accounts.has(entry.account));
+  return ok();
+}
+
+function markSpending(id: string, spending: boolean) {
+  const account = database.connections.flatMap((connection) => connection.accounts).find((entry) => entry.id === id);
+  if (!account) {
+    throw new ApiError(400, 2004);
+  }
+  account.spending = spending;
   return ok();
 }
