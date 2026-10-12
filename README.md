@@ -112,6 +112,12 @@ Tests: `./gradlew test` in `api/`, `npm test` in `panel/`.
 The demo is published by `.github/workflows/pages.yml` on every push to
 `main`. In a fork, set *Settings → Pages → Source* to *GitHub Actions* once.
 
+## Contributing
+
+Contributions are welcome. For larger changes please open an issue first (see
+[CONTRIBUTING.md](CONTRIBUTING.md)). Everyone taking part is expected to follow
+the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## License
 
 [AGPL-3.0](LICENSE.md)
