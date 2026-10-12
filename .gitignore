@@ -1,0 +1,27 @@
+# Secrets and local configuration
+.env
+secrets/*
+!secrets/.gitkeep
+*.pem
+
+# Databases and dumps
+*.db
+*.sql
+*.dump
+
+# Gradle
+.gradle
+build
+
+# Node
+node_modules
+dist
+
+# Editors
+.idea
+.vscode
+*.iml
+
+# Logs
+*.log
+logs
