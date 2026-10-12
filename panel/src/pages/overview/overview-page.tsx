@@ -4,53 +4,62 @@ import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/notice";
 import { PageHeader } from "@/components/panel";
 import { SyncButton } from "@/components/sync-button";
-import {
-  useConnections,
-  useHistory,
-  useMonthTransactions,
-  useRecurringPayments,
-} from "@/hooks/use-finances";
-import { useMonthParam } from "@/hooks/use-month-param";
-import { BalanceHero } from "@/pages/overview/balance-hero";
-import { MonthPanel } from "@/pages/overview/month-panel";
-import { FixedCosts } from "@/pages/overview/fixed-costs";
+import { useConnections, useHistory, useRecurringPayments } from "@/hooks/use-finances";
+import { spendingRoom } from "@/lib/budget";
+import { SpendingRoomCard } from "@/pages/overview/spending-room-card";
+import { AccountsCard } from "@/pages/overview/accounts-card";
+import { ActivityCard } from "@/pages/overview/activity-card";
+import { BalanceCard } from "@/pages/overview/balance-card";
+import { UpcomingPayments } from "@/pages/overview/upcoming-payments";
 import { RecentTransactions } from "@/pages/overview/recent-transactions";
-import { CashflowTeaser } from "@/pages/overview/cashflow-teaser";
 
+/**
+ * Left: what is free until payday, how the balance moved, what just
+ * happened. Right: the accounts and what is due next.
+ */
 export function OverviewPage() {
   const { t } = useTranslation();
-  const [month, setMonth] = useMonthParam();
   const connections = useConnections();
-  const transactions = useMonthTransactions(month);
   const recurring = useRecurringPayments();
   const history = useHistory();
   if (connections.data?.length === 0) {
     return <EmptyOverview />;
   }
   const accounts = connections.data?.flatMap((connection) => connection.accounts);
-  const failed =
-    connections.isError || transactions.isError || recurring.isError;
+  const room =
+    accounts && recurring.data && history.data
+      ? spendingRoom(accounts, recurring.data, history.data)
+      : null;
   return (
     <>
       <PageHeader title={t("nav.overview")}>
         <SyncButton />
       </PageHeader>
-      {failed && <Notice className="mb-6">{t("common.error")}</Notice>}
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-        <div className="grid min-w-0 gap-6">
-          <BalanceHero accounts={accounts} history={history.data} />
-          <div className="grid items-start gap-6 2xl:grid-cols-2">
-            <MonthPanel month={month} onMonthChange={setMonth} transactions={transactions.data} />
-            <RecentTransactions month={month} transactions={transactions.data} />
-          </div>
+      {(connections.isError || recurring.isError || history.isError) && (
+        <Notice className="mb-6">{t("common.error")}</Notice>
+      )}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-6">
+          {room ? <SpendingRoomCard room={room} /> : <Placeholder height="h-72" />}
+          {accounts && history.data ? (
+            <BalanceCard accounts={accounts} history={history.data} />
+          ) : (
+            <Placeholder height="h-80" />
+          )}
+          <RecentTransactions transactions={history.data} className="flex-1" />
         </div>
-        <div className="grid min-w-0 gap-6">
-          <FixedCosts payments={recurring.data} accounts={accounts} />
-          <CashflowTeaser history={history.data} />
+        <div className="flex min-w-0 flex-col gap-6">
+          <AccountsCard connections={connections.data} />
+          <ActivityCard transactions={history.data} />
+          <UpcomingPayments payments={recurring.data} payday={room?.payday} className="flex-1" />
         </div>
       </div>
     </>
   );
+}
+
+function Placeholder({ height }: { height: string }) {
+  return <div className={`${height} rounded-3xl border bg-card`} aria-busy="true" />;
 }
 
 function EmptyOverview() {
