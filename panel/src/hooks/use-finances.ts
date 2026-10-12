@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { isoDate, monthRange, type MonthKey } from "@/lib/dates";
+import { isoDate, monthRange } from "@/lib/dates";
 import { lastMonths } from "@/lib/statistics";
 
 export function useConnections() {
@@ -11,10 +11,9 @@ export function useConnections() {
   });
 }
 
-export function useMonthTransactions(month: MonthKey) {
-  const { from, to } = monthRange(month);
+export function useTransactionsBetween(from: string, to: string) {
   return useQuery({
-    queryKey: ["transactions", month],
+    queryKey: ["transactions", from, to],
     queryFn: () => api.transactions(from, to),
     select: (data) => data.transactions,
   });
