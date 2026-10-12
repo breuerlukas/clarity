@@ -21,19 +21,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Categorizer {
   public static Categorizer create(
-    List<CategoryRule> rules, Collection<String> ownIbans,
-    boolean paypalConnected
+    CategoryKeywords keywords, List<CategoryRule> rules,
+    Collection<String> ownIbans, boolean paypalConnected
   ) {
     var normalizedIbans = ownIbans.stream()
       .map(iban -> iban.replaceAll("\\s", "").toUpperCase(Locale.ROOT))
       .collect(Collectors.toSet());
-    return new Categorizer(rules, normalizedIbans, paypalConnected);
+    return new Categorizer(keywords, rules, normalizedIbans, paypalConnected);
   }
 
+  private final CategoryKeywords keywords;
   private final List<CategoryRule> rules;
   private final Set<String> ownIbans;
   private final boolean paypalConnected;
-  private final CategoryKeywords keywords = CategoryKeywords.create();
 
   public Category categorize(
     String counterparty, String counterpartyIban, String description,

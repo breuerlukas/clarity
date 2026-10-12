@@ -18,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 @Component
 @RequiredArgsConstructor
 public final class CategorizerFactory {
+  private final CategoryKeywords keywords;
   private final CategoryRuleRepository ruleRepository;
   private final BankAccountRepository accountRepository;
   private final BankConnectionRepository connectionRepository;
@@ -37,6 +38,6 @@ public final class CategorizerFactory {
       .filter(Objects::nonNull).toList();
     var paypalConnected = connections.stream().anyMatch(connection ->
       KeywordMatch.of(connection.bankName(), "paypal").matches());
-    return Categorizer.create(rules, ownIbans, paypalConnected);
+    return Categorizer.create(keywords, rules, ownIbans, paypalConnected);
   }
 }

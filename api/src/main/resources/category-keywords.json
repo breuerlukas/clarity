@@ -1,0 +1,20 @@
+{
+  "categories": [
+    { "category": "SALARY", "keywords": ["gehalt", "lohn", "salary", "bezüge"] },
+    { "category": "SUBSCRIPTIONS", "keywords": ["amazon prime", "netflix", "spotify", "disney plus", "disney+", "apple.com/bill", "youtube", "audible", "dazn", "icloud", "google one", "adobe", "openai", "chatgpt", "patreon", "paramount"] },
+    { "category": "HOUSING", "keywords": ["miete", "hausverwaltung", "vonovia", "nebenkosten", "wohnungsbau", "immobilien"] },
+    { "category": "UTILITIES", "keywords": ["stadtwerke", "vattenfall", "e.on", "telekom", "vodafone", "o2 ", "telefonica", "1&1", "congstar", "rundfunk", "strom", "enbw", "tibber", "ostrom"] },
+    { "category": "GROCERIES", "keywords": ["rewe", "edeka", "lidl", "aldi", "penny", "netto", "kaufland", "rossmann", "dm drogerie", "dm-drogerie", "globus", "tegut", "norma", "denns", "alnatura", "flink", "picnic"] },
+    { "category": "DINING", "keywords": ["lieferando", "mcdonald", "burger king", "starbucks", "wolt", "uber eats", "restaurant", "pizza", "kfc", "subway", "vapiano", "backerei", "bäckerei"] },
+    { "category": "MOBILITY", "keywords": ["deutsche bahn", "db vertrieb", "db fernverkehr", "bvg", "mvg", "hvv", "kvb", "uber", "bolt", "tier mobility", "lime", "aral", "esso", "shell", "flixbus", "sixt", "share now", "miles mobility", "tankstelle"] },
+    { "category": "TRAVEL", "keywords": ["lufthansa", "ryanair", "eurowings", "easyjet", "condor", "booking.com", "airbnb", "expedia", "hotel"] },
+    { "category": "SHOPPING", "keywords": ["amazon", "amzn", "zalando", "ikea", "mediamarkt", "saturn", "otto gmbh", "otto.de", "about you", "h&m", "zara", "decathlon", "ebay", "temu", "shein", "thalia", "galaxus"] },
+    { "category": "INSURANCE", "keywords": ["versicherung", "allianz", "huk", "axa", "ergo", "debeka", "devk", "signal iduna", "wgv"] },
+    { "category": "HEALTH", "keywords": ["apotheke", "arzt", "zahnarzt", "docmorris", "krankenkasse", "physio", "optik", "fielmann"] },
+    { "category": "LEISURE", "keywords": ["fitness", "mcfit", "urban sports", "kino", "cinema", "steam", "playstation", "nintendo", "eventim", "museum", "theater"] },
+    { "category": "EDUCATION", "keywords": ["udemy", "universität", "hochschule", "semesterbeitrag", "studierendenwerk", "coursera"] },
+    { "category": "CASH", "keywords": ["geldautomat", "bargeld", "atm ", "cash withdrawal", "auszahlung"] },
+    { "category": "FEES", "keywords": ["kontoführung", "entgelt", "gebühr", "fee ", "zinsen"] },
+    { "category": "SAVINGS", "keywords": ["trade republic", "scalable capital", "sparplan", "tagesgeld", "bitpanda", "traderepublic"] }
+  ]
+}
