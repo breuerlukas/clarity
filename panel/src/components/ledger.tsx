@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Amount } from "@/components/amount";
+import { AmountBadge } from "@/components/amount-badge";
 import { CategoryIcon } from "@/components/category-icon";
 import type { Transaction } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -15,10 +15,17 @@ export function Ledger({
   return <ul className={cn("zebra -mx-2", className)}>{children}</ul>;
 }
 
-export function LedgerDate({ children }: { children: ReactNode }) {
+/**
+ * One day with its rows. The date sticks to the top while its rows scroll by
+ * and is pushed away by the next day, because each day is its own section.
+ */
+export function LedgerDay({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <li className="px-2 pt-5 pb-1.5 text-sm font-medium text-muted-foreground first:pt-0">
-      {children}
+    <li>
+      <div className="sticky top-0 z-10 bg-card px-2 pt-3 pb-1.5 text-sm font-bold text-label">
+        {label}
+      </div>
+      <ul className="zebra">{children}</ul>
     </li>
   );
 }
@@ -42,10 +49,10 @@ export function LedgerRow({
           {t(`category.${transaction.category}`)}
         </span>
       </span>
-      <Amount
+      <AmountBadge
         value={transaction.amount}
         currency={transaction.currency}
-        className="font-medium"
+        neutral={transaction.category === "TRANSFER"}
       />
     </>
   );

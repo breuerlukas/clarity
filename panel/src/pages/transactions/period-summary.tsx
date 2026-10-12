@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Panel } from "@/components/panel";
+import { AmountBadge } from "@/components/amount-badge";
 import { CategoryIcon } from "@/components/category-icon";
 import type { Category, Transaction } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
@@ -7,10 +8,10 @@ import { summarizeMonth } from "@/lib/overview";
 import { cn } from "@/lib/utils";
 
 /**
- * On wide screens, the month's totals beside the list, and its categories
- * as filters: one click narrows the list, a second one clears it.
+ * Beside the list on wide screens: the period's money in and out, and its
+ * categories as filters (a second click clears the filter).
  */
-export function MonthSide({
+export function PeriodSummary({
   transactions,
   category,
   onCategoryChange,
@@ -25,11 +26,11 @@ export function MonthSide({
   }
   const summary = summarizeMonth(transactions);
   return (
-    <Panel title={t("transactions.month_summary")} className="hidden 2xl:flex">
-      <dl className="grid grid-cols-2 gap-3">
-        <Figure label={t("statistics.money_in")} value={formatMoney(summary.income)} />
-        <Figure label={t("statistics.money_out")} value={formatMoney(summary.spending)} />
-      </dl>
+    <Panel title={t("transactions.period_summary")} className="hidden 2xl:flex">
+      <div className="flex flex-wrap gap-2">
+        <AmountBadge value={summary.income} className="px-3 py-1 text-sm" />
+        <AmountBadge value={-summary.spending} className="px-3 py-1 text-sm" />
+      </div>
       <ul className="grid gap-0.5 border-t border-divider pt-4">
         {summary.categories.map((entry) => (
           <li key={entry.category}>
@@ -50,14 +51,5 @@ export function MonthSide({
         ))}
       </ul>
     </Panel>
-  );
-}
-
-function Figure({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="grid gap-1 rounded-2xl bg-raised p-3.5">
-      <dt className="text-xs font-bold text-label">{label}</dt>
-      <dd className="figures text-lg font-extrabold">{value}</dd>
-    </div>
   );
 }
