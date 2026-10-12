@@ -23,7 +23,7 @@ Under **Applications**, register a new application:
 Redirect URL examples:
 
 - Only on this computer: `http://localhost:8080/connect/callback`
-- Through Tailscale: `https://<machine>.<tailnet>.ts.net/connect/callback`
+- Behind your own HTTPS address: `https://clarity.example.com/connect/callback`
 
 If privacy policy, terms or description are required, a link to your copy of
 this repository is enough for personal use.

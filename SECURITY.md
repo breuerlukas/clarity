@@ -18,7 +18,7 @@ business days. Fixes are disclosed once a release is out.
 ## Running Clarity safely
 
 - Keep the panel bound to `127.0.0.1` and reach it through a private network
-  such as Tailscale. Never forward its port on your router.
+  such as a VPN. Never forward its port on your router.
 - Keep `.env`, `secrets/` and database backups private; they are as sensitive
   as your bank statements.
 - Use full-disk encryption on the machine Clarity runs on. The database

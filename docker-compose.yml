@@ -38,7 +38,8 @@ services:
     restart: unless-stopped
     ports:
       # Only reachable from this machine by default. To use Clarity on your
-      # phone, put Tailscale in front instead of opening this port.
+      # phone, reach it through a VPN or an HTTPS reverse proxy instead of
+      # opening this port.
       - "${BIND_ADDRESS:-127.0.0.1}:${PORT:-8080}:8080"
     depends_on:
       - api

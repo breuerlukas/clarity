@@ -70,18 +70,16 @@ first bank under **Accounts**.
 
 ## Using it on your phone
 
-Don't open the port to the internet. Use [Tailscale](https://tailscale.com)
-(free for personal use) instead: it gives the machine a private HTTPS address
-that only your own devices can reach.
+The panel only listens on `127.0.0.1`, so it is not reachable from other
+devices by default. Don't forward the port on your router. Reach it through a
+VPN into your home network, or put a reverse proxy with HTTPS in front of it
+that only you can get to.
 
-```bash
-sudo tailscale serve --bg 8080
-```
-
-Set `PUBLIC_URL` to the `https://<machine>.<tailnet>.ts.net` address it prints,
-add `https://<machine>.<tailnet>.ts.net/connect/callback` as a redirect URL in
-Enable Banking, and restart with `docker compose up -d`. On the phone, open
-the address and choose *Add to Home Screen*.
+Enable Banking needs an `https` address to send you back to after the bank
+login. Set `PUBLIC_URL` to the address you open Clarity at, register
+`<PUBLIC_URL>/connect/callback` as a redirect URL in Enable Banking, and
+restart with `docker compose up -d`. On the phone, open the address and choose
+*Add to Home Screen*.
 
 ## Everyday operation
 
