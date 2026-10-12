@@ -1,0 +1,201 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/atkinson-hyperlegible-next";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-ground: var(--ground);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-raised-strong: var(--raised-strong);
+  --color-line: var(--line);
+  --color-divider: var(--divider);
+  --color-label: var(--text-label);
+  --color-brand: var(--brand);
+  --color-brand-text: var(--brand-text);
+  --color-on-brand: var(--on-brand);
+  --color-placeholder: var(--placeholder);
+  --color-nav-icon: var(--nav-icon);
+  --color-nav-text: var(--nav-text);
+  --color-nav-active-text: var(--nav-active-text);
+  --color-positive: var(--positive);
+  --color-warning: var(--warning);
+  --color-series-in: var(--series-in);
+  --color-series-out: var(--series-out);
+}
+
+/*
+ * Graphite neutrals carry the page; green is the accent and nothing more:
+ * the active navigation entry, primary buttons, money coming in and the
+ * balance line. Charts use a validated green/blue pair for in and out.
+ */
+:root {
+  --radius: 0.875rem;
+
+  --ground: #f1f3f5;
+  --panel: #ffffff;
+  --raised: #f6f7f9;
+  --raised-strong: #eceef1;
+  --line: rgba(17, 24, 32, 0.08);
+  --divider: #dde1e6;
+  --text: #121820;
+  --text-muted: #555f6b;
+  --text-label: #6a7380;
+  --nav-icon: #6a7380;
+  --placeholder: #7d8794;
+  --nav-text: #3b4450;
+  --nav-active-text: #11402b;
+  --sidebar-ground: #e9ecef;
+  --brand: #1f7a4d;
+  --brand-text: #176640;
+  --on-brand: #ffffff;
+  --positive: #1f7a4d;
+  --warning: #b5561c;
+  --series-in: #1f7a4d;
+  --series-out: #3e63a8;
+}
+
+.dark {
+  --ground: #0f1115;
+  --panel: #171a20;
+  --raised: #1c2027;
+  --raised-strong: #22262e;
+  --line: rgba(236, 238, 241, 0.06);
+  --divider: #2a2f38;
+  --text: #eceef1;
+  --text-muted: #9ba2ac;
+  --text-label: #6c737d;
+  --nav-icon: #858c96;
+  --placeholder: #5a6470;
+  --nav-text: #b6bbc2;
+  --nav-active-text: #d8f3e4;
+  --sidebar-ground: #0a0b0e;
+  --brand: #63c08b;
+  --brand-text: #8fd9ae;
+  --on-brand: #0f1115;
+  --positive: #63c08b;
+  --warning: #e39a5b;
+  --series-in: #4fa874;
+  --series-out: #6589d0;
+}
+
+:root,
+.dark {
+  --background: var(--ground);
+  --foreground: var(--text);
+  --card: var(--panel);
+  --card-foreground: var(--text);
+  --popover: var(--panel);
+  --popover-foreground: var(--text);
+  --primary: var(--brand);
+  --primary-foreground: var(--on-brand);
+  --secondary: var(--raised);
+  --secondary-foreground: var(--text);
+  --muted: var(--raised);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--raised-strong);
+  --accent-foreground: var(--text);
+  --destructive: var(--warning);
+  --border: var(--line);
+  --input: var(--divider);
+  --ring: var(--brand);
+
+  --sidebar: var(--sidebar-ground);
+  --sidebar-foreground: var(--nav-text);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: var(--on-brand);
+  --sidebar-accent: var(--panel);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--divider);
+  --sidebar-ring: var(--brand);
+}
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  button,
+  a[href],
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  [role="button"],
+  [role="menuitem"],
+  [role="menuitemradio"],
+  [role="radio"] {
+    cursor: pointer;
+  }
+}
+
+@utility figures {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Every second list row gets a faint wash. */
+@utility zebra {
+  & > :nth-child(even of .zebra-row) {
+    background-color: var(--raised);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
