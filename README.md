@@ -1,45 +1,36 @@
 # Clarity
 
-Your bank accounts in one calm place, only for you.
+A self-hosted overview of your bank accounts. Clarity reads your accounts
+through the open banking interface (PSD2) every bank in the EU has to provide,
+sorts the transactions into categories, finds subscriptions and other fixed
+costs on its own, and shows what is left until the end of the month.
 
-Clarity shows what is on all your accounts, where your money went this month
-and which fixed costs are still coming. It runs on your own computer or
-server, reads your accounts through the open banking interfaces every EU bank
-has to offer, and never shows anything to anyone but you.
+React and Tailwind in the panel, Spring Boot on Java 25 and Postgres behind it.
+Bank access goes through [Enable Banking](https://enablebanking.com).
 
-- **One balance** across all connected accounts (banks and PayPal)
-- **What's left** this month once the remaining fixed costs are paid
-- **Where the money went**, by category, with automatic categorization and
-  rules you teach it with one tap
-- **Fixed costs** found on their own: subscriptions, rent, contracts,
-  insurance, monthly or yearly
-- Works on the phone like an app, light and dark
+|      | Build Status                                                                                                                                                         | Demo                                                                                                                                                                      |
+|------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| main | [![CI](https://github.com/breuerlukas/clarity/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/breuerlukas/clarity/actions/workflows/ci.yml) | [![Demo on GitHub Pages](https://github.com/breuerlukas/clarity/actions/workflows/pages.yml/badge.svg?branch=main)](https://github.com/breuerlukas/clarity/actions/workflows/pages.yml) |
 
-**Try it first:** the public demo runs entirely in your browser with made-up
-sample data, no bank and no server involved. It is published to GitHub Pages
-on every push to `main` (enable it once under *Settings → Pages → Source:
-GitHub Actions*). To run it locally:
-`cd panel && VITE_DEMO=true npm run dev`.
+There is a [demo](https://breuerlukas.github.io/clarity/) with made-up data. It
+runs entirely in the browser, without a server or a bank behind it. Locally:
+`cd panel && npm install && npm run demo`.
 
-## How your data stays yours
+## Security
 
-- **Read-only access.** Banks hand out read-only consent (PSD2). Clarity cannot
-  move money, and neither can anyone who gets into it.
-- **Your password never reaches Clarity.** You sign in at your bank directly.
-- **Exactly one owner.** The account is created with a one-time code that only
-  appears in the server log, and every login needs password **and** a code
-  from an authenticator app.
-- **Hardened sessions.** HttpOnly, SameSite=Strict cookies; only a hash of the
-  session token is stored; sessions end after 7 idle days or 30 days at most.
-- **Brute force is pointless.** Five failed attempts lock an address out for
-  15 minutes; authenticator codes cannot be replayed.
-- **No third parties in the page.** No CDN, no web fonts from elsewhere, no
-  analytics; a strict Content Security Policy enforces it.
-- **Closed by default.** The panel only listens on `127.0.0.1`, the api is
-  never published, and the database sits on a network without internet
-  access.
+Clarity only ever gets read access to your accounts. You sign in at your bank
+yourself, so your banking password never reaches Clarity, and the consent the
+bank hands out can't move money.
 
-See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
+It is built for exactly one person. The account is created with a one-time
+code that only shows up in the server log, and every sign-in needs the
+password and a code from an authenticator app. Sessions sit in HttpOnly
+cookies, only their hash is stored, and repeated failed sign-ins lock the
+address out for a while. The panel loads nothing from third parties, and out
+of the box it only listens on `127.0.0.1`; the api and the database are never
+published.
+
+Found a problem? See [SECURITY.md](SECURITY.md).
 
 ## Setup
 
@@ -49,7 +40,7 @@ You need Docker with Compose and a free
 **1. Get the code**
 
 ```bash
-git clone https://github.com/<you>/clarity.git
+git clone https://github.com/breuerlukas/clarity.git
 cd clarity
 cp .env.example .env
 ```
@@ -120,6 +111,9 @@ The panel's dev server proxies `/v1` to `localhost:8080`.
 
 Tests: `./gradlew test` in `api/`, `npm test` in `panel/`.
 
+The demo is published by `.github/workflows/pages.yml` on every push to
+`main`. In a fork, set *Settings → Pages → Source* to *GitHub Actions* once.
+
 ## License
 
-[GNU Affero General Public License v3.0](LICENSE.md)
+[AGPL-3.0](LICENSE.md)
