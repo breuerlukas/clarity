@@ -1,6 +1,16 @@
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronsUpDown, Languages, LogOut, Settings, SunMoon } from "lucide-react";
+import {
+  ChevronsUpDown,
+  Languages,
+  LogOut,
+  Monitor,
+  Moon,
+  Settings,
+  Sun,
+  SunMoon,
+  type LucideIcon,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +27,16 @@ import {
 import { useSidebar } from "@/components/ui/sidebar";
 import { useSession } from "@/hooks/use-session";
 import { api } from "@/lib/api";
+import { Flag } from "@/components/flag";
 import { LANGUAGES } from "@/locales/i18n";
 import { useTheme, type ThemePreference } from "@/lib/theme";
 import { useOpenSettings } from "@/layouts/settings/settings-dialog-context";
 
-const THEMES: ThemePreference[] = ["system", "light", "dark"];
+const THEMES: { value: ThemePreference; icon: LucideIcon }[] = [
+  { value: "system", icon: Monitor },
+  { value: "light", icon: Sun },
+  { value: "dark", icon: Moon },
+];
 
 /**
  * The sidebar's last row: the owner's initial and name open a menu with the
@@ -73,8 +88,9 @@ export function SidebarUser() {
                 onValueChange={(value) => setTheme(value as ThemePreference)}
               >
                 {THEMES.map((option) => (
-                  <DropdownMenuRadioItem key={option} value={option}>
-                    {t(`settings.theme_${option}`)}
+                  <DropdownMenuRadioItem key={option.value} value={option.value}>
+                    <option.icon aria-hidden />
+                    {t(`settings.theme_${option.value}`)}
                   </DropdownMenuRadioItem>
                 ))}
               </DropdownMenuRadioGroup>
@@ -92,6 +108,7 @@ export function SidebarUser() {
               >
                 {LANGUAGES.map((language) => (
                   <DropdownMenuRadioItem key={language.code} value={language.code}>
+                    <Flag country={language.flag} />
                     {language.name}
                   </DropdownMenuRadioItem>
                 ))}

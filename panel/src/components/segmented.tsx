@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 /**
@@ -12,7 +13,7 @@ export function Segmented<T extends string>({
 }: {
   label: string;
   value: T | undefined;
-  options: { value: T; label: string; icon?: LucideIcon }[];
+  options: { value: T; label: string; icon?: LucideIcon; leading?: ReactNode }[];
   onChange: (value: T) => void;
 }) {
   return (
@@ -30,6 +31,7 @@ export function Segmented<T extends string>({
               : "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm text-muted-foreground hover:text-foreground"
           }
         >
+          {option.leading}
           {option.icon && <option.icon className="size-4" aria-hidden />}
           {option.label}
         </button>

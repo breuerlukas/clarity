@@ -26,6 +26,6 @@ i18n.on("languageChanged", (language) => {
 export default i18n;
 /** The languages offered in the settings, each named in itself. */
 export const LANGUAGES = [
-  { code: "de", name: "Deutsch" },
-  { code: "en", name: "English" },
+  { code: "de", name: "Deutsch", flag: "de" },
+  { code: "en", name: "English", flag: "gb" },
 ] as const;
