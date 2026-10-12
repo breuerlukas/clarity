@@ -11,8 +11,9 @@ import java.time.LocalDate;
 import java.util.Map;
 
 /**
- * A detected fixed cost. The amount is what the last booking cost, as a
- * positive number.
+ * A detected fixed cost. The amount is what the last booking cost, the
+ * previous amount what the one before cost, both as positive numbers; a
+ * difference between the two is a price change.
  */
 @Getter
 @Accessors(fluent = true)
@@ -21,6 +22,7 @@ public final class RecurringPayment {
   private final String counterparty;
   private final Category category;
   private final BigDecimal amount;
+  private final BigDecimal previousAmount;
   private final String currency;
   private final RecurringCycle cycle;
   private final LocalDate lastDate;
@@ -43,6 +45,7 @@ public final class RecurringPayment {
     return Map.of("counterparty", counterparty,
       "category", category.name(),
       "amount", amount,
+      "previous_amount", previousAmount,
       "currency", currency,
       "cycle", cycle.name(),
       "last_date", lastDate.toString(),

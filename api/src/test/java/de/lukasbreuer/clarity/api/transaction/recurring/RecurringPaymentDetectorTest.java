@@ -63,6 +63,7 @@ final class RecurringPaymentDetectorTest {
       debit("Stadtwerke", "-80.00", "2026-09-05"),
       debit("Stadtwerke", "-86.00", "2026-10-05")));
     assertEquals(1, payments.size());
+    assertEquals(new BigDecimal("80.00"), payments.getFirst().previousAmount());
   }
 
   private Transaction debit(String counterparty, String amount, String date) {

@@ -59,7 +59,8 @@ public final class RecurringPaymentDetector {
       .filter(cycle -> isStable(recent(sorted, cycle), latest.amount()))
       .filter(cycle -> isActive(latest.bookingDate(), cycle))
       .map(cycle -> RecurringPayment.create(latest.counterparty(),
-        latest.category(), latest.amount().abs(), latest.currency(), cycle,
+        latest.category(), latest.amount().abs(),
+        sorted.get(sorted.size() - 2).amount().abs(), latest.currency(), cycle,
         latest.bookingDate()));
   }
 
