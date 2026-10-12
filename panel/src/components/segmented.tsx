@@ -28,7 +28,7 @@ export function Segmented<T extends string>({
           className={
             value === option.value
               ? "inline-flex h-9 items-center gap-2 rounded-full bg-card px-4 text-sm font-bold text-foreground shadow-sm ring-1 ring-divider"
-              : "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm text-muted-foreground hover:text-foreground"
+              : "inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-bold text-muted-foreground ring-1 ring-transparent hover:text-foreground"
           }
         >
           {option.leading}

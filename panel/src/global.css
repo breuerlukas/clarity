@@ -55,6 +55,7 @@
   --color-nav-active-text: var(--nav-active-text);
   --color-positive: var(--positive);
   --color-warning: var(--warning);
+  --color-negative: var(--negative);
   --color-series-in: var(--series-in);
   --color-series-out: var(--series-out);
 }
@@ -86,6 +87,7 @@
   --on-brand: #ffffff;
   --positive: #1f7a4d;
   --warning: #b5561c;
+  --negative: #a8443b;
   --series-in: #1f7a4d;
   --series-out: #3e63a8;
 }
@@ -110,6 +112,7 @@
   --on-brand: #0f1115;
   --positive: #63c08b;
   --warning: #e39a5b;
+  --negative: #ee9a91;
   --series-in: #4fa874;
   --series-out: #6589d0;
 }
