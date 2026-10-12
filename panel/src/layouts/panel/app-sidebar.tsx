@@ -6,19 +6,16 @@ import {
   ChartColumnBig,
   Landmark,
   LayoutDashboard,
-  Settings,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Wordmark } from "@/components/wordmark";
 import { SidebarNavigation, type NavGroup } from "@/layouts/panel/navigation";
 import { SidebarUser } from "@/layouts/panel/sidebar-user";
-import { useOpenSettings } from "@/layouts/settings/settings-dialog-context";
 
 export function appNavigation(t: TFunction): NavGroup[] {
   return [
@@ -36,17 +33,9 @@ export function appNavigation(t: TFunction): NavGroup[] {
   ];
 }
 
-/** The light sidebar: mark, navigation, and at the foot settings and owner. */
+/** The light sidebar: mark, navigation, and the owner at the foot. */
 export function AppSidebar() {
   const { t } = useTranslation();
-  const openSettings = useOpenSettings();
-  const { isMobile, setOpenMobile } = useSidebar();
-  const showSettings = () => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-    openSettings();
-  };
   return (
     <Sidebar collapsible="offcanvas" className="z-40">
       <SidebarHeader className="px-3 pt-4 pb-0">
@@ -57,15 +46,7 @@ export function AppSidebar() {
       <SidebarContent className="px-3">
         <SidebarNavigation groups={appNavigation(t)} />
       </SidebarContent>
-      <SidebarFooter className="gap-0 px-3 pt-3 pb-2">
-        <button
-          type="button"
-          onClick={showSettings}
-          className="flex h-[38px] items-center gap-[11px] rounded-[10px] px-2.5 text-sm text-nav-text transition-colors hover:bg-panel hover:text-foreground"
-        >
-          <Settings size={18} className="text-nav-icon" aria-hidden />
-          {t("nav.settings")}
-        </button>
+      <SidebarFooter className="gap-0 px-3 pt-0 pb-2">
         <SidebarUser />
       </SidebarFooter>
     </Sidebar>

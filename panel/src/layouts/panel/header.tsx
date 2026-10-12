@@ -21,10 +21,7 @@ interface Crumb {
 /** The trail for a path; every page sits directly under the root today. */
 function crumbsFor(pathname: string, t: TFunction): Crumb[] {
   const [section] = pathname.split("/").filter(Boolean);
-  if (!section) {
-    return [{ title: t("nav.overview") }];
-  }
-  return [{ title: t(`nav.${section}`) }];
+  return [{ title: t(section ? `nav.${section}` : "nav.overview") }];
 }
 
 /** The 64 px topbar: the sidebar toggle and where you are. */
@@ -34,7 +31,7 @@ export function AppHeader() {
   const { toggleSidebar } = useSidebar();
   const crumbs = crumbsFor(pathname, t);
   return (
-    <header className="flex h-16 shrink-0 items-center gap-3.5 border-b border-divider px-4 sm:px-7">
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b border-divider px-3 sm:px-4">
       <button
         type="button"
         onClick={toggleSidebar}
@@ -43,18 +40,21 @@ export function AppHeader() {
       >
         <PanelLeft size={18} aria-hidden />
       </button>
+      <span className="mr-2 h-5 w-px bg-divider" aria-hidden="true" />
       <Breadcrumb className="min-w-0">
         <BreadcrumbList className="flex-nowrap">
           {crumbs.map((crumb, index) => (
             <Fragment key={crumb.title}>
-              {index > 0 && <BreadcrumbSeparator className="hidden sm:inline-flex" />}
+              {index > 0 && <BreadcrumbSeparator className="hidden sm:inline-flex [&>svg]:size-3.5" />}
               <BreadcrumbItem className={index < crumbs.length - 1 ? "hidden sm:inline-flex" : "min-w-0"}>
                 {crumb.href ? (
                   <BreadcrumbLink asChild>
-                    <Link to={crumb.href}>{crumb.title}</Link>
+                    <Link to={crumb.href} className="text-muted-foreground hover:text-foreground">
+                      {crumb.title}
+                    </Link>
                   </BreadcrumbLink>
                 ) : (
-                  <BreadcrumbPage className="truncate text-[15px]">{crumb.title}</BreadcrumbPage>
+                  <BreadcrumbPage className="truncate font-semibold">{crumb.title}</BreadcrumbPage>
                 )}
               </BreadcrumbItem>
             </Fragment>
