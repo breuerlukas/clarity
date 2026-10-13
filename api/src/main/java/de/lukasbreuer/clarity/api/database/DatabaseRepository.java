@@ -11,7 +11,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 @NoRepositoryBean
-public interface DatabaseRepository<T, ID extends Serializable> extends Repository<T, ID> {
+public interface DatabaseRepository<T, ID extends Serializable>
+  extends Repository<T, ID> {
   @Async
   CompletableFuture<Optional<T>> findById(ID id);
 

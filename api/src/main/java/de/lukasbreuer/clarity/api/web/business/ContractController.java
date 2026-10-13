@@ -101,7 +101,8 @@ public final class ContractController {
    * earliest day the notice period allows, but any day after the start goes,
    * since contracts also end by mutual agreement.
    */
-  @RequestMapping(path = "/business/contracts/end/", method = RequestMethod.POST)
+  @RequestMapping(path = "/business/contracts/end/",
+    method = RequestMethod.POST)
   public CompletableFuture<ApiResponse> end(
     @RequestBody String payload, HttpServletResponse response
   ) {

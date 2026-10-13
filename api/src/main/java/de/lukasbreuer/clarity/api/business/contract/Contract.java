@@ -19,11 +19,11 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * A customer contract of a business space: what the customer pays per invoice, how often, since
- * when, and on which terms it renews. After each term of {@code termMonths}
- * it renews by another term unless it was cancelled at least
- * {@code noticeMonths} before. The end date is the last day the contract
- * runs; without one it is open.
+ * A customer contract of a business space: what the customer pays per
+ * invoice, how often, since when, and on which terms it renews. After each
+ * term of {@code termMonths} it renews by another term unless it was
+ * cancelled at least {@code noticeMonths} before. The end date is the last
+ * day the contract runs; without one it is open.
  */
 @Entity
 @Table(name = "contract")

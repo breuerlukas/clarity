@@ -47,7 +47,9 @@ public final class ConnectionController {
    * four unattended reads PSD2 allows per day.
    */
   @RequestMapping(path = "/connections/sync/", method = RequestMethod.POST)
-  public CompletableFuture<ApiResponse> synchronize(HttpServletRequest request) {
+  public CompletableFuture<ApiResponse> synchronize(
+    HttpServletRequest request
+  ) {
     var client = ClientAddress.of(request);
     return syncCoordinator.synchronizeNow(Map.of(
         "Psu-Ip-Address", client.value(),

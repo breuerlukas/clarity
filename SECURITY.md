@@ -15,6 +15,15 @@ repository instead, and include:
 You can expect an acknowledgment within 48 hours and a plan within five
 business days. Fixes are disclosed once a release is out.
 
+## How Clarity is checked
+
+Every pull request is linted, analyzed with CodeQL and SpotBugs/FindSecBugs,
+checked for vulnerable dependencies, committed secrets and vulnerable or
+misconfigured images, and the whole stack is started and probed from the
+outside (every endpoint without a session, security headers, login lockout,
+OWASP ZAP baseline). High and Critical findings block the merge. See
+`.github/workflows/` for the details.
+
 ## Running Clarity safely
 
 - Keep the panel bound to `127.0.0.1` and reach it through a private network

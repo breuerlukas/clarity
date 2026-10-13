@@ -50,7 +50,9 @@ public final class EnableBankingClient {
     return send(() -> prepare(path, Map.of()).DELETE());
   }
 
-  private HttpRequest.Builder prepare(String path, Map<String, String> headers) {
+  private HttpRequest.Builder prepare(
+    String path, Map<String, String> headers
+  ) {
     var builder = HttpRequest.newBuilder(URI.create(BASE_URL + path))
       .timeout(Duration.ofSeconds(60))
       .header("Authorization", "Bearer " + token());
@@ -62,7 +64,8 @@ public final class EnableBankingClient {
     try {
       return signer.token();
     } catch (Exception exception) {
-      throw new IllegalStateException("Enable Banking is not set up", exception);
+      throw new IllegalStateException("Enable Banking is not set up",
+        exception);
     }
   }
 

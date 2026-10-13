@@ -1,0 +1,205 @@
+name: Security
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  # Gradle has no lockfile GitHub could read, so the resolved dependencies
+  # are submitted to the dependency graph; Dependabot alerts and the review
+  # below then cover the api as well as the panel. Pull requests from forks
+  # cannot submit and are reviewed on the panel's lockfile alone.
+  dependency-graph:
+    if: github.event_name != 'schedule' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - uses: gradle/actions/dependency-submission@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          build-root-directory: api
+
+  # Refuses pull requests that add a dependency with a known High or
+  # Critical vulnerability.
+  dependency-review:
+    if: github.event_name == 'pull_request' && !cancelled()
+    needs: dependency-graph
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          retry-on-snapshot-warnings: true
+          comment-summary-in-pr: on-failure
+
+  # Keys, tokens and passwords committed anywhere in the history.
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: false
+
+  # Builds and starts the whole stack the way a self-hoster runs it, then
+  # scans it from the outside: the images and their configuration with
+  # Trivy, the running api and panel with our own checks and an OWASP ZAP
+  # baseline scan. Every Trivy finding goes to the Security tab; fixable
+  # High and Critical ones fail the job, after the other checks ran.
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    env:
+      COMPOSE_PROJECT_NAME: clarity
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configure a throwaway instance
+        run: |
+          {
+            echo "DB_PASSWORD=$(openssl rand -hex 24)"
+            echo "PUBLIC_URL=http://127.0.0.1:8080"
+          } > .env
+
+      - name: Build the images
+        run: docker compose build
+
+      - name: Scan the api image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: clarity-api
+          format: sarif
+          output: trivy/api.sarif
+
+      - name: Scan the panel image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: clarity-panel
+          format: sarif
+          output: trivy/panel.sarif
+          skip-setup-trivy: true
+
+      - name: Scan the Docker and Compose configuration
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: sarif
+          output: trivy/config.sarif
+          skip-setup-trivy: true
+
+      # Pull requests from forks get no write access to code scanning.
+      - name: Upload the api image report
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: trivy/api.sarif
+          category: trivy-api
+
+      - name: Upload the panel image report
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: trivy/panel.sarif
+          category: trivy-panel
+
+      - name: Upload the configuration report
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: trivy/config.sarif
+          category: trivy-config
+
+      - name: Start the stack
+        run: docker compose up --detach --wait --wait-timeout 180
+
+      - name: Wait for the api
+        run: |
+          for _ in $(seq 60); do
+            curl --silent --fail http://127.0.0.1:8080/v1/setup/status/ && exit 0
+            sleep 3
+          done
+          docker compose logs api
+          exit 1
+
+      - name: Security checks against the running stack
+        run: python3 .github/security/smoke_test.py http://127.0.0.1:8080
+
+      - name: OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
+        with:
+          target: http://127.0.0.1:8080
+          rules_file_name: .zap/rules.tsv
+          cmd_options: -I
+          allow_issue_writing: false
+          fail_action: true
+          artifact_name: zap-baseline
+
+      - name: Show the logs
+        if: failure()
+        run: docker compose logs
+
+      - name: Fail on fixable High and Critical vulnerabilities in the images
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: clarity-api
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          skip-setup-trivy: true
+
+      - name: Fail on fixable High and Critical vulnerabilities in the panel
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: clarity-panel
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          skip-setup-trivy: true
+
+      - name: Fail on High and Critical misconfigurations
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          skip-setup-trivy: true

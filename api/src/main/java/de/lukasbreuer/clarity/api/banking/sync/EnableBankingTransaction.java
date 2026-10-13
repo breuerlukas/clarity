@@ -43,7 +43,8 @@ public final class EnableBankingTransaction {
   }
 
   public String currency() {
-    return json.getJSONObject("transaction_amount").optString("currency", "EUR");
+    return json.getJSONObject("transaction_amount")
+      .optString("currency", "EUR");
   }
 
   public LocalDate bookingDate() {

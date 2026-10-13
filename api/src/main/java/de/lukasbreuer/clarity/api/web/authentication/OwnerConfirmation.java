@@ -36,8 +36,9 @@ public final class OwnerConfirmation {
     String code
   ) {
     return ownerRepository.existsByConfirmed(true)
-      .thenCompose(exists -> exists ? CompletableFuture.completedFuture(
-          Optional.<Owner>empty()) : ownerRepository.findFirstByConfirmed(false))
+      .thenCompose(exists -> exists ?
+        CompletableFuture.completedFuture(Optional.<Owner>empty()) :
+        ownerRepository.findFirstByConfirmed(false))
       .thenCompose(owner -> confirm(request, response, address, code,
         owner.orElse(null)));
   }

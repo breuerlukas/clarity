@@ -5,7 +5,11 @@ import lombok.experimental.Accessors;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.logging.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 @Accessors(fluent = true)
 public final class Log extends Logger {
@@ -46,7 +50,8 @@ public final class Log extends Logger {
   }
 
   private LogRecord formatRecord(LogRecord record) {
-    record.setMessage("[" + getName().toUpperCase() + "] " + record.getMessage());
+    record.setMessage("[" + getName().toUpperCase() + "] " +
+      record.getMessage());
     return record;
   }
 

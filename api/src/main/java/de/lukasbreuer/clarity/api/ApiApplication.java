@@ -18,7 +18,8 @@ public class ApiApplication {
    * @param args The arguments that are passed into the application
    */
   public static void main(String[] args) {
-    try (var apiContext = new AnnotationConfigApplicationContext(ApiModule.class)) {
+    try (var apiContext =
+           new AnnotationConfigApplicationContext(ApiModule.class)) {
       var log = apiContext.getBean(Log.class);
       Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->
         log.processError(throwable));

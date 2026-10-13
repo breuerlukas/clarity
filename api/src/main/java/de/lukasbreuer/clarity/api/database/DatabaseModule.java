@@ -41,7 +41,8 @@ public class DatabaseModule {
     entityManagerFactory.setPackagesToScan("de.lukasbreuer.clarity.api");
     entityManagerFactory.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
     var properties = new Properties();
-    properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+    properties.put("hibernate.dialect",
+      "org.hibernate.dialect.PostgreSQLDialect");
     properties.put("hibernate.hbm2ddl.auto", "update");
     properties.put("hibernate.show_sql", "false");
     entityManagerFactory.setJpaProperties(properties);
@@ -49,7 +50,9 @@ public class DatabaseModule {
   }
 
   @Bean
-  public JpaTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
+  public JpaTransactionManager transactionManager(
+    EntityManagerFactory entityManagerFactory
+  ) {
     return new JpaTransactionManager(entityManagerFactory);
   }
 }
