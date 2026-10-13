@@ -73,8 +73,8 @@ public final class ElectronicInvoiceReader {
       iban.map(Iban::normalize).orElse(null), currency,
       amount(child(summation, "TaxBasisTotalAmount")).orElse(null),
       tax.orElse(null), gross,
-      child(exchanged, "IssueDateTime").flatMap(ElectronicInvoiceReader::ciiDate)
-        .orElseThrow(),
+      child(exchanged, "IssueDateTime")
+        .flatMap(ElectronicInvoiceReader::ciiDate).orElseThrow(),
       dueDate.orElse(null));
   }
 

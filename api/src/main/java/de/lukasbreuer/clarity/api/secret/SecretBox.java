@@ -31,6 +31,7 @@ public final class SecretBox {
   private static final int NONCE_BYTES = 12;
   private static final int TAG_BITS = 128;
   private static final String TRANSFORMATION = "AES/GCM/NoPadding";
+  private static final SecureRandom RANDOM = new SecureRandom();
 
   public static SecretBox load(Path keyFile) throws IOException {
     if (!Files.exists(keyFile)) {
@@ -40,16 +41,16 @@ public final class SecretBox {
     if (key.length != KEY_BYTES) {
       throw new IOException("The key in " + keyFile + " is not 256 bit long");
     }
-    return new SecretBox(new SecretKeySpec(key, "AES"), new SecureRandom());
+    return new SecretBox(new SecretKeySpec(key, "AES"));
   }
 
   public static SecretBox of(byte[] key) {
-    return new SecretBox(new SecretKeySpec(key, "AES"), new SecureRandom());
+    return new SecretBox(new SecretKeySpec(key, "AES"));
   }
 
   private static void create(Path keyFile) throws IOException {
     var key = new byte[KEY_BYTES];
-    new SecureRandom().nextBytes(key);
+    RANDOM.nextBytes(key);
     var parent = keyFile.toAbsolutePath().getParent();
     if (parent != null) {
       Files.createDirectories(parent);
@@ -66,7 +67,6 @@ public final class SecretBox {
   }
 
   private final SecretKey key;
-  private final SecureRandom random;
 
   /**
    * @return The nonce followed by the ciphertext, Base64 encoded
@@ -74,7 +74,7 @@ public final class SecretBox {
   public String encrypt(String secret) {
     try {
       var nonce = new byte[NONCE_BYTES];
-      random.nextBytes(nonce);
+      RANDOM.nextBytes(nonce);
       var cipher = Cipher.getInstance(TRANSFORMATION);
       cipher.init(Cipher.ENCRYPT_MODE, key,
         new GCMParameterSpec(TAG_BITS, nonce));

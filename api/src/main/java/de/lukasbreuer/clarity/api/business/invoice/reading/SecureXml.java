@@ -1,10 +1,13 @@
 package de.lukasbreuer.clarity.api.business.invoice.reading;
 
 import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Optional;
 
 /**
@@ -38,7 +41,8 @@ public final class SecureXml {
       var builder = factory.newDocumentBuilder();
       builder.setErrorHandler(null);
       return Optional.of(builder.parse(new ByteArrayInputStream(xml)));
-    } catch (Exception exception) {
+    } catch (ParserConfigurationException | SAXException | IOException
+      exception) {
       return Optional.empty();
     }
   }

@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -191,7 +192,7 @@ public final class Invoice {
     information.put("mail", mailSubject == null ? null : Map.of(
       "subject", mailSubject,
       "sender", mailSender == null ? "" : mailSender,
-      "received_at", mailReceivedAt == null ? 0 : mailReceivedAt));
+      "received_at", Objects.requireNonNullElse(mailReceivedAt, 0L)));
     information.put("document", documentId == null ? null : Map.of(
       "name", documentName,
       "content_type", documentContentType,
