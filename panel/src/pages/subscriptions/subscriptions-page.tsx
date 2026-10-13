@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { PageHeader } from "@/components/panel";
+import { PageHeader, PanelSkeleton } from "@/components/panel";
 import { Segmented } from "@/components/segmented";
 import { Notice } from "@/components/notice";
 import { useRecurringPayments } from "@/hooks/use-finances";
@@ -43,7 +43,7 @@ export function SubscriptionsPage() {
           />
         </div>
       ) : (
-        <div className="h-96 rounded-3xl border bg-card" aria-busy="true" />
+        <PanelSkeleton className="h-96" />
       )}
     </>
   );

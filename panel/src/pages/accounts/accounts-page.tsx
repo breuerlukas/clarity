@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/notice";
-import { PageHeader, Panel } from "@/components/panel";
+import { PageHeader, Panel, PanelSkeleton } from "@/components/panel";
 import { SyncButton } from "@/components/sync-button";
 import { useConnections } from "@/hooks/use-finances";
 import { ConnectionCard } from "@/pages/accounts/connection-card";
@@ -24,6 +24,12 @@ export function AccountsPage() {
       </PageHeader>
       {connections.isError && <Notice className="mb-6">{t("common.error")}</Notice>}
       <div className="grid items-start gap-6 xl:grid-cols-2">
+        {connections.isPending && (
+          <>
+            <PanelSkeleton className="h-64" />
+            <PanelSkeleton className="h-64" />
+          </>
+        )}
         {connections.data?.length === 0 && (
           <Panel title={t("accounts.empty_title")}>
             <p className="max-w-xl text-muted-foreground">{t("accounts.empty_text")}</p>

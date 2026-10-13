@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Monitor, ShieldCheck, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/notice";
+import { LedgerSkeleton } from "@/components/ledger";
 import { api, type OwnerSession } from "@/lib/api";
 import { formatRelative } from "@/lib/format";
 import { SettingRow, SettingsSection } from "@/pages/settings/settings-card";
@@ -41,6 +42,7 @@ export function SecuritySection() {
         </Button>
       </SettingRow>
       {sessions.isError && <Notice className="py-4">{t("common.error")}</Notice>}
+      {sessions.isPending && <LedgerSkeleton rows={2} />}
       <ul className="divide-y divide-divider">
         {sessions.data?.map((session) => (
           <SessionRow key={session.id} session={session} onClosed={refresh} />

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Panel } from "@/components/panel";
+import { Panel, PanelSkeleton } from "@/components/panel";
 import { AmountBadge } from "@/components/amount-badge";
 import { CategoryIcon } from "@/components/category-icon";
 import type { Category, Transaction } from "@/lib/api";
@@ -22,7 +22,7 @@ export function PeriodSummary({
 }) {
   const { t } = useTranslation();
   if (!transactions) {
-    return null;
+    return <PanelSkeleton className="hidden h-96 2xl:flex" />;
   }
   const summary = summarizeMonth(transactions);
   return (
