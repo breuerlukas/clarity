@@ -160,6 +160,7 @@
     "hint_business": "Du meldest dich bei deiner Bank als Unternehmen an. Die Konten erscheinen nur unter Business."
   },
   "statistics": {
+    "split": "Aufteilung",
     "share_rest": "Übrige",
     "range": "Zeitraum",
     "months_one": "{{count}} Monat",

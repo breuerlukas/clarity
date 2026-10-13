@@ -11,8 +11,9 @@ export function formatMoney(
     style: "currency",
     currency,
     signDisplay: options.signed ? "exceptZero" : "auto",
+    // German doesn't shorten thousands, so a decimal there reads "31.064,6 €".
     ...(options.compact
-      ? { notation: "compact", maximumFractionDigits: 1 }
+      ? { notation: "compact", maximumFractionDigits: Math.abs(amount) < 1000 ? 1 : 0 }
       : {}),
   }).format(amount);
 }

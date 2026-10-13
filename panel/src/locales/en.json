@@ -160,6 +160,7 @@
     "hint_business": "You sign in at your bank as a company. The accounts only show up under Business."
   },
   "statistics": {
+    "split": "Split",
     "share_rest": "Everything else",
     "range": "Period",
     "months_one": "{{count}} month",
