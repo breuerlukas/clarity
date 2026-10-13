@@ -41,7 +41,11 @@ dependencies {
 
   implementation("de.mkammerer:argon2-jvm:2.12")
 
-  implementation("io.jsonwebtoken:jjwt:0.13.0")
+  // The modules instead of the "jjwt" bundle: org.json is already here, and
+  // the bundle's Jackson 2 backend brought vulnerable jackson-core along.
+  implementation("io.jsonwebtoken:jjwt-api:0.13.0")
+  runtimeOnly("io.jsonwebtoken:jjwt-impl:0.13.0")
+  runtimeOnly("io.jsonwebtoken:jjwt-orgjson:0.13.0")
 
   implementation("dev.samstevens.totp:totp:1.7.1")
 
