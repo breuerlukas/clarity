@@ -21,8 +21,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Fetches new mails of every mailbox every 15 minutes, or of one space when
- * the owner asks, and matches payments afterwards. Only one check runs at a
- * time. A failing mailbox records why on itself and the others go on.
+ * the owner asks, and matches payments afterwards. The sent folder is read
+ * first, so a payment advice finds the invoice it announces even when both
+ * arrived since the last check. Only one check runs at a time. A failing
+ * mailbox records why on itself and the others go on.
  */
 @Component
 @RequiredArgsConstructor
@@ -81,12 +83,12 @@ public final class MailCheck {
     try (var store = MailServer.connect(mailbox.host(), mailbox.port(),
       mailbox.security(), mailbox.username(),
       secretBox.decrypt(mailbox.encryptedPassword()))) {
-      reader.read(store, mailbox, mailbox.incomingFolder(), mail ->
-        mailImport.store(space, mailbox, InvoiceDirection.INCOMING, mail));
       if (mailbox.outgoingFolder() != null) {
         reader.read(store, mailbox, mailbox.outgoingFolder(), mail ->
           mailImport.store(space, mailbox, InvoiceDirection.OUTGOING, mail));
       }
+      reader.read(store, mailbox, mailbox.incomingFolder(), mail ->
+        mailImport.store(space, mailbox, InvoiceDirection.INCOMING, mail));
       mailbox.markChecked();
     } catch (MessagingException | IllegalStateException exception) {
       mailbox.markFailed(describe(exception));
