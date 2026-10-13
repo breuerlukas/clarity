@@ -1,4 +1,11 @@
-import { ApiError, type Category, type OwnerSession } from "@/lib/api";
+import {
+  ApiError,
+  type Category,
+  type Contract,
+  type ContractDraft,
+  type OwnerSession,
+  type PaymentKind,
+} from "@/lib/api";
 import { createDemoDatabase } from "@/demo/demo-data";
 
 /**
@@ -62,6 +69,24 @@ export async function handleDemoRequest(
       return categorize(String(body.id), body.category as Category, Boolean(body.remember));
     case "GET /recurring/":
       return ok({ payments: database.recurring });
+    case "GET /business/connections/":
+      return ok({ connections: database.businessConnections });
+    case "GET /business/transactions/":
+      return ok({ transactions: businessTransactionsBetween(url.searchParams.get("from"), url.searchParams.get("to")) });
+    case "POST /business/transactions/assign/":
+      return assignPayment(String(body.id), String(body.kind), String(body.contract ?? ""));
+    case "GET /business/contracts/":
+      return ok({ contracts: database.contracts });
+    case "POST /business/contracts/create/":
+      return saveContract(null, body);
+    case "POST /business/contracts/update/":
+      return saveContract(findContract(String(body.id)), body);
+    case "POST /business/contracts/end/":
+      return endContract(findContract(String(body.id)), String(body.end_date));
+    case "POST /business/contracts/resume/":
+      return endContract(findContract(String(body.id)), null);
+    case "POST /business/contracts/delete/":
+      return deleteContract(findContract(String(body.id)));
     case "GET /banks/":
       return ok({ banks: ["Openbank", "N26", "PayPal", "Sparkasse", "Deutsche Bank", "ING", "DKB", "Commerzbank", "comdirect", "Trade Republic"].map((name) => ({ name, country: url.searchParams.get("country"), maximum_consent_validity: 15552000 })) });
     default:
@@ -91,13 +116,97 @@ function categorize(id: string, category: Category, remember: boolean) {
 }
 
 function removeConnection(id: string) {
-  const connection = database.connections.find((entry) => entry.id === id);
+  const list = database.connections.some((entry) => entry.id === id)
+    ? database.connections
+    : database.businessConnections;
+  const connection = list.find((entry) => entry.id === id);
   if (!connection) {
     throw new ApiError(400, 2002);
   }
   const accounts = new Set(connection.accounts.map((account) => account.id));
-  database.connections.splice(database.connections.indexOf(connection), 1);
+  list.splice(list.indexOf(connection), 1);
   database.transactions = database.transactions.filter((entry) => !accounts.has(entry.account));
+  database.businessTransactions = database.businessTransactions.filter((entry) => !accounts.has(entry.account));
+  return ok();
+}
+
+function businessTransactionsBetween(from: string | null, to: string | null) {
+  return database.businessTransactions.filter(
+    (transaction) => (!from || transaction.date >= from) && (!to || transaction.date <= to),
+  );
+}
+
+function assignPayment(id: string, kind: string, contract: string) {
+  const transaction = database.businessTransactions.find((entry) => entry.id === id);
+  if (!transaction) {
+    throw new ApiError(400, 4003);
+  }
+  if (kind === "CONTRACT" && !database.contracts.some((entry) => entry.id === contract)) {
+    throw new ApiError(400, 4001);
+  }
+  transaction.assignment =
+    kind === "AUTO" ? null : { kind: kind as PaymentKind, contract: kind === "CONTRACT" ? contract : null };
+  return ok();
+}
+
+function findContract(id: string) {
+  const contract = database.contracts.find((entry) => entry.id === id);
+  if (!contract) {
+    throw new ApiError(400, 4001);
+  }
+  return contract;
+}
+
+/** The same checks as the api, so the demo refuses what the server would. */
+function saveContract(contract: Contract | null, body: Record<string, unknown>) {
+  const draft = body as unknown as ContractDraft;
+  const customer = String(draft.customer ?? "").trim();
+  const amount = Number(draft.amount);
+  const valid =
+    customer &&
+    amount > 0 &&
+    Math.round(amount * 100) === amount * 100 &&
+    ["MONTHLY", "QUARTERLY", "HALF_YEARLY", "YEARLY"].includes(draft.interval) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(draft.start_date) &&
+    draft.term_months >= 1 &&
+    draft.term_months <= 120 &&
+    draft.notice_months >= 0 &&
+    draft.notice_months <= draft.term_months;
+  if (!valid) {
+    throw new ApiError(400, 4000);
+  }
+  const fields = {
+    customer,
+    amount,
+    interval: draft.interval,
+    start_date: draft.start_date,
+    term_months: draft.term_months,
+    notice_months: draft.notice_months,
+  };
+  if (contract) {
+    Object.assign(contract, fields);
+    return ok({ contract });
+  }
+  const created: Contract = { id: `contract-${Date.now()}`, ...fields, end_date: null, created_at: Date.now() };
+  database.contracts.push(created);
+  return ok({ contract: created });
+}
+
+function endContract(contract: Contract, endDate: string | null) {
+  if (endDate !== null && endDate < contract.start_date) {
+    throw new ApiError(400, 4002);
+  }
+  contract.end_date = endDate;
+  return ok({ contract });
+}
+
+function deleteContract(contract: Contract) {
+  database.contracts.splice(database.contracts.indexOf(contract), 1);
+  database.businessTransactions.forEach((transaction) => {
+    if (transaction.assignment?.contract === contract.id) {
+      transaction.assignment = null;
+    }
+  });
   return ok();
 }
 

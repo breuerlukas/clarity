@@ -23,7 +23,8 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Starts a bank login: asks Enable Banking for the bank's login page and
- * remembers the random state that has to come back with the redirect.
+ * remembers the random state that has to come back with the redirect. A
+ * business login signs in as a company and its accounts belong to Business.
  * Error codes: 2000 Enable Banking is not set up or refused, 2003 invalid
  * bank or country.
  */
@@ -53,7 +54,7 @@ public final class ConnectionSetupController {
       return ApiResponse.error(2003).future();
     }
     var authorization = PendingAuthorization.create(generateState(), bank,
-      country, System.currentTimeMillis());
+      country, System.currentTimeMillis(), body.getBoolean("business"));
     var validity = Math.clamp(body.getLong("maximum_consent_validity"),
       MINIMUM_VALIDITY, MAXIMUM_VALIDITY);
     return client.post("/auth", authorizationRequest(authorization, validity))
@@ -73,7 +74,7 @@ public final class ConnectionSetupController {
         .put("country", authorization.bankCountry()))
       .put("state", authorization.state())
       .put("redirect_url", configuration.redirectUrl())
-      .put("psu_type", "personal");
+      .put("psu_type", authorization.isBusiness() ? "business" : "personal");
   }
 
   private String generateState() {

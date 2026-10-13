@@ -14,7 +14,9 @@ import java.util.UUID;
 
 /**
  * One consent given at one bank: the Enable Banking session and how long the
- * bank lets it read. A connection can cover several accounts.
+ * bank lets it read. A connection can cover several accounts. Business
+ * connections are logged in as a company and only show up under Business,
+ * never in the owner's personal finances.
  */
 @Entity
 @Table(name = "bank_connection")
@@ -36,8 +38,18 @@ public final class BankConnection {
   private long validUntil;
   @Column(name = "created_at", nullable = false, updatable = false)
   private long createdAt;
+  @Column(name = "business")
+  private Boolean business;
 
   public boolean isValid() {
     return validUntil > System.currentTimeMillis();
+  }
+
+  /**
+   * Connections made before business accounts existed have no value and are
+   * personal.
+   */
+  public boolean isBusiness() {
+    return Boolean.TRUE.equals(business);
   }
 }

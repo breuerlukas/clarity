@@ -18,9 +18,18 @@ interface Crumb {
   href?: string;
 }
 
-/** The trail for a path; every page sits directly under the root today. */
+/**
+ * The trail for a path: personal pages sit directly under the root, business
+ * pages under "Business".
+ */
 function crumbsFor(pathname: string, t: TFunction): Crumb[] {
-  const [section] = pathname.split("/").filter(Boolean);
+  const [section, page] = pathname.split("/").filter(Boolean);
+  if (section === "business") {
+    return [
+      { title: t("workspace.business"), href: "/business" },
+      { title: t(page ? `nav.${page}` : "nav.business_overview") },
+    ];
+  }
   return [{ title: t(section ? `nav.${section}` : "nav.overview") }];
 }
 

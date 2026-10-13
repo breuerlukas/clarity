@@ -75,6 +75,7 @@ export interface Transaction {
   counterparty: string;
   description: string;
   category: Category;
+  counterparty_iban?: string | null;
 }
 
 export interface Account {
@@ -107,6 +108,38 @@ export interface RecurringPayment {
   last_date: string;
   next_date: string;
   monthly_amount: number;
+}
+
+export type BillingInterval = "MONTHLY" | "QUARTERLY" | "HALF_YEARLY" | "YEARLY";
+
+/**
+ * A customer contract. It renews by another term after each term unless it
+ * was cancelled `notice_months` before; `end_date` is its last day.
+ */
+export interface Contract {
+  id: string;
+  customer: string;
+  /** Per invoice, net. */
+  amount: number;
+  interval: BillingInterval;
+  start_date: string;
+  term_months: number;
+  notice_months: number;
+  end_date: string | null;
+  created_at: number;
+}
+
+export type ContractDraft = Omit<Contract, "id" | "end_date" | "created_at">;
+
+/**
+ * What a business booking is: a contract payment, a private withdrawal
+ * (Privatentnahme), a private deposit (Einlage) or none of these.
+ */
+export type PaymentKind = "CONTRACT" | "WITHDRAWAL" | "DEPOSIT" | "NONE";
+
+export interface BusinessTransaction extends Transaction {
+  /** What the owner assigned by hand; null leaves it to the automatic match. */
+  assignment: { kind: PaymentKind; contract: string | null } | null;
 }
 
 export interface Bank {
@@ -169,12 +202,31 @@ export const api = {
   removeConnection: (id: string) => post("/connections/delete/", { id }),
   banks: (country: string) =>
     get<{ banks: Bank[] }>(`/banks/?country=${encodeURIComponent(country)}`),
-  startConnection: (bank: Bank) =>
+  startConnection: (bank: Bank, business = false) =>
     post<{ url: string }>("/connections/start/", {
       bank: bank.name,
       country: bank.country,
       maximum_consent_validity: bank.maximum_consent_validity,
+      business,
     }),
   completeConnection: (code: string, state: string) =>
-    post("/connections/complete/", { code, state }),
+    post<{ business: boolean }>("/connections/complete/", { code, state }),
+  businessConnections: () =>
+    get<{ connections: Connection[] }>("/business/connections/"),
+  businessTransactions: (from: string, to: string) =>
+    get<{ transactions: BusinessTransaction[] }>(
+      `/business/transactions/?from=${from}&to=${to}`,
+    ),
+  assignPayment: (id: string, kind: PaymentKind | "AUTO", contract?: string) =>
+    post("/business/transactions/assign/", { id, kind, contract: contract ?? "" }),
+  contracts: () => get<{ contracts: Contract[] }>("/business/contracts/"),
+  createContract: (draft: ContractDraft) =>
+    post<{ contract: Contract }>("/business/contracts/create/", { ...draft }),
+  updateContract: (id: string, draft: ContractDraft) =>
+    post<{ contract: Contract }>("/business/contracts/update/", { id, ...draft }),
+  endContract: (id: string, endDate: string) =>
+    post<{ contract: Contract }>("/business/contracts/end/", { id, end_date: endDate }),
+  resumeContract: (id: string) =>
+    post<{ contract: Contract }>("/business/contracts/resume/", { id }),
+  deleteContract: (id: string) => post("/business/contracts/delete/", { id }),
 };

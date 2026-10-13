@@ -1,5 +1,6 @@
 package de.lukasbreuer.clarity.api.web.transaction;
 
+import de.lukasbreuer.clarity.api.banking.account.AccountScope;
 import de.lukasbreuer.clarity.api.transaction.Category;
 import de.lukasbreuer.clarity.api.transaction.Transaction;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
@@ -17,15 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Lists transactions of a date range (at most about two years at once) and
- * changes their category. Error codes: 3000 invalid date range, 3001 unknown
- * transaction, 3002 unknown category.
+ * Lists the personal transactions of a date range (at most about two years
+ * at once) and changes their category. Error codes: 3000 invalid date range,
+ * 3001 unknown transaction, 3002 unknown category.
  */
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +34,7 @@ public final class TransactionController {
 
   private final TransactionRepository transactionRepository;
   private final CategoryRuleApplication ruleApplication;
+  private final AccountScope accountScope;
 
   @RequestMapping(path = "/transactions/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findTransactions(
@@ -43,10 +44,11 @@ public final class TransactionController {
     if (range.isEmpty() || range.get().days() > MAXIMUM_RANGE_DAYS) {
       return ApiResponse.error(3000).future();
     }
-    return transactionRepository.findByBookingDateBetweenOrderByBookingDateDesc(
-        range.get().from(), range.get().to())
+    return accountScope.accountIds(false)
+      .thenCompose(accountIds -> transactionRepository.findByAccountsBetween(
+        accountIds, range.get().from(), range.get().to()))
       .thenApply(transactions -> ApiResponse.success(Map.of("transactions",
-        transactions.stream().map(this::information).toList())));
+        transactions.stream().map(Transaction::information).toList())));
   }
 
   /**
@@ -87,21 +89,8 @@ public final class TransactionController {
       .thenApply(updated -> ApiResponse.success(Map.of("updated", updated)));
   }
 
-  private Map<String, Object> information(Transaction transaction) {
-    var information = new HashMap<String, Object>();
-    information.put("id", transaction.id());
-    information.put("account", transaction.accountId());
-    information.put("date", transaction.bookingDate().toString());
-    information.put("amount", transaction.amount());
-    information.put("currency", transaction.currency());
-    information.put("counterparty", transaction.counterparty());
-    information.put("description", transaction.description());
-    information.put("category", transaction.category().name());
-    return information;
-  }
-
-  private record DateRange(LocalDate from, LocalDate to) {
-    static Optional<DateRange> parse(String from, String to) {
+  public record DateRange(LocalDate from, LocalDate to) {
+    public static Optional<DateRange> parse(String from, String to) {
       try {
         var range = new DateRange(LocalDate.parse(from), LocalDate.parse(to));
         return range.from().isAfter(range.to()) ? Optional.empty() :
@@ -111,7 +100,7 @@ public final class TransactionController {
       }
     }
 
-    long days() {
+    public long days() {
       return ChronoUnit.DAYS.between(from, to);
     }
   }

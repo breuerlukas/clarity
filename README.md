@@ -6,6 +6,14 @@ sorts the transactions into categories, finds subscriptions and other fixed
 costs on its own, and tells you how much you can still spend until your next
 salary, once everything that is due before it is paid.
 
+For a business on the side there is a separate **Business** workspace, opened
+from the Clarity logo at the top of the sidebar: customer contracts with their
+renewals and cancellation deadlines, MRR, ARR, active customers and churn
+derived from them, and read-only business accounts whose incoming payments are
+matched to contracts and whose transfers to and from your personal accounts
+count as private withdrawals or deposits. Business accounts never show up in
+your personal overview.
+
 React and Tailwind in the panel, Spring Boot on Java 25 and Postgres behind it.
 Bank access goes through [Enable Banking](https://enablebanking.com).
 

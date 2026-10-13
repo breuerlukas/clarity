@@ -1,11 +1,18 @@
 import type {
   Account,
+  BusinessTransaction,
   Category,
   Connection,
+  Contract,
   RecurringPayment,
   Transaction,
 } from "@/lib/api";
 import { isoDate } from "@/lib/dates";
+import {
+  demoBusinessConnections,
+  demoBusinessTransactions,
+  demoContracts,
+} from "@/demo/demo-business";
 
 /**
  * Made-up but believable finances for the demo: a salaried person in a
@@ -73,6 +80,9 @@ export interface DemoDatabase {
   connections: Connection[];
   transactions: Transaction[];
   recurring: RecurringPayment[];
+  businessConnections: Connection[];
+  businessTransactions: BusinessTransaction[];
+  contracts: Contract[];
 }
 
 export function createDemoDatabase(today = TODAY()): DemoDatabase {
@@ -132,7 +142,15 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
     }
   }
   transactions.sort((first, second) => second.date.localeCompare(first.date));
-  return { connections: connections(today), transactions, recurring: recurring(today, transactions) };
+  const contracts = demoContracts(today);
+  return {
+    connections: connections(today),
+    transactions,
+    recurring: recurring(today, transactions),
+    businessConnections: demoBusinessConnections(today),
+    businessTransactions: demoBusinessTransactions(today, contracts),
+    contracts,
+  };
 }
 
 function connections(today: Date): Connection[] {

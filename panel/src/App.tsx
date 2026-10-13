@@ -10,6 +10,9 @@ import { StatisticsPage } from "@/pages/statistics/statistics-page";
 import { SubscriptionsPage } from "@/pages/subscriptions/subscriptions-page";
 import { AccountsPage } from "@/pages/accounts/accounts-page";
 import { ConnectCallbackPage } from "@/pages/accounts/connect-callback-page";
+import { BusinessOverviewPage } from "@/pages/business/business-overview-page";
+import { ContractsPage } from "@/pages/business/contracts-page";
+import { BusinessAccountsPage } from "@/pages/business/business-accounts-page";
 
 export default function App() {
   return (
@@ -23,6 +26,11 @@ export default function App() {
           <Route path="statistics" element={<StatisticsPage />} />
           <Route path="subscriptions" element={<SubscriptionsPage />} />
           <Route path="accounts" element={<AccountsPage />} />
+          <Route path="business">
+            <Route index element={<BusinessOverviewPage />} />
+            <Route path="contracts" element={<ContractsPage />} />
+            <Route path="accounts" element={<BusinessAccountsPage />} />
+          </Route>
         </Route>
         <Route path="connect/callback" element={<ConnectCallbackPage />} />
       </Route>

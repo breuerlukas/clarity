@@ -23,7 +23,11 @@ public final class EnableBankingSession {
   public BankConnection connection(UUID connectionId) {
     return BankConnection.create(connectionId, json.getString("session_id"),
       authorization.bankName(), authorization.bankCountry(), validUntil(),
-      System.currentTimeMillis());
+      System.currentTimeMillis(), authorization.isBusiness());
+  }
+
+  public boolean isBusiness() {
+    return authorization.isBusiness();
   }
 
   public List<BankAccount> accounts(UUID connectionId) {

@@ -28,10 +28,20 @@ public final class ConnectionController {
 
   @RequestMapping(path = "/connections/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findConnections() {
+    return findConnections(false);
+  }
+
+  @RequestMapping(path = "/business/connections/", method = RequestMethod.GET)
+  public CompletableFuture<ApiResponse> findBusinessConnections() {
+    return findConnections(true);
+  }
+
+  private CompletableFuture<ApiResponse> findConnections(boolean business) {
     return connectionRepository.findAll()
       .thenCompose(connections -> accountRepository.findAll()
         .thenApply(accounts -> ApiResponse.success(Map.of("connections",
           connections.stream()
+            .filter(connection -> connection.isBusiness() == business)
             .sorted(Comparator.comparing(BankConnection::createdAt))
             .map(connection -> information(connection, accounts))
             .toList()))));

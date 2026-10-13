@@ -18,12 +18,18 @@ import { formatDate, formatMoney, formatRelative, maskIban } from "@/lib/format"
 const DAY = 24 * 60 * 60 * 1000;
 const WARNING_DAYS = 14;
 
+/**
+ * One bank with its accounts. Business accounts never count towards the
+ * owner's spending money, so they have no switch for it.
+ */
 export function ConnectionCard({
   connection,
   onReconnect,
+  business = false,
 }: {
   connection: Connection;
   onReconnect: () => void;
+  business?: boolean;
 }) {
   const { t } = useTranslation();
   const [removing, setRemoving] = useState(false);
@@ -47,7 +53,7 @@ export function ConnectionCard({
       )}
       <ul className="zebra -mx-2">
         {connection.accounts.map((account) => (
-          <AccountRow key={account.id} account={account} />
+          <AccountRow key={account.id} account={account} business={business} />
         ))}
       </ul>
       <Button
@@ -67,7 +73,7 @@ export function ConnectionCard({
   );
 }
 
-function AccountRow({ account }: { account: Account }) {
+function AccountRow({ account, business }: { account: Account; business: boolean }) {
   const { t } = useTranslation();
   const status = account.sync_failure
     ? null
@@ -88,7 +94,7 @@ function AccountRow({ account }: { account: Account }) {
         <span className="figures">{maskIban(account.iban)}</span>
         {status && <span>{status}</span>}
       </div>
-      <SpendingSwitch account={account} />
+      {!business && <SpendingSwitch account={account} />}
       {account.sync_failure && (
         <Notice className="mt-1 text-sm">
           {account.sync_failure === "consent"

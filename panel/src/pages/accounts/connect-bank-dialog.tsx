@@ -20,12 +20,18 @@ const COUNTRIES = ["AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI",
   "FR", "GR", "HR", "HU", "IE", "IS", "IT", "LI", "LT", "LU", "LV", "MT", "NL",
   "NO", "PL", "PT", "RO", "SE", "SI", "SK"];
 
+/**
+ * Picks a bank and sends the owner there to sign in. A business connection
+ * signs in as a company, and its accounts only show up under Business.
+ */
 export function ConnectBankDialog({
   open,
   onOpenChange,
+  business = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  business?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const [country, setCountry] = useState("DE");
@@ -43,7 +49,7 @@ export function ConnectBankDialog({
     staleTime: 60 * 60_000,
   });
   const start = useMutation({
-    mutationFn: (selected: Bank) => api.startConnection(selected),
+    mutationFn: (selected: Bank) => api.startConnection(selected, business),
     onSuccess: ({ url }) => window.location.assign(url),
   });
   const needle = query.trim().toLocaleLowerCase();
@@ -56,8 +62,8 @@ export function ConnectBankDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent closeLabel={t("common.cancel")} className="sm:max-w-xl">
         <div className="grid gap-2">
-          <DialogTitle>{t("connect.title")}</DialogTitle>
-          <DialogDescription>{t("connect.hint")}</DialogDescription>
+          <DialogTitle>{t(business ? "connect.title_business" : "connect.title")}</DialogTitle>
+          <DialogDescription>{t(business ? "connect.hint_business" : "connect.hint")}</DialogDescription>
         </div>
         <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
           <div className="grid gap-2">

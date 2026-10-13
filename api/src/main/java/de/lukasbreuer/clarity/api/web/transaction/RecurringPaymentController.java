@@ -1,5 +1,6 @@
 package de.lukasbreuer.clarity.api.web.transaction;
 
+import de.lukasbreuer.clarity.api.banking.account.AccountScope;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
 import de.lukasbreuer.clarity.api.transaction.recurring.RecurringPayment;
 import de.lukasbreuer.clarity.api.transaction.recurring.RecurringPaymentDetector;
@@ -14,8 +15,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * The fixed costs found in the last 13 months, enough history to catch yearly
- * payments as well.
+ * The personal fixed costs found in the last 13 months, enough history to
+ * catch yearly payments as well.
  */
 @RestController
 @RequiredArgsConstructor
@@ -23,12 +24,14 @@ public final class RecurringPaymentController {
   private static final int HISTORY_DAYS = 400;
 
   private final TransactionRepository transactionRepository;
+  private final AccountScope accountScope;
 
   @RequestMapping(path = "/recurring/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findRecurringPayments() {
     var today = LocalDate.now();
-    return transactionRepository.findByBookingDateBetweenOrderByBookingDateDesc(
-        today.minusDays(HISTORY_DAYS), today)
+    return accountScope.accountIds(false)
+      .thenCompose(accountIds -> transactionRepository.findByAccountsBetween(
+        accountIds, today.minusDays(HISTORY_DAYS), today))
       .thenApply(transactions -> RecurringPaymentDetector.create(today)
         .detect(transactions))
       .thenApply(payments -> ApiResponse.success(Map.of("payments",

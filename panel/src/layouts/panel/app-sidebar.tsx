@@ -1,9 +1,9 @@
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import {
   ArrowLeftRight,
   ChartColumnBig,
+  FileSignature,
   Landmark,
   LayoutDashboard,
   Repeat,
@@ -14,9 +14,10 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { Wordmark } from "@/components/wordmark";
 import { SidebarNavigation, type NavGroup } from "@/layouts/panel/navigation";
 import { SidebarUser } from "@/layouts/panel/sidebar-user";
+import { useWorkspace } from "@/layouts/panel/workspace";
+import { WorkspaceSwitcher } from "@/layouts/panel/workspace-switcher";
 
 export function appNavigation(t: TFunction): NavGroup[] {
   return [
@@ -35,18 +36,37 @@ export function appNavigation(t: TFunction): NavGroup[] {
   ];
 }
 
-/** The light sidebar: mark, navigation, and the owner at the foot. */
+export function businessNavigation(t: TFunction): NavGroup[] {
+  return [
+    {
+      items: [
+        { title: t("nav.business_overview"), url: "/business", icon: LayoutDashboard },
+        { title: t("nav.contracts"), url: "/business/contracts", icon: FileSignature },
+      ],
+    },
+    {
+      label: t("nav.banking"),
+      items: [{ title: t("nav.accounts"), url: "/business/accounts", icon: Landmark }],
+    },
+  ];
+}
+
+/**
+ * The light sidebar: the workspace switcher behind the mark, the open
+ * workspace's navigation, and the owner at the foot.
+ */
 export function AppSidebar() {
   const { t } = useTranslation();
+  const workspace = useWorkspace();
   return (
     <Sidebar collapsible="offcanvas" className="z-40">
-      <SidebarHeader className="px-3 pt-4 pb-0">
-        <Link to="/" className="rounded-[10px] px-1.5 pt-0.5 pb-4">
-          <Wordmark />
-        </Link>
+      <SidebarHeader className="px-3 pt-2.5 pb-2.5">
+        <WorkspaceSwitcher />
       </SidebarHeader>
       <SidebarContent className="px-3">
-        <SidebarNavigation groups={appNavigation(t)} />
+        <SidebarNavigation
+          groups={workspace === "business" ? businessNavigation(t) : appNavigation(t)}
+        />
       </SidebarContent>
       <SidebarFooter className="gap-0 px-3 pt-0 pb-2">
         <SidebarUser />

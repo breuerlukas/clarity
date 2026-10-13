@@ -9,7 +9,7 @@ import { api, ApiError } from "@/lib/api";
 /**
  * Where the bank sends the browser back to. Hands code and state to the api
  * once (StrictMode would otherwise send the one-time code twice), then
- * returns to the accounts.
+ * returns to the personal or business accounts it was started from.
  */
 export function ConnectCallbackPage() {
   const { t } = useTranslation();
@@ -21,9 +21,9 @@ export function ConnectCallbackPage() {
   const state = params.get("state");
   const complete = useMutation({
     mutationFn: () => api.completeConnection(code!, state!),
-    onSuccess: async () => {
+    onSuccess: async ({ business }) => {
       await queryClient.invalidateQueries();
-      navigate("/accounts", { replace: true });
+      navigate(business ? "/business/accounts" : "/accounts", { replace: true });
     },
   });
   useEffect(() => {

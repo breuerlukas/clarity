@@ -33,7 +33,7 @@ export function OverviewPage() {
   return (
     <>
       <PageHeader title={t("nav.overview")}>
-        <SyncButton />
+        <SyncButton connections={connections.data} />
       </PageHeader>
       {(connections.isError || recurring.isError || history.isError) && (
         <Notice className="mb-6">{t("common.error")}</Notice>
