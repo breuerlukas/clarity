@@ -157,6 +157,7 @@
     "back": "Zurück zu den Konten"
   },
   "statistics": {
+    "share_rest": "Übrige",
     "range": "Zeitraum",
     "months_one": "{{count}} Monat",
     "months_other": "{{count}} Monate",

@@ -4,6 +4,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { Panel } from "@/components/panel";
 import { CategoryIcon } from "@/components/category-icon";
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
+import { CategoryDonut } from "@/components/charts/category-donut";
 import type { Category, Transaction } from "@/lib/api";
 import type { MonthKey } from "@/lib/dates";
 import { formatMoney, formatMonth, formatMonthShort, formatPercent } from "@/lib/format";
@@ -11,9 +12,9 @@ import { categoryMatrix, topCounterparties } from "@/lib/statistics";
 import { cn } from "@/lib/utils";
 
 /**
- * Categories as a ranked list; the selected one gets its own monthly chart
- * and the places that money went to. One category at a time instead of a
- * wall of numbers.
+ * The split as a ring on top, then the categories as a ranked list; the
+ * selected one gets its own monthly chart and the places that money went to.
+ * One category at a time instead of a wall of numbers.
  */
 export function CategoriesTab({
   transactions,
@@ -37,7 +38,8 @@ export function CategoriesTab({
   return (
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <Panel title={t("statistics.categories")}>
-        <ul className="grid gap-0.5">
+        <CategoryDonut rows={rows} onSelect={setChosen} />
+        <ul className="grid gap-0.5 border-t border-divider pt-4">
           {rows.map((row) => (
             <li key={row.category}>
               <button

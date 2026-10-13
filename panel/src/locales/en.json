@@ -157,6 +157,7 @@
     "back": "Back to accounts"
   },
   "statistics": {
+    "share_rest": "Everything else",
     "range": "Period",
     "months_one": "{{count}} month",
     "months_other": "{{count}} months",
