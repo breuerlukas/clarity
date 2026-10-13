@@ -22,7 +22,8 @@ export async function handleDemoRequest(
   path: string,
   body: Record<string, unknown> = {},
 ): Promise<unknown> {
-  await new Promise((resolve) => setTimeout(resolve, 120));
+  // A server-like pause, long enough that the loading skeletons show.
+  await new Promise((resolve) => setTimeout(resolve, 400 + Math.random() * 400));
   const url = new URL(path, "http://demo");
   const route = `${method} ${url.pathname}`;
   if (!signedIn && !route.startsWith("POST /login") && route !== "GET /setup/status/") {
