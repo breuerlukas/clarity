@@ -7,10 +7,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Recognises text in images with Tesseract, which the api image installs.
@@ -21,32 +19,37 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public final class Ocr {
-  private static final List<String> LANGUAGES = List.of("deu", "eng");
   private static final long TIMEOUT_SECONDS = 60;
+  private static final String[] LIST_LANGUAGES =
+    {"tesseract", "--list-langs"};
+  private static final String[] GERMAN_AND_ENGLISH =
+    {"tesseract", "stdin", "stdout", "-l", "deu+eng"};
+  private static final String[] ENGLISH =
+    {"tesseract", "stdin", "stdout", "-l", "eng"};
 
   private final Log log;
-  private volatile Optional<String> languages;
+  private volatile Optional<String[]> command;
 
   public boolean isAvailable() {
-    return languages().isPresent();
+    return command().isPresent();
   }
 
   /**
-   * German and English as far as they are installed, joined the way
-   * Tesseract takes them ("deu+eng").
+   * German and English if the German data is installed (as in the api
+   * image), English alone otherwise.
    */
-  private Optional<String> languages() {
-    if (languages == null) {
-      languages = run("--list-langs").map(installed -> LANGUAGES.stream()
-        .filter(language -> installed.lines().map(String::trim)
-          .anyMatch(language::equals))
-        .collect(Collectors.joining("+")))
-        .filter(joined -> !joined.isEmpty());
-      if (languages.isEmpty()) {
+  private Optional<String[]> command() {
+    if (command == null) {
+      var installed = run(LIST_LANGUAGES, null).map(String::lines)
+        .map(lines -> lines.map(String::trim).toList());
+      command = installed.filter(languages -> languages.contains("eng"))
+        .map(languages -> languages.contains("deu") ? GERMAN_AND_ENGLISH :
+          ENGLISH);
+      if (command.isEmpty()) {
         log.info("Tesseract is not installed, scanned invoices are not read");
       }
     }
-    return languages;
+    return command;
   }
 
   /**
@@ -56,12 +59,11 @@ public final class Ocr {
     if (!isAvailable()) {
       return Optional.empty();
     }
-    var language = languages().orElseThrow();
     Path input = null;
     try {
       input = Files.createTempFile("clarity-ocr", ".img");
       Files.write(input, image);
-      return run(input.toString(), "stdout", "-l", language);
+      return run(command().orElseThrow(), input);
     } catch (IOException exception) {
       return Optional.empty();
     } finally {
@@ -69,17 +71,20 @@ public final class Ocr {
     }
   }
 
-  private Optional<String> run(String... arguments) {
+  /**
+   * @param input The file Tesseract reads from its standard input, or none
+   */
+  private Optional<String> run(String[] command, Path input) {
     Path output = null;
     try {
       output = Files.createTempFile("clarity-ocr", ".txt");
-      var command = new String[arguments.length + 1];
-      command[0] = "tesseract";
-      System.arraycopy(arguments, 0, command, 1, arguments.length);
-      var process = new ProcessBuilder(command)
+      var builder = new ProcessBuilder(command)
         .redirectOutput(output.toFile())
-        .redirectError(ProcessBuilder.Redirect.DISCARD)
-        .start();
+        .redirectError(ProcessBuilder.Redirect.DISCARD);
+      if (input != null) {
+        builder.redirectInput(input.toFile());
+      }
+      var process = builder.start();
       if (!process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
         process.destroyForcibly();
         return Optional.empty();
