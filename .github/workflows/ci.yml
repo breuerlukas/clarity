@@ -13,9 +13,9 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  # Compiles, checks the style (Checkstyle) and looks for bugs and security
-  # patterns (SpotBugs with FindSecBugs) before the tests run; any finding
-  # fails the build.
+  # Compiles and looks for bugs and security patterns (SpotBugs with
+  # FindSecBugs) before the tests run; any finding fails the build. The style
+  # is checked on every commit by the Lint workflow.
   api:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -39,8 +39,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
 
-      - name: Lint, analyze and test
-        run: ./gradlew build
+      - name: Analyze and test
+        run: ./gradlew build -x checkstyleMain -x checkstyleTest
 
       # Pull requests from forks get no write access to code scanning.
       - name: Upload the SpotBugs report
@@ -70,47 +70,7 @@ jobs:
           cache-dependency-path: panel/package-lock.json
 
       - run: npm ci
-      - run: npm run lint
       - name: Audit dependencies (high and critical)
         run: npm audit --audit-level=high
       - run: npm test
       - run: npm run build
-
-  # Everything around the code: the workflows themselves (actionlint for
-  # mistakes, zizmor for security), the Dockerfiles and the shell scripts.
-  lint:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: actionlint
-        run: >-
-          docker run --rm -v "$PWD:/repo" --workdir /repo
-          rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
-          -color
-
-      - name: zizmor
-        uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
-        with:
-          advanced-security: false
-          min-severity: medium
-
-      - name: hadolint (api)
-        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
-        with:
-          dockerfile: api/Dockerfile
-          failure-threshold: warning
-
-      - name: hadolint (panel)
-        uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387 # v3.5.0
-        with:
-          dockerfile: panel/Dockerfile
-          failure-threshold: warning
-
-      - name: shellcheck
-        run: shellcheck api/docker-entrypoint.sh

@@ -128,11 +128,10 @@ login answers without a session, that the security headers are in place and
 that wrong logins lock the address out. It does lock out your own address for
 15 minutes, so run it against a throwaway instance.
 
-On every pull request CI also runs CodeQL, a dependency review, a secret scan
-(gitleaks), Trivy on both images and their configuration, the check above
-against a freshly started stack and an OWASP ZAP baseline scan. Findings of
-High or Critical severity fail the build; everything else lands in the
-repository's Security tab.
+Every commit is linted (Checkstyle, ESLint, the workflows, Dockerfiles and
+shell scripts). Pull requests and `main` also get CodeQL, a dependency review
+and a secret scan (gitleaks). Findings of High or Critical severity fail the
+build; everything else lands in the repository's Security tab.
 
 The demo is published by `.github/workflows/pages.yml` on every push to
 `main`. In a fork, set *Settings → Pages → Source* to *GitHub Actions* once.
