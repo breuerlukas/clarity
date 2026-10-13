@@ -51,6 +51,14 @@ dependencies {
 
   spotbugsPlugins("com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0")
 
+  /*
+   * Spring Boot 4.1.1 ships Jackson 3.1.5, whose jackson-core has two High
+   * denial of service bugs (GHSA-p6pp-m3f8-5c89, GHSA-7hhh-6rmp-j9qf). The
+   * platform lifts every Jackson module to the same fixed patch release;
+   * drop it once Spring Boot brings 3.1.7 or later on its own.
+   */
+  implementation(platform("tools.jackson:jackson-bom:3.1.7"))
+
   constraints {
     /*
      * Spring Boot 4.1.1 ships Tomcat 11.0.24, which has critical access
