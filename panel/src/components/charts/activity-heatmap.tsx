@@ -18,7 +18,8 @@ const LEVELS = [14, 26, 40, 56, 72];
  * (green) or went out (blue) that day; the strength says how much, on a
  * square-root scale so salary and rent days don't wash out everything else.
  * Transfers between own accounts are left out. Leaving is handled on the
- * grid, not per square, so the label doesn't flicker across the gaps.
+ * grid, not per square, so the label doesn't flicker across the gaps; the
+ * label has its own fixed line, so nothing moves while hovering.
  */
 export function ActivityHeatmap({
   transactions,
@@ -72,8 +73,8 @@ export function ActivityHeatmap({
           ))}
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 text-xs text-muted-foreground">
-        <span className="min-h-4" aria-live="polite">
+      <div className="grid gap-2 text-xs text-muted-foreground">
+        <span className="h-4 truncate" aria-live="polite">
           {hovered &&
             (hovered.income === 0 && hovered.spending === 0
               ? `${formatDay(hovered.date)}: ${t("statistics.activity_none")}`
