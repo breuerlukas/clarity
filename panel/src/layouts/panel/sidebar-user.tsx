@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronsUpDown,
   Languages,
@@ -25,8 +24,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useLogout } from "@/hooks/use-logout";
 import { useSession } from "@/hooks/use-session";
-import { api } from "@/lib/api";
 import { LANGUAGES } from "@/locales/i18n";
 import { useTheme, type ThemePreference } from "@/lib/theme";
 import { useOpenSettings } from "@/layouts/settings/settings-dialog-context";
@@ -123,22 +122,3 @@ export function SidebarUser() {
     </div>
   );
 }
-
-/**
- * Forgets the session (which sends the route guard to the login) and every
- * cached finance query. clear() would detach the guard's own session
- * observer, which then never noticed the logout.
- */
-export function useLogout() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: api.logout,
-    onSettled: () => {
-      queryClient.setQueryData(["session"], null);
-      queryClient.removeQueries({
-        predicate: (query) => !["session", "setup"].includes(String(query.queryKey[0])),
-      });
-    },
-  });
-}
-

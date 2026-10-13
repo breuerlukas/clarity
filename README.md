@@ -6,6 +6,14 @@ sorts the transactions into categories, finds subscriptions and other fixed
 costs on its own, and tells you how much you can still spend until your next
 salary, once everything that is due before it is paid.
 
+Money is kept in **spaces**, switched and created from the Clarity logo at the
+top of the sidebar. Clarity starts with one personal space; more can be
+added, each with its own name, icon and banks, such as a shared household. A
+business space adds customer contracts with their renewals and cancellation
+deadlines, MRR, ARR, active customers and churn derived from them, and
+matches incoming payments on its accounts to the contracts; transfers to and
+from your personal accounts count as private withdrawals or deposits.
+
 React and Tailwind in the panel, Spring Boot on Java 25 and Postgres behind it.
 Bank access goes through [Enable Banking](https://enablebanking.com).
 
@@ -108,7 +116,10 @@ For a local database:
 `docker run -d -p 127.0.0.1:5432:5432 -e POSTGRES_USER=clarity -e POSTGRES_PASSWORD=clarity -e POSTGRES_DB=clarity postgres:18`.
 The panel's dev server proxies `/v1` to `localhost:8080`.
 
-Tests: `./gradlew test` in `api/`, `npm test` in `panel/`.
+Tests: `./gradlew test` in `api/`, `npm test` in `panel/`; `npm run lint` in
+`panel/` runs ESLint. The panel compiles with TypeScript 7 (`@typescript/native`),
+while `typescript` points to the TypeScript 6 compatibility package, because
+typescript-eslint needs its api.
 
 The demo is published by `.github/workflows/pages.yml` on every push to
 `main`. In a fork, set *Settings → Pages → Source* to *GitHub Actions* once.

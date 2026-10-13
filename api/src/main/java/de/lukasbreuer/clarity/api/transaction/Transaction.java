@@ -16,6 +16,8 @@ import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -73,5 +75,19 @@ public final class Transaction {
   public void categorizeManually(Category category) {
     this.category = category;
     this.manuallyCategorized = true;
+  }
+
+  public Map<String, Object> information() {
+    var information = new HashMap<String, Object>();
+    information.put("id", id);
+    information.put("account", accountId);
+    information.put("date", bookingDate.toString());
+    information.put("amount", amount);
+    information.put("currency", currency);
+    information.put("counterparty", counterparty);
+    information.put("counterparty_iban", counterpartyIban);
+    information.put("description", description);
+    information.put("category", category.name());
+    return information;
   }
 }

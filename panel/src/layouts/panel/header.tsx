@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import { PanelLeft } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
+import { spacePath, useSpace, useSpaceName } from "@/hooks/use-space";
+import type { Space } from "@/lib/api";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,10 +20,13 @@ interface Crumb {
   href?: string;
 }
 
-/** The trail for a path; every page sits directly under the root today. */
-function crumbsFor(pathname: string, t: TFunction): Crumb[] {
-  const [section] = pathname.split("/").filter(Boolean);
-  return [{ title: t(section ? `nav.${section}` : "nav.overview") }];
+/** The trail for a path: the space, then the page in it. */
+function crumbsFor(pathname: string, space: Space, spaceName: string, t: TFunction): Crumb[] {
+  const [, , page] = pathname.split("/").filter(Boolean);
+  return [
+    { title: spaceName, href: spacePath(space) },
+    { title: t(page ? `nav.${page}` : "nav.overview") },
+  ];
 }
 
 /** The 64 px topbar: the sidebar toggle and where you are. */
@@ -29,7 +34,9 @@ export function AppHeader() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const { toggleSidebar } = useSidebar();
-  const crumbs = crumbsFor(pathname, t);
+  const space = useSpace();
+  const nameOf = useSpaceName();
+  const crumbs = crumbsFor(pathname, space, nameOf(space), t);
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b border-divider px-3 sm:px-4">
       <button

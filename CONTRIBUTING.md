@@ -108,7 +108,7 @@ data and no backend at all.
 
 - For larger changes, open an issue first so we can agree on the approach.
 - Keep the pull request focused on one thing.
-- Run `./gradlew build` in `api/` and `npm test && npm run build` in `panel/`
+- Run `./gradlew build` in `api/` and `npm run lint && npm test && npm run build` in `panel/`
   before you push. CI runs the same on every pull request, so please keep it
   green.
 - Follow the style of the code around you: the api is packaged by feature,

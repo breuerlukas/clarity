@@ -31,20 +31,27 @@ export function TransactionsPage() {
     () => filter(transactions.data ?? [], query, category),
     [transactions.data, query, category],
   );
-  const [limit, setLimit] = useState(PAGE_SIZE);
-  useEffect(() => setLimit(PAGE_SIZE), [period.key, query, category]);
+  // A new period or filter starts again at the first page.
+  const filterKey = `${period.key}|${query}|${category ?? ""}`;
+  const [paging, setPaging] = useState({ key: filterKey, limit: PAGE_SIZE });
+  const limit = paging.key === filterKey ? paging.limit : PAGE_SIZE;
   const shown = visible.slice(0, limit);
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => entry.isIntersecting && setLimit((current) => current + PAGE_SIZE),
+      ([entry]) =>
+        entry.isIntersecting &&
+        setPaging((current) => ({
+          key: filterKey,
+          limit: (current.key === filterKey ? current.limit : PAGE_SIZE) + PAGE_SIZE,
+        })),
       { rootMargin: "400px" },
     );
     if (end.current) {
       observer.observe(end.current);
     }
     return () => observer.disconnect();
-  }, [shown.length, visible.length]);
+  }, [filterKey, shown.length, visible.length]);
   const setCategory = (next: Category | null) =>
     setParams((previous) => {
       const updated = new URLSearchParams(previous);

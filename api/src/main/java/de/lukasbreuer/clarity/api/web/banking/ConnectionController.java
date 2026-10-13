@@ -26,6 +26,10 @@ public final class ConnectionController {
   private final BankAccountRepository accountRepository;
   private final SyncCoordinator syncCoordinator;
 
+  /**
+   * The connections of every space, each saying which one it belongs to; the
+   * panel needs the other spaces' accounts to recognize private transfers.
+   */
   @RequestMapping(path = "/connections/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findConnections() {
     return connectionRepository.findAll()
@@ -54,14 +58,17 @@ public final class ConnectionController {
   private Map<String, Object> information(
     BankConnection connection, List<BankAccount> accounts
   ) {
-    return Map.of("id", connection.id(),
-      "bank_name", connection.bankName(),
-      "bank_country", connection.bankCountry(),
-      "valid_until", connection.validUntil(),
-      "accounts", accounts.stream()
-        .filter(account -> account.connectionId().equals(connection.id()))
-        .map(this::information)
-        .toList());
+    var information = new HashMap<String, Object>();
+    information.put("id", connection.id());
+    information.put("space", connection.spaceId());
+    information.put("bank_name", connection.bankName());
+    information.put("bank_country", connection.bankCountry());
+    information.put("valid_until", connection.validUntil());
+    information.put("accounts", accounts.stream()
+      .filter(account -> account.connectionId().equals(connection.id()))
+      .map(this::information)
+      .toList());
+    return information;
   }
 
   private Map<String, Object> information(BankAccount account) {

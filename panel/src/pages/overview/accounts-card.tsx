@@ -5,12 +5,23 @@ import type { Connection } from "@/lib/api";
 import { formatMoney, maskIban } from "@/lib/format";
 import { total } from "@/lib/overview";
 
-/** Every account grouped by bank, with the total on top. */
-export function AccountsCard({ connections }: { connections?: Connection[] }) {
+/**
+ * Every account grouped by bank, with the total on top. Business accounts
+ * skip the everyday/savings label, which only matters for personal money.
+ */
+export function AccountsCard({
+  connections,
+  viewAll,
+  business = false,
+}: {
+  connections?: Connection[];
+  viewAll: string;
+  business?: boolean;
+}) {
   const { t } = useTranslation();
   const accounts = (connections ?? []).flatMap((connection) => connection.accounts);
   return (
-    <Panel title={t("nav.accounts")} viewAll="/accounts">
+    <Panel title={t("nav.accounts")} viewAll={viewAll}>
       <div className="grid gap-1">
         <span className="text-sm text-muted-foreground">{t("overview.total")}</span>
         {connections ? (
@@ -32,9 +43,11 @@ export function AccountsCard({ connections }: { connections?: Connection[] }) {
                   <span className="grid min-w-0">
                     <span className="flex items-center gap-2">
                       <span className="truncate text-sm font-bold">{account.name}</span>
-                      <span className="rounded-full px-1.5 text-[11px] font-bold text-muted-foreground ring-1 ring-divider ring-inset">
-                        {t(account.spending ? "overview.account_everyday" : "overview.account_savings")}
-                      </span>
+                      {!business && (
+                        <span className="rounded-full px-1.5 text-[11px] font-bold text-muted-foreground ring-1 ring-divider ring-inset">
+                          {t(account.spending ? "overview.account_everyday" : "overview.account_savings")}
+                        </span>
+                      )}
                     </span>
                     {account.iban && (
                       <span className="figures text-xs text-muted-foreground">{maskIban(account.iban)}</span>

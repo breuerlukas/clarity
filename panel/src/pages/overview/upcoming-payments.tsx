@@ -3,6 +3,7 @@ import { Panel } from "@/components/panel";
 import { AmountBadge } from "@/components/amount-badge";
 import { CategoryIcon } from "@/components/category-icon";
 import { LedgerSkeleton } from "@/components/ledger";
+import { useSpacePath } from "@/hooks/use-space";
 import type { RecurringPayment } from "@/lib/api";
 import { formatDay } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -20,11 +21,12 @@ export function UpcomingPayments({
   className?: string;
 }) {
   const { t } = useTranslation();
+  const path = useSpacePath();
   const next = [...(payments ?? [])]
     .sort((first, second) => first.next_date.localeCompare(second.next_date))
     .slice(0, VISIBLE);
   return (
-    <Panel title={t("overview.upcoming")} viewAll="/subscriptions" className={className}>
+    <Panel title={t("overview.upcoming")} viewAll={path("/subscriptions")} className={className}>
       {payments?.length === 0 && <p className="text-muted-foreground">{t("overview.fixed_empty")}</p>}
       {!payments && <LedgerSkeleton rows={VISIBLE} />}
       <ul className="zebra -mx-2">

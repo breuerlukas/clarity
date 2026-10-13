@@ -2,26 +2,27 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useConnections } from "@/hooks/use-finances";
-import { api } from "@/lib/api";
+import { api, type Connection } from "@/lib/api";
 import { formatRelative } from "@/lib/format";
 
-/** When the accounts were last read, and a button to read them now. */
-export function SyncButton() {
+/**
+ * When the accounts were last read, and a button to read them now. Every
+ * account is read either way; the connections only decide what it shows.
+ */
+export function SyncButton({ connections }: { connections?: Connection[] }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const connections = useConnections();
   const synchronize = useMutation({
     mutationFn: api.synchronize,
     onSuccess: () => queryClient.invalidateQueries(),
   });
   const lastSynced = Math.max(
     0,
-    ...(connections.data ?? []).flatMap((connection) =>
+    ...(connections ?? []).flatMap((connection) =>
       connection.accounts.map((account) => account.last_synced_at),
     ),
   );
-  if (!connections.data?.length) {
+  if (!connections?.length) {
     return null;
   }
   return (
