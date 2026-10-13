@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/notice";
-import { PageHeader, Panel } from "@/components/panel";
+import { PageHeader, Panel, PanelSkeleton } from "@/components/panel";
 import { RevenueChart } from "@/components/charts/revenue-chart";
 import { useContracts } from "@/hooks/use-business";
 import { HISTORY_MONTHS, useConnections } from "@/hooks/use-finances";
@@ -63,7 +63,7 @@ export function BusinessOverviewPage() {
           </div>
         </div>
       ) : (
-        <div className="h-96 rounded-3xl border bg-card" aria-busy="true" />
+        <PanelSkeleton className="h-96" />
       )}
     </>
   );

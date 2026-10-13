@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/notice";
-import { PageHeader, Panel } from "@/components/panel";
+import { PageHeader, Panel, PanelSkeleton } from "@/components/panel";
 import { Segmented } from "@/components/segmented";
 import { useContracts } from "@/hooks/use-business";
 import { api, type Contract } from "@/lib/api";
@@ -110,7 +110,7 @@ export function ContractsPage() {
           ))}
         </div>
       ) : (
-        <div className="h-96 rounded-3xl border bg-card" aria-busy="true" />
+        <PanelSkeleton className="h-96" />
       )}
       <ContractDialog
         open={creating || editing !== null}
