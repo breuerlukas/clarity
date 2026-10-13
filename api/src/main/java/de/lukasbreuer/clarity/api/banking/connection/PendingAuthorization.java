@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.util.UUID;
+
 /**
  * A bank login that was started but not finished yet. The random state comes
  * back with the redirect from the bank; only a state issued here, and used
@@ -33,6 +35,8 @@ public final class PendingAuthorization {
   private String bankCountry;
   @Column(name = "created_at", nullable = false, updatable = false)
   private long createdAt;
+  @Column(name = "space_id")
+  private UUID spaceId;
 
   public boolean isExpired() {
     return System.currentTimeMillis() - createdAt > MAXIMUM_AGE;

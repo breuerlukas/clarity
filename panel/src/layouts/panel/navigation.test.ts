@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeUrl } from "@/layouts/panel/navigation";
+import { activeUrl } from "@/layouts/panel/active-url";
 
 describe("activeUrl", () => {
   const urls = ["/", "/transactions", "/settings"];

@@ -5,6 +5,7 @@ import de.lukasbreuer.clarity.api.banking.account.BankAccount;
 import de.lukasbreuer.clarity.api.banking.account.BankAccountRepository;
 import de.lukasbreuer.clarity.api.banking.connection.BankConnection;
 import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
+import de.lukasbreuer.clarity.api.business.payment.PaymentAssignmentRepository;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
@@ -22,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Removes a connection completely: revokes the session at Enable Banking (so
  * the bank consent ends too), then deletes its accounts and every stored
- * transaction of them. Error code 2002: unknown connection.
+ * transaction of them, along with what business bookings were assigned to. Error code 2002: unknown connection.
  */
 @RestController
 @RequiredArgsConstructor
@@ -31,6 +32,7 @@ public final class ConnectionRemovalController {
   private final BankConnectionRepository connectionRepository;
   private final BankAccountRepository accountRepository;
   private final TransactionRepository transactionRepository;
+  private final PaymentAssignmentRepository assignmentRepository;
 
   @RequestMapping(path = "/connections/delete/", method = RequestMethod.POST)
   public CompletableFuture<ApiResponse> delete(
@@ -68,8 +70,10 @@ public final class ConnectionRemovalController {
   }
 
   private CompletableFuture<Void> deleteAccounts(List<BankAccount> accounts) {
-    accounts.forEach(account -> transactionRepository.deleteByAccountId(
-      account.id()));
+    accounts.forEach(account -> {
+      assignmentRepository.deleteByAccountId(account.id());
+      transactionRepository.deleteByAccountId(account.id());
+    });
     return CompletableFuture.allOf(accounts.stream()
       .map(accountRepository::delete)
       .toArray(CompletableFuture[]::new));

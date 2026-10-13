@@ -5,6 +5,8 @@ import de.lukasbreuer.clarity.api.banking.EnableBankingClient;
 import de.lukasbreuer.clarity.api.banking.EnableBankingSigner;
 import de.lukasbreuer.clarity.api.banking.connection.PendingAuthorization;
 import de.lukasbreuer.clarity.api.banking.connection.PendingAuthorizationRepository;
+import de.lukasbreuer.clarity.api.space.Space;
+import de.lukasbreuer.clarity.api.space.SpaceRepository;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,13 +21,16 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Starts a bank login: asks Enable Banking for the bank's login page and
- * remembers the random state that has to come back with the redirect.
- * Error codes: 2000 Enable Banking is not set up or refused, 2003 invalid
- * bank or country.
+ * remembers the random state that has to come back with the redirect, and
+ * the space the new accounts go to. For a business space the owner signs in
+ * as a company. Error codes: 2000 Enable Banking is not set up or refused,
+ * 2003 invalid bank or country, 5001 unknown space.
  */
 @RestController
 @RequiredArgsConstructor
@@ -37,6 +42,7 @@ public final class ConnectionSetupController {
   private final EnableBankingSigner signer;
   private final BankingConfiguration configuration;
   private final PendingAuthorizationRepository authorizationRepository;
+  private final SpaceRepository spaceRepository;
   private final SecureRandom random = new SecureRandom();
 
   @RequestMapping(path = "/connections/start/", method = RequestMethod.POST)
@@ -52,11 +58,26 @@ public final class ConnectionSetupController {
     if (bank.isBlank() || !country.matches("[A-Z]{2}")) {
       return ApiResponse.error(2003).future();
     }
-    var authorization = PendingAuthorization.create(generateState(), bank,
-      country, System.currentTimeMillis());
+    var spaceId = body.getUUID("space");
+    if (spaceId == null) {
+      return ApiResponse.error(5001).future();
+    }
     var validity = Math.clamp(body.getLong("maximum_consent_validity"),
       MINIMUM_VALIDITY, MAXIMUM_VALIDITY);
-    return client.post("/auth", authorizationRequest(authorization, validity))
+    return spaceRepository.findById(spaceId)
+      .thenCompose(space -> start(space, bank, country, validity));
+  }
+
+  private CompletableFuture<ApiResponse> start(
+    Optional<Space> space, String bank, String country, long validity
+  ) {
+    if (space.isEmpty()) {
+      return ApiResponse.error(5001).future();
+    }
+    var authorization = PendingAuthorization.create(generateState(), bank,
+      country, System.currentTimeMillis(), space.get().id());
+    return client.post("/auth", authorizationRequest(authorization,
+        space.get(), validity))
       .thenCompose(answer -> authorizationRepository.save(authorization)
         .thenApply(_ -> ApiResponse.success(Map.of("url",
           answer.getString("url")))))
@@ -64,7 +85,7 @@ public final class ConnectionSetupController {
   }
 
   private JSONObject authorizationRequest(
-    PendingAuthorization authorization, long validitySeconds
+    PendingAuthorization authorization, Space space, long validitySeconds
   ) {
     var validUntil = Instant.now().plusSeconds(validitySeconds);
     return new JSONObject()
@@ -73,7 +94,7 @@ public final class ConnectionSetupController {
         .put("country", authorization.bankCountry()))
       .put("state", authorization.state())
       .put("redirect_url", configuration.redirectUrl())
-      .put("psu_type", "personal");
+      .put("psu_type", space.isBusiness() ? "business" : "personal");
   }
 
   private String generateState() {

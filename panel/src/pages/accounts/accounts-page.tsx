@@ -16,7 +16,7 @@ export function AccountsPage() {
   return (
     <>
       <PageHeader title={t("accounts.title")}>
-        <SyncButton />
+        <SyncButton connections={connections.data} />
         <Button onClick={() => setConnecting(true)}>
           <Plus />
           {t("accounts.connect")}

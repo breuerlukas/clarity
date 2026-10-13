@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Segmented } from "@/components/segmented";
-import { formatMonth } from "@/lib/format";
 import {
   currentPeriod,
   isCurrentPeriod,
+  periodLabel,
   shiftPeriod,
   type Period,
   type PeriodKind,
@@ -52,17 +52,6 @@ export function PeriodPicker({
       )}
     </div>
   );
-}
-
-export function periodLabel(period: Period) {
-  if (period.kind === "month") {
-    return formatMonth(period.key);
-  }
-  if (period.kind === "quarter") {
-    const [year, quarter] = period.key.split("-");
-    return `${quarter} ${year}`;
-  }
-  return period.key;
 }
 
 function StepButton({

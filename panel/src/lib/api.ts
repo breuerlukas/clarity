@@ -75,6 +75,7 @@ export interface Transaction {
   counterparty: string;
   description: string;
   category: Category;
+  counterparty_iban?: string | null;
 }
 
 export interface Account {
@@ -91,6 +92,8 @@ export interface Account {
 
 export interface Connection {
   id: string;
+  /** The space its accounts belong to. */
+  space: string;
   bank_name: string;
   bank_country: string;
   valid_until: number;
@@ -107,6 +110,53 @@ export interface RecurringPayment {
   last_date: string;
   next_date: string;
   monthly_amount: number;
+}
+
+export type BillingInterval = "MONTHLY" | "QUARTERLY" | "HALF_YEARLY" | "YEARLY";
+
+/**
+ * A customer contract. It renews by another term after each term unless it
+ * was cancelled `notice_months` before; `end_date` is its last day.
+ */
+export interface Contract {
+  id: string;
+  space: string;
+  customer: string;
+  /** Per invoice, net. */
+  amount: number;
+  interval: BillingInterval;
+  start_date: string;
+  term_months: number;
+  notice_months: number;
+  end_date: string | null;
+  created_at: number;
+}
+
+export type ContractDraft = Omit<Contract, "id" | "space" | "end_date" | "created_at">;
+
+export type SpaceKind = "PERSONAL" | "BUSINESS";
+
+/**
+ * A separate set of banks (and, for a business, contracts). The first space
+ * has no name until the owner gives it one.
+ */
+export interface Space {
+  id: string;
+  slug: string;
+  name: string;
+  icon: string;
+  kind: SpaceKind;
+}
+
+/**
+ * What a business booking is: a contract payment, a private withdrawal
+ * (Privatentnahme), a private deposit (Einlage) or none of these.
+ */
+export type PaymentKind = "CONTRACT" | "WITHDRAWAL" | "DEPOSIT" | "NONE";
+
+export interface BusinessTransaction extends Transaction {
+  /** What the owner assigned by hand; null leaves it to the automatic match. */
+  assignment: { kind: PaymentKind; contract: string | null } | null;
 }
 
 export interface Bank {
@@ -151,9 +201,15 @@ export const api = {
   sessions: () => get<{ sessions: OwnerSession[] }>("/sessions/"),
   closeSession: (id: string) => post("/sessions/close/", { id }),
   closeOtherSessions: () => post<{ closed: number }>("/sessions/close-others/"),
-  transactions: (from: string, to: string) =>
+  spaces: () => get<{ spaces: Space[] }>("/spaces/"),
+  createSpace: (name: string, icon: string, kind: SpaceKind) =>
+    post<{ space: Space }>("/spaces/create/", { name, icon, kind }),
+  updateSpace: (id: string, name: string, icon: string) =>
+    post<{ space: Space }>("/spaces/update/", { id, name, icon }),
+  deleteSpace: (id: string) => post("/spaces/delete/", { id }),
+  transactions: (space: string, from: string, to: string) =>
     get<{ transactions: Transaction[] }>(
-      `/transactions/?from=${from}&to=${to}`,
+      `/transactions/?space=${space}&from=${from}&to=${to}`,
     ),
   categorize: (id: string, category: Category, remember: boolean) =>
     post<{ updated: number }>("/transactions/category/", {
@@ -161,7 +217,8 @@ export const api = {
       category,
       remember,
     }),
-  recurring: () => get<{ payments: RecurringPayment[] }>("/recurring/"),
+  recurring: (space: string) =>
+    get<{ payments: RecurringPayment[] }>(`/recurring/?space=${space}`),
   connections: () => get<{ connections: Connection[] }>("/connections/"),
   markSpending: (id: string, spending: boolean) =>
     post("/accounts/spending/", { id, spending }),
@@ -169,12 +226,30 @@ export const api = {
   removeConnection: (id: string) => post("/connections/delete/", { id }),
   banks: (country: string) =>
     get<{ banks: Bank[] }>(`/banks/?country=${encodeURIComponent(country)}`),
-  startConnection: (bank: Bank) =>
+  startConnection: (bank: Bank, space: string) =>
     post<{ url: string }>("/connections/start/", {
       bank: bank.name,
       country: bank.country,
       maximum_consent_validity: bank.maximum_consent_validity,
+      space,
     }),
   completeConnection: (code: string, state: string) =>
-    post("/connections/complete/", { code, state }),
+    post<{ space: string }>("/connections/complete/", { code, state }),
+  businessTransactions: (space: string, from: string, to: string) =>
+    get<{ transactions: BusinessTransaction[] }>(
+      `/business/transactions/?space=${space}&from=${from}&to=${to}`,
+    ),
+  assignPayment: (id: string, kind: PaymentKind | "AUTO", contract?: string) =>
+    post("/business/transactions/assign/", { id, kind, contract: contract ?? "" }),
+  contracts: (space: string) =>
+    get<{ contracts: Contract[] }>(`/business/contracts/?space=${space}`),
+  createContract: (space: string, draft: ContractDraft) =>
+    post<{ contract: Contract }>("/business/contracts/create/", { space, ...draft }),
+  updateContract: (id: string, draft: ContractDraft) =>
+    post<{ contract: Contract }>("/business/contracts/update/", { id, ...draft }),
+  endContract: (id: string, endDate: string) =>
+    post<{ contract: Contract }>("/business/contracts/end/", { id, end_date: endDate }),
+  resumeContract: (id: string) =>
+    post<{ contract: Contract }>("/business/contracts/resume/", { id }),
+  deleteContract: (id: string) => post("/business/contracts/delete/", { id }),
 };

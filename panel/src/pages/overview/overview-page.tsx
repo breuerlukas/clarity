@@ -5,6 +5,7 @@ import { Notice } from "@/components/notice";
 import { PageHeader } from "@/components/panel";
 import { SyncButton } from "@/components/sync-button";
 import { useConnections, useHistory, useRecurringPayments } from "@/hooks/use-finances";
+import { useSpacePath } from "@/hooks/use-space";
 import { spendingRoom } from "@/lib/budget";
 import { SpendingRoomCard } from "@/pages/overview/spending-room-card";
 import { AccountsCard } from "@/pages/overview/accounts-card";
@@ -22,6 +23,7 @@ export function OverviewPage() {
   const connections = useConnections();
   const recurring = useRecurringPayments();
   const history = useHistory();
+  const path = useSpacePath();
   if (connections.data?.length === 0) {
     return <EmptyOverview />;
   }
@@ -33,7 +35,7 @@ export function OverviewPage() {
   return (
     <>
       <PageHeader title={t("nav.overview")}>
-        <SyncButton />
+        <SyncButton connections={connections.data} />
       </PageHeader>
       {(connections.isError || recurring.isError || history.isError) && (
         <Notice className="mb-6">{t("common.error")}</Notice>
@@ -49,7 +51,7 @@ export function OverviewPage() {
           <RecentTransactions transactions={history.data} className="flex-1" />
         </div>
         <div className="flex min-w-0 flex-col gap-6">
-          <AccountsCard connections={connections.data} />
+          <AccountsCard connections={connections.data} viewAll={path("/accounts")} />
           <ActivityCard transactions={history.data} />
           <UpcomingPayments payments={recurring.data} payday={room?.payday} className="flex-1" />
         </div>
@@ -64,6 +66,7 @@ function Placeholder({ height }: { height: string }) {
 
 function EmptyOverview() {
   const { t } = useTranslation();
+  const path = useSpacePath();
   return (
     <div className="grid max-w-xl gap-4 pt-10">
       <h1 className="text-[30px] leading-tight font-extrabold tracking-[-0.02em]">
@@ -71,7 +74,7 @@ function EmptyOverview() {
       </h1>
       <p className="text-muted-foreground">{t("overview.empty_text")}</p>
       <Button asChild size="lg" className="mt-2 justify-self-start">
-        <Link to="/accounts">{t("accounts.connect")}</Link>
+        <Link to={path("/accounts")}>{t("accounts.connect")}</Link>
       </Button>
     </div>
   );

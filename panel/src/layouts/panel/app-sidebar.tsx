@@ -1,9 +1,9 @@
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
 import {
   ArrowLeftRight,
   ChartColumnBig,
+  FileSignature,
   Landmark,
   LayoutDashboard,
   Repeat,
@@ -14,39 +14,54 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { Wordmark } from "@/components/wordmark";
+import { useSpace, useSpacePath } from "@/hooks/use-space";
+import type { SpaceKind } from "@/lib/api";
 import { SidebarNavigation, type NavGroup } from "@/layouts/panel/navigation";
 import { SidebarUser } from "@/layouts/panel/sidebar-user";
+import { SpaceSwitcher } from "@/layouts/panel/space-switcher";
 
-export function appNavigation(t: TFunction): NavGroup[] {
+/** The pages of a space, which depend on its kind. */
+function spaceNavigation(
+  t: TFunction,
+  kind: SpaceKind,
+  path: (page?: string) => string,
+): NavGroup[] {
+  const pages =
+    kind === "BUSINESS"
+      ? [
+          { title: t("nav.overview"), url: path(), icon: LayoutDashboard },
+          { title: t("nav.contracts"), url: path("/contracts"), icon: FileSignature },
+        ]
+      : [
+          { title: t("nav.overview"), url: path(), icon: LayoutDashboard },
+          { title: t("nav.transactions"), url: path("/transactions"), icon: ArrowLeftRight },
+          { title: t("nav.subscriptions"), url: path("/subscriptions"), icon: Repeat },
+          { title: t("nav.statistics"), url: path("/statistics"), icon: ChartColumnBig },
+        ];
   return [
-    {
-      items: [
-        { title: t("nav.overview"), url: "/", icon: LayoutDashboard },
-        { title: t("nav.transactions"), url: "/transactions", icon: ArrowLeftRight },
-        { title: t("nav.subscriptions"), url: "/subscriptions", icon: Repeat },
-        { title: t("nav.statistics"), url: "/statistics", icon: ChartColumnBig },
-      ],
-    },
+    { items: pages },
     {
       label: t("nav.banking"),
-      items: [{ title: t("nav.accounts"), url: "/accounts", icon: Landmark }],
+      items: [{ title: t("nav.accounts"), url: path("/accounts"), icon: Landmark }],
     },
   ];
 }
 
-/** The light sidebar: mark, navigation, and the owner at the foot. */
+/**
+ * The light sidebar: the space switcher behind the mark, the open space's
+ * pages, and the owner at the foot.
+ */
 export function AppSidebar() {
   const { t } = useTranslation();
+  const space = useSpace();
+  const path = useSpacePath();
   return (
     <Sidebar collapsible="offcanvas" className="z-40">
-      <SidebarHeader className="px-3 pt-4 pb-0">
-        <Link to="/" className="rounded-[10px] px-1.5 pt-0.5 pb-4">
-          <Wordmark />
-        </Link>
+      <SidebarHeader className="px-3 pt-2.5 pb-2.5">
+        <SpaceSwitcher />
       </SidebarHeader>
       <SidebarContent className="px-3">
-        <SidebarNavigation groups={appNavigation(t)} />
+        <SidebarNavigation groups={spaceNavigation(t, space.kind, path)} />
       </SidebarContent>
       <SidebarFooter className="gap-0 px-3 pt-0 pb-2">
         <SidebarUser />

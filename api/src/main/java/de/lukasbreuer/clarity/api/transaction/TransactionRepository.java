@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -23,7 +24,22 @@ public interface TransactionRepository
 
   @Async
   CompletableFuture<List<Transaction>>
-    findByBookingDateBetweenOrderByBookingDateDesc(LocalDate from, LocalDate to);
+    findByAccountIdInAndBookingDateBetweenOrderByBookingDateDesc(
+      Collection<UUID> accountIds, LocalDate from, LocalDate to);
+
+  /**
+   * The transactions of some accounts only, newest first; no accounts means
+   * no transactions instead of a query with an empty list.
+   */
+  default CompletableFuture<List<Transaction>> findByAccountsBetween(
+    Collection<UUID> accountIds, LocalDate from, LocalDate to
+  ) {
+    if (accountIds.isEmpty()) {
+      return CompletableFuture.completedFuture(List.of());
+    }
+    return findByAccountIdInAndBookingDateBetweenOrderByBookingDateDesc(
+      accountIds, from, to);
+  }
 
   @Async
   CompletableFuture<List<Transaction>> findByManuallyCategorized(

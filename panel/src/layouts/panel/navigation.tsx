@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router";
 import type { LucideIcon } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { activeUrl } from "@/layouts/panel/active-url";
 
 export interface NavItem {
   title: string;
@@ -14,16 +15,6 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-/**
- * The entry a path belongs to: the longest url it equals or sits under, so
- * "/settings/security" still lights "Settings".
- */
-export function activeUrl(pathname: string, urls: string[]): string | undefined {
-  const path = pathname.replace(/\/+$/, "") || "/";
-  return urls
-    .filter((url) => path === url || (url !== "/" && path.startsWith(url + "/")))
-    .sort((left, right) => right.length - left.length)[0];
-}
 
 export function SidebarNavigation({ groups }: { groups: NavGroup[] }) {
   const { pathname } = useLocation();
