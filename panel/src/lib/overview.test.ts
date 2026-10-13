@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RecurringPayment, Transaction } from "@/lib/api";
-import { summarizeMonth, total, upcomingThisMonth } from "@/lib/overview";
+import { summarizeMonth, total, upcomingThisMonth, yearly } from "@/lib/overview";
 import { monthRange, shiftMonth } from "@/lib/dates";
 
 const transaction = (
@@ -58,5 +58,15 @@ describe("dates", () => {
     expect(monthRange("2028-02")).toEqual({ from: "2028-02-01", to: "2028-02-29" });
     expect(shiftMonth("2026-01", -1)).toBe("2025-12");
     expect(total([0.1, 0.2])).toBe(0.3);
+  });
+});
+
+describe("yearly", () => {
+  it("multiplies the amount itself, not the rounded monthly share", () => {
+    const payment = (amount: number, cycle: RecurringPayment["cycle"]) =>
+      ({ amount, cycle, monthly_amount: Math.round((amount / 12) * 100) / 100 }) as RecurringPayment;
+    expect(yearly(payment(289.4, "YEARLY"))).toBe(289.4);
+    expect(yearly(payment(55.08, "QUARTERLY"))).toBeCloseTo(220.32);
+    expect(yearly(payment(10.99, "MONTHLY"))).toBeCloseTo(131.88);
   });
 });

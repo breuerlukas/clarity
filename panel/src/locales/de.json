@@ -275,9 +275,12 @@
   },
   "subscriptions": {
     "filter": "Filter",
-    "all": "Alle",
-    "subscriptions": "Abos",
-    "contracts": "Verträge"
+    "per_month": "{{amount}} im Monat",
+    "group_home": "Wohnen & Nebenkosten",
+    "group_subscriptions": "Abos",
+    "group_insurance": "Versicherungen",
+    "group_other": "Weitere Verträge",
+    "group_savings": "Sparpläne"
   },
   "interval": {
     "MONTHLY": "monatlich",

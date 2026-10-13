@@ -275,9 +275,12 @@
   },
   "subscriptions": {
     "filter": "Filter",
-    "all": "All",
-    "subscriptions": "Subscriptions",
-    "contracts": "Contracts"
+    "per_month": "{{amount}} a month",
+    "group_home": "Home & utilities",
+    "group_subscriptions": "Subscriptions",
+    "group_insurance": "Insurance",
+    "group_other": "Other contracts",
+    "group_savings": "Savings plans"
   },
   "interval": {
     "MONTHLY": "monthly",

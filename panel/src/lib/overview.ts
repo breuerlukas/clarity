@@ -58,3 +58,13 @@ export function upcomingThisMonth(
 export function total(amounts: number[]): number {
   return amounts.reduce((sum, amount) => sum + cents(amount), 0) / 100;
 }
+
+const PER_YEAR: Record<RecurringPayment["cycle"], number> = { WEEKLY: 52, MONTHLY: 12, QUARTERLY: 4, YEARLY: 1 };
+
+/**
+ * What a payment costs a year, from the amount itself: going through the
+ * rounded monthly share would turn 289,40 € a year into 289,44 €.
+ */
+export function yearly(payment: RecurringPayment) {
+  return payment.amount * PER_YEAR[payment.cycle];
+}
