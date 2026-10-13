@@ -1,3 +1,13 @@
+/*
+ * The Spring Boot plugin brings Jackson 3.1.5 into the build itself; see the
+ * Jackson platform in the dependencies below for why it is lifted.
+ */
+buildscript {
+  dependencies {
+    classpath(platform("tools.jackson:jackson-bom:3.1.7"))
+  }
+}
+
 plugins {
   id("java")
   id("checkstyle")
