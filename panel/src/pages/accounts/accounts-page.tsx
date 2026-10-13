@@ -23,6 +23,9 @@ export function AccountsPage() {
         </Button>
       </PageHeader>
       {connections.isError && <Notice className="mb-6">{t("common.error")}</Notice>}
+      {Boolean(connections.data?.length) && (
+        <p className="mb-6 max-w-2xl text-muted-foreground">{t("accounts.spending_hint")}</p>
+      )}
       <div className="grid items-start gap-6 xl:grid-cols-2">
         {connections.isPending && (
           <>

@@ -11,15 +11,18 @@ export function Segmented<T extends string>({
   value,
   options,
   onChange,
+  size = "default",
 }: {
   label: string;
   value: T | undefined;
   options: { value: T; label: string; icon?: LucideIcon}[];
   onChange: (value: T) => void;
+  /** Small for a choice inside a list row. */
+  size?: "default" | "sm";
 }) {
   const { container, pill } = useSlidingPill<HTMLDivElement>('[aria-checked="true"]');
   return (
-    <div ref={container} role="radiogroup" aria-label={label} className="relative flex w-fit max-w-full flex-wrap gap-1 rounded-full bg-ground p-1">
+    <div ref={container} role="radiogroup" aria-label={label} className={cn("relative flex w-fit max-w-full flex-wrap gap-1 rounded-full bg-ground", size === "sm" ? "p-0.5" : "p-1")}>
       <span ref={pill} aria-hidden="true" className={cn(PILL_CLASS, "bg-card shadow-sm ring-1 ring-divider")} />
       {options.map((option) => (
         <button
@@ -29,11 +32,12 @@ export function Segmented<T extends string>({
           aria-checked={value === option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "relative inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors duration-300",
+            "relative inline-flex items-center rounded-full font-bold transition-colors duration-300",
+            size === "sm" ? "h-7 gap-1.5 px-3 text-xs" : "h-9 gap-2 px-4 text-sm",
             value === option.value ? "text-foreground" : "text-muted-foreground hover:text-foreground",
           )}
         >
-          {option.icon && <option.icon className="size-4" aria-hidden />}
+          {option.icon && <option.icon className={size === "sm" ? "size-3.5" : "size-4"} aria-hidden />}
           {option.label}
         </button>
       ))}
