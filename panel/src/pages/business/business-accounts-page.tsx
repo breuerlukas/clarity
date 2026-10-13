@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FileSignature, Plus, UserRound } from "lucide-react";
+import { FileSignature, Plus, ReceiptText, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AmountBadge } from "@/components/amount-badge";
 import { Notice } from "@/components/notice";
@@ -133,12 +133,22 @@ function BookingRow({
                 {!match.automatic && <span className="sr-only">{t("business.assigned_manually")}</span>}
               </span>
             ) : (
-              unmatched && (
+              unmatched &&
+              transaction.invoices.length === 0 && (
                 <span className="rounded-full px-2 py-px text-xs font-bold text-warning ring-1 ring-warning/30 ring-inset">
                   {t("business.unmatched")}
                 </span>
               )
             )}
+            {transaction.invoices.map((invoice) => (
+              <span
+                key={invoice.id}
+                className="inline-flex min-w-0 items-center gap-1 rounded-full px-2 py-px text-xs font-bold text-foreground ring-1 ring-divider ring-inset"
+              >
+                <ReceiptText className="size-3.5 shrink-0" aria-hidden />
+                <span className="truncate">{t("invoices.pays", { number: invoice.number })}</span>
+              </span>
+            ))}
           </span>
         </span>
         <AmountBadge

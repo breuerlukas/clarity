@@ -4,6 +4,8 @@ import type {
   Category,
   Connection,
   Contract,
+  Invoice,
+  Mailbox,
   RecurringPayment,
   Space,
   Transaction,
@@ -15,6 +17,7 @@ import {
   demoBusinessTransactions,
   demoContracts,
 } from "@/demo/demo-business";
+import { demoInvoices, demoMailboxes } from "@/demo/demo-invoices";
 
 /**
  * Made-up but believable finances for the demo: a salaried person in Munich
@@ -188,6 +191,8 @@ export interface DemoDatabase {
   recurring: RecurringPayment[];
   businessTransactions: BusinessTransaction[];
   contracts: Contract[];
+  invoices: Invoice[];
+  mailboxes: Mailbox[];
 }
 
 export function createDemoDatabase(today = TODAY()): DemoDatabase {
@@ -341,6 +346,7 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
   }
   transactions.sort((first, second) => second.date.localeCompare(first.date));
   const contracts = demoContracts(today);
+  const businessTransactions = demoBusinessTransactions(today, contracts);
   return {
     spaces: [
       { id: PERSONAL_SPACE, slug: "home", name: "", icon: "wallet", kind: "PERSONAL" },
@@ -349,8 +355,10 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
     connections: [...connections(today), ...demoBusinessConnections(today)],
     transactions,
     recurring: recurring(today, transactions),
-    businessTransactions: demoBusinessTransactions(today, contracts),
+    businessTransactions,
     contracts,
+    invoices: demoInvoices(today, businessTransactions),
+    mailboxes: demoMailboxes(today),
   };
 }
 

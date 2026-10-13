@@ -22,6 +22,7 @@ import { ConnectCallbackPage } from "@/pages/accounts/connect-callback-page";
 import { BusinessOverviewPage } from "@/pages/business/business-overview-page";
 import { ContractsPage } from "@/pages/business/contracts-page";
 import { BusinessAccountsPage } from "@/pages/business/business-accounts-page";
+import { InvoicesPage } from "@/pages/business/invoices-page";
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="statistics" element={<ByKind personal={<StatisticsPage />} />} />
           <Route path="subscriptions" element={<ByKind personal={<SubscriptionsPage />} />} />
           <Route path="contracts" element={<ByKind business={<ContractsPage />} />} />
+          <Route path="invoices" element={<ByKind business={<InvoicesPage />} />} />
           <Route path="accounts" element={<ByKind personal={<AccountsPage />} business={<BusinessAccountsPage />} />} />
         </Route>
         <Route path="connect/callback" element={<ConnectCallbackPage />} />

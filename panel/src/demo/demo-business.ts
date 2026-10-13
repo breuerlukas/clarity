@@ -114,6 +114,7 @@ export function demoBusinessTransactions(today: Date, contracts: Contract[]): Bu
       description,
       category: amount > 0 ? "INCOME" : "OTHER",
       assignment: null,
+      invoices: [],
     });
   };
   contracts.forEach((contract, index) => {

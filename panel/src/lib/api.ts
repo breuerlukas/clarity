@@ -157,6 +157,116 @@ export type PaymentKind = "CONTRACT" | "WITHDRAWAL" | "DEPOSIT" | "NONE";
 export interface BusinessTransaction extends Transaction {
   /** What the owner assigned by hand; null leaves it to the automatic match. */
   assignment: { kind: PaymentKind; contract: string | null } | null;
+  /** The invoices this booking pays, with the part that goes to each. */
+  invoices: { id: string; number: string; amount: number }[];
+}
+
+export type MailSecurity = "SSL" | "STARTTLS";
+
+/** An IMAP mailbox of a business space; its password never comes back. */
+export interface Mailbox {
+  id: string;
+  space: string;
+  host: string;
+  port: number;
+  security: MailSecurity;
+  username: string;
+  /** Mails here are invoices to the business, and payment advices. */
+  incoming_folder: string;
+  /** Mails here are invoices the business sent; null watches none. */
+  outgoing_folder: string | null;
+  last_checked_at: number | null;
+  /** Why the last check failed; null when it worked. */
+  last_error: string | null;
+  created_at: number;
+}
+
+export interface MailboxDraft {
+  host: string;
+  port: number;
+  security: MailSecurity;
+  username: string;
+  /** Empty keeps the stored one of an existing mailbox. */
+  password: string;
+  incoming_folder: string;
+  /** Empty watches no sent folder. */
+  outgoing_folder: string;
+}
+
+/** INCOMING: the business pays it. OUTGOING: it sent it, a customer pays. */
+export type InvoiceDirection = "INCOMING" | "OUTGOING";
+export type InvoiceFormat = "XRECHNUNG" | "ZUGFERD" | "PDF" | "OCR";
+export type InvoiceStatus = "OPEN" | "ANNOUNCED" | "PARTIAL" | "PAID" | "OVERDUE";
+
+export interface InvoicePayment {
+  id: string;
+  transaction: string;
+  /** The part of the transaction applied to this invoice, positive. */
+  amount: number;
+  /** Booking date of the transaction. */
+  date: string;
+  /** Linked by the automatic match rather than by hand. */
+  automatic: boolean;
+}
+
+export interface Invoice {
+  id: string;
+  space: string;
+  direction: InvoiceDirection;
+  number: string;
+  issuer: string;
+  recipient: string;
+  /** The account the money goes to (the issuer's), if the invoice names one. */
+  iban: string | null;
+  currency: string;
+  net_amount: number | null;
+  tax_amount: number | null;
+  gross_amount: number;
+  invoice_date: string;
+  due_date: string | null;
+  format: InvoiceFormat;
+  /** Read from a plain PDF or a scan: fields may be wrong until confirmed. */
+  needs_review: boolean;
+  /** Marked as fully paid by hand or by an early-payment discount. */
+  settled: boolean;
+  /** The day a payment advice announced it. */
+  announced_at: string | null;
+  announced_amount: number | null;
+  mail: { subject: string; sender: string; received_at: number } | null;
+  document: { name: string; content_type: string; size: number } | null;
+  payments: InvoicePayment[];
+  paid_amount: number;
+  /** Zero once settled. */
+  open_amount: number;
+  /** First that applies: PAID, OVERDUE, PARTIAL, ANNOUNCED, OPEN. */
+  status: InvoiceStatus;
+  created_at: number;
+}
+
+/** The fields the owner corrects, amounts and optional fields as text. */
+export interface InvoiceDraft {
+  direction: InvoiceDirection;
+  number: string;
+  issuer: string;
+  recipient: string;
+  /** Empty for none. */
+  iban: string;
+  currency: string;
+  /** Empty when unknown. */
+  net_amount: string;
+  /** Empty when unknown. */
+  tax_amount: string;
+  gross_amount: string;
+  invoice_date: string;
+  /** Empty for none. */
+  due_date: string;
+}
+
+export type MatchReason = "NUMBER" | "AMOUNT" | "IBAN" | "NAME";
+
+export interface PaymentSuggestion {
+  transaction: Transaction;
+  reasons: MatchReason[];
 }
 
 export interface Bank {
@@ -252,4 +362,32 @@ export const api = {
   resumeContract: (id: string) =>
     post<{ contract: Contract }>("/business/contracts/resume/", { id }),
   deleteContract: (id: string) => post("/business/contracts/delete/", { id }),
+  mailboxes: (space: string) =>
+    get<{ mailboxes: Mailbox[] }>(`/business/mailboxes/?space=${space}`),
+  mailFolders: (id: string | null, draft: MailboxDraft) =>
+    post<{ folders: string[] }>("/business/mailboxes/folders/", { id: id ?? "", ...draft }),
+  createMailbox: (space: string, draft: MailboxDraft) =>
+    post<{ mailbox: Mailbox }>("/business/mailboxes/create/", { space, ...draft }),
+  updateMailbox: (id: string, draft: MailboxDraft) =>
+    post<{ mailbox: Mailbox }>("/business/mailboxes/update/", { id, ...draft }),
+  deleteMailbox: (id: string) => post("/business/mailboxes/delete/", { id }),
+  checkMailboxes: (space: string) =>
+    post<{ started: boolean }>("/business/mailboxes/check/", { space }),
+  invoices: (space: string) =>
+    get<{ invoices: Invoice[] }>(`/business/invoices/?space=${space}`),
+  updateInvoice: (id: string, draft: InvoiceDraft) =>
+    post<{ invoice: Invoice }>("/business/invoices/update/", { id, ...draft }),
+  settleInvoice: (id: string, settled: boolean) =>
+    post<{ invoice: Invoice }>("/business/invoices/settle/", { id, settled }),
+  deleteInvoice: (id: string) => post("/business/invoices/delete/", { id }),
+  paymentSuggestions: (id: string) =>
+    get<{ suggestions: PaymentSuggestion[] }>(`/business/invoices/suggestions/?id=${id}`),
+  linkPayment: (invoice: string, transaction: string) =>
+    post<{ invoice: Invoice }>("/business/invoices/payments/link/", { invoice, transaction }),
+  unlinkPayment: (id: string) =>
+    post<{ invoice: Invoice }>("/business/invoices/payments/unlink/", { id }),
 };
+
+/** Where the browser downloads an invoice's original file. */
+export const invoiceDocumentUrl = (id: string) =>
+  `/v1/business/invoices/document/?id=${encodeURIComponent(id)}`;
