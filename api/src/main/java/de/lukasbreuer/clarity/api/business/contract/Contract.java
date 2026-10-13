@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * A customer contract: what the customer pays per invoice, how often, since
+ * A customer contract of a business space: what the customer pays per invoice, how often, since
  * when, and on which terms it renews. After each term of {@code termMonths}
  * it renews by another term unless it was cancelled at least
  * {@code noticeMonths} before. The end date is the last day the contract
@@ -35,6 +35,8 @@ public final class Contract {
   @Id
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
+  @Column(name = "space_id", updatable = false)
+  private UUID spaceId;
   @Column(name = "customer", nullable = false)
   private String customer;
   @Column(name = "amount", nullable = false, precision = 19, scale = 2)
@@ -79,6 +81,7 @@ public final class Contract {
   public Map<String, Object> information() {
     var information = new HashMap<String, Object>();
     information.put("id", id);
+    information.put("space", spaceId);
     information.put("customer", customer);
     information.put("amount", amount);
     information.put("interval", billingInterval.name());

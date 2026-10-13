@@ -14,59 +14,54 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { useSpace, useSpacePath } from "@/hooks/use-space";
+import type { SpaceKind } from "@/lib/api";
 import { SidebarNavigation, type NavGroup } from "@/layouts/panel/navigation";
 import { SidebarUser } from "@/layouts/panel/sidebar-user";
-import { useWorkspace } from "@/layouts/panel/workspace";
-import { WorkspaceSwitcher } from "@/layouts/panel/workspace-switcher";
+import { SpaceSwitcher } from "@/layouts/panel/space-switcher";
 
-export function appNavigation(t: TFunction): NavGroup[] {
+/** The pages of a space, which depend on its kind. */
+function spaceNavigation(
+  t: TFunction,
+  kind: SpaceKind,
+  path: (page?: string) => string,
+): NavGroup[] {
+  const pages =
+    kind === "BUSINESS"
+      ? [
+          { title: t("nav.overview"), url: path(), icon: LayoutDashboard },
+          { title: t("nav.contracts"), url: path("/contracts"), icon: FileSignature },
+        ]
+      : [
+          { title: t("nav.overview"), url: path(), icon: LayoutDashboard },
+          { title: t("nav.transactions"), url: path("/transactions"), icon: ArrowLeftRight },
+          { title: t("nav.subscriptions"), url: path("/subscriptions"), icon: Repeat },
+          { title: t("nav.statistics"), url: path("/statistics"), icon: ChartColumnBig },
+        ];
   return [
-    {
-      items: [
-        { title: t("nav.overview"), url: "/", icon: LayoutDashboard },
-        { title: t("nav.transactions"), url: "/transactions", icon: ArrowLeftRight },
-        { title: t("nav.subscriptions"), url: "/subscriptions", icon: Repeat },
-        { title: t("nav.statistics"), url: "/statistics", icon: ChartColumnBig },
-      ],
-    },
+    { items: pages },
     {
       label: t("nav.banking"),
-      items: [{ title: t("nav.accounts"), url: "/accounts", icon: Landmark }],
-    },
-  ];
-}
-
-export function businessNavigation(t: TFunction): NavGroup[] {
-  return [
-    {
-      items: [
-        { title: t("nav.business_overview"), url: "/business", icon: LayoutDashboard },
-        { title: t("nav.contracts"), url: "/business/contracts", icon: FileSignature },
-      ],
-    },
-    {
-      label: t("nav.banking"),
-      items: [{ title: t("nav.accounts"), url: "/business/accounts", icon: Landmark }],
+      items: [{ title: t("nav.accounts"), url: path("/accounts"), icon: Landmark }],
     },
   ];
 }
 
 /**
- * The light sidebar: the workspace switcher behind the mark, the open
- * workspace's navigation, and the owner at the foot.
+ * The light sidebar: the space switcher behind the mark, the open space's
+ * pages, and the owner at the foot.
  */
 export function AppSidebar() {
   const { t } = useTranslation();
-  const workspace = useWorkspace();
+  const space = useSpace();
+  const path = useSpacePath();
   return (
     <Sidebar collapsible="offcanvas" className="z-40">
       <SidebarHeader className="px-3 pt-2.5 pb-2.5">
-        <WorkspaceSwitcher />
+        <SpaceSwitcher />
       </SidebarHeader>
       <SidebarContent className="px-3">
-        <SidebarNavigation
-          groups={workspace === "business" ? businessNavigation(t) : appNavigation(t)}
-        />
+        <SidebarNavigation groups={spaceNavigation(t, space.kind, path)} />
       </SidebarContent>
       <SidebarFooter className="gap-0 px-3 pt-0 pb-2">
         <SidebarUser />

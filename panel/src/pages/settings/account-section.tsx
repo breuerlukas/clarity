@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check, UserRound } from "lucide-react";
@@ -27,11 +27,15 @@ function NameRow() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const session = useSession();
-  const [name, setName] = useState("");
-  useEffect(() => setName(session.data?.name ?? ""), [session.data?.name]);
+  /** What the owner typed; until then the field shows the current name. */
+  const [draft, setDraft] = useState<string | null>(null);
+  const name = draft ?? session.data?.name ?? "";
   const rename = useMutation({
     mutationFn: () => api.rename(name.trim()),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["session"] }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["session"] });
+      setDraft(null);
+    },
   });
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -43,7 +47,7 @@ function NameRow() {
       <form onSubmit={submit} className="flex w-full gap-2 sm:w-auto">
         <Input
           value={name}
-          onChange={(event) => setName(event.target.value)}
+          onChange={(event) => setDraft(event.target.value)}
           maxLength={64}
           autoComplete="username"
           aria-label={t("settings.name")}

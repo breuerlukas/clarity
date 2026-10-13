@@ -1,4 +1,5 @@
 import { currentMonth, isoDate, monthRange, shiftMonth, type MonthKey } from "@/lib/dates";
+import { formatMonth } from "@/lib/format";
 
 export type PeriodKind = "month" | "quarter" | "year" | "rolling";
 
@@ -89,4 +90,16 @@ export function shiftPeriod(period: Period, delta: number): Period {
 /** Whether the period is the current one, so there is no later one yet. */
 export function isCurrentPeriod(period: Period, today = new Date()) {
   return period.kind === "rolling" || period.key === currentPeriod(period.kind, today).key;
+}
+
+/** "Oktober 2026", "Q4 2026", "2026" or the rolling key. */
+export function periodLabel(period: Period) {
+  if (period.kind === "month") {
+    return formatMonth(period.key);
+  }
+  if (period.kind === "quarter") {
+    const [year, quarter] = period.key.split("-");
+    return `${quarter} ${year}`;
+  }
+  return period.key;
 }

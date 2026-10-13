@@ -33,7 +33,8 @@ export function ConnectionCard({
 }) {
   const { t } = useTranslation();
   const [removing, setRemoving] = useState(false);
-  const daysLeft = Math.ceil((connection.valid_until - Date.now()) / DAY);
+  const [now] = useState(Date.now);
+  const daysLeft = Math.ceil((connection.valid_until - now) / DAY);
   return (
     <Panel
       title={connection.bank_name}

@@ -283,3 +283,8 @@ export function matchPayment(
 export function personalIbans(ibans: (string | null)[]): Set<string> {
   return new Set(ibans.map(compactIban).filter(Boolean));
 }
+
+/** The customer for a contract payment, otherwise the kind's name. */
+export function matchLabel(match: PaymentMatch, t: (key: string) => string): string {
+  return match.kind === "CONTRACT" && match.contract ? match.contract.customer : t(`business.kind_${match.kind}`);
+}

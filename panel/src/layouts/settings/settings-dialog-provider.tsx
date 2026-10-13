@@ -1,9 +1,6 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { SettingsDialog, type SettingsSectionId } from "@/layouts/settings/settings-dialog";
-
-const SettingsDialogContext = createContext<(section?: SettingsSectionId) => void>(
-  () => undefined,
-);
+import { SettingsDialogContext } from "@/layouts/settings/settings-dialog-context";
 
 /** Holds the one settings dialog, so the sidebar and the owner menu share it. */
 export function SettingsDialogProvider({ children }: { children: ReactNode }) {
@@ -24,8 +21,4 @@ export function SettingsDialogProvider({ children }: { children: ReactNode }) {
       />
     </SettingsDialogContext.Provider>
   );
-}
-
-export function useOpenSettings() {
-  return useContext(SettingsDialogContext);
 }

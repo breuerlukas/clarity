@@ -14,9 +14,8 @@ import java.util.UUID;
 
 /**
  * One consent given at one bank: the Enable Banking session and how long the
- * bank lets it read. A connection can cover several accounts. Business
- * connections are logged in as a company and only show up under Business,
- * never in the owner's personal finances.
+ * bank lets it read. A connection can cover several accounts and belongs to
+ * one space, the only place its accounts show up.
  */
 @Entity
 @Table(name = "bank_connection")
@@ -38,18 +37,18 @@ public final class BankConnection {
   private long validUntil;
   @Column(name = "created_at", nullable = false, updatable = false)
   private long createdAt;
-  @Column(name = "business")
-  private Boolean business;
+  @Column(name = "space_id")
+  private UUID spaceId;
 
   public boolean isValid() {
     return validUntil > System.currentTimeMillis();
   }
 
   /**
-   * Connections made before business accounts existed have no value and are
-   * personal.
+   * Connections made before spaces existed have none until the start moves
+   * them into the first personal space.
    */
-  public boolean isBusiness() {
-    return Boolean.TRUE.equals(business);
+  public void moveTo(UUID spaceId) {
+    this.spaceId = spaceId;
   }
 }

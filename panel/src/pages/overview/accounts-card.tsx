@@ -10,11 +10,11 @@ import { total } from "@/lib/overview";
  */
 export function AccountsCard({
   connections,
-  viewAll = "/accounts",
+  viewAll,
   business = false,
 }: {
   connections?: Connection[];
-  viewAll?: string;
+  viewAll: string;
   business?: boolean;
 }) {
   const { t } = useTranslation();

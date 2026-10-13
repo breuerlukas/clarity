@@ -10,7 +10,6 @@
     "settings": "Einstellungen",
     "toggle_sidebar": "Seitenleiste ein- oder ausblenden",
     "subscriptions": "Abos & Fixkosten",
-    "business_overview": "Übersicht",
     "contracts": "Verträge"
   },
   "common": {
@@ -277,14 +276,6 @@
     "subscriptions": "Abos",
     "contracts": "Verträge"
   },
-  "workspace": {
-    "title": "Bereich",
-    "switch": "Bereich wechseln",
-    "personal": "Privat",
-    "business": "Business",
-    "personal_hint": "Konten, Ausgaben, Fixkosten",
-    "business_hint": "Verträge, Umsatz, Geschäftskonten"
-  },
   "interval": {
     "MONTHLY": "monatlich",
     "QUARTERLY": "vierteljährlich",
@@ -363,5 +354,32 @@
     "balance": "Kontostand gesamt",
     "bookings": "Buchungen",
     "bookings_note": "Letzte {{days}} Tage"
+  },
+  "spaces": {
+    "default_name": "Privat",
+    "title": "Spaces",
+    "switch": "Space wechseln",
+    "kind": "Art",
+    "kind_PERSONAL": "Privat",
+    "kind_BUSINESS": "Business",
+    "kind_PERSONAL_hint": "Eigene Konten mit Ausgaben, Fixkosten und Spielraum bis zum Gehalt.",
+    "kind_BUSINESS_hint": "Geschäftskonten und Kundenverträge mit Umsatz, Kunden und Churn. Die Bank meldet dich als Unternehmen an.",
+    "create": "Neuer Space",
+    "create_hint": "Ein Space hat eigene Bankverbindungen, getrennt von allen anderen.",
+    "create_submit": "Space anlegen",
+    "edit": "{{name}} bearbeiten",
+    "edit_hint": "Name und Icon. Die Art eines Space bleibt, wie sie angelegt wurde.",
+    "name": "Name",
+    "name_placeholder": "z. B. Haushalt",
+    "name_placeholder_business": "z. B. Agentur",
+    "icon": "Icon",
+    "delete": "Space löschen",
+    "delete_confirm": "Endgültig löschen",
+    "errors": {
+      "5000": "Bitte gib einen Namen ein.",
+      "5002": "Entferne zuerst alle Banken und lösche alle Verträge in diesem Space.",
+      "5003": "Der letzte Space kann nicht gelöscht werden."
+    },
+    "settings": "Einstellungen für {{name}}"
   }
 }

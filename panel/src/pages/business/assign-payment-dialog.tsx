@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Notice } from "@/components/notice";
 import { api, type BusinessTransaction, type Contract, type PaymentKind } from "@/lib/api";
-import { contractStatus, type PaymentMatch } from "@/lib/business";
+import { contractStatus, matchLabel, type PaymentMatch } from "@/lib/business";
 import { formatDate, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -42,17 +42,41 @@ export function AssignPaymentDialog({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  return (
+    <Dialog open={transaction !== null} onOpenChange={(open) => !open && onClose()}>
+      {transaction && (
+        <DialogContent closeLabel={t("common.close")} className="gap-6 sm:max-w-xl">
+          <AssignForm
+            key={transaction.id}
+            transaction={transaction}
+            match={match}
+            contracts={contracts}
+            onClose={onClose}
+          />
+        </DialogContent>
+      )}
+    </Dialog>
+  );
+}
+
+function AssignForm({
+  transaction,
+  match,
+  contracts,
+  onClose,
+}: {
+  transaction: BusinessTransaction;
+  match: PaymentMatch | null;
+  contracts: Contract[];
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [choice, setChoice] = useState<Choice>("AUTO");
-  useEffect(() => {
-    if (transaction) {
-      setChoice(choiceOf(transaction));
-    }
-  }, [transaction]);
+  const [choice, setChoice] = useState<Choice>(() => choiceOf(transaction));
   const save = useMutation({
     mutationFn: () => {
       const [kind, contract] = choice.split(":");
-      return api.assignPayment(transaction!.id, kind as PaymentKind | "AUTO", contract);
+      return api.assignPayment(transaction.id, kind as PaymentKind | "AUTO", contract);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["business-transactions"] });
@@ -60,7 +84,7 @@ export function AssignPaymentDialog({
     },
   });
   const selectable = contracts.filter(
-    (contract) => contractStatus(contract, transaction?.date ?? "") !== "ended" || contract.id === transaction?.assignment?.contract,
+    (contract) => contractStatus(contract, transaction.date) !== "ended" || contract.id === transaction.assignment?.contract,
   );
   const options: { value: Choice; label: string; hint?: string }[] = [
     {
@@ -78,64 +102,56 @@ export function AssignPaymentDialog({
     { value: "NONE", label: t("business.kind_NONE") },
   ];
   return (
-    <Dialog open={transaction !== null} onOpenChange={(open) => !open && onClose()}>
-      {transaction && (
-        <DialogContent closeLabel={t("common.close")} className="gap-6 sm:max-w-xl">
-          <div className="flex items-center gap-4 pr-8">
-            <div className="min-w-0 flex-1">
-              <DialogTitle className="truncate pr-0">
-                {transaction.counterparty || t("transactions.no_counterparty")}
-              </DialogTitle>
-              <DialogDescription>{formatDate(transaction.date)}</DialogDescription>
-            </div>
-            <span
+    <>
+      <div className="flex items-center gap-4 pr-8">
+        <div className="min-w-0 flex-1">
+          <DialogTitle className="truncate pr-0">
+            {transaction.counterparty || t("transactions.no_counterparty")}
+          </DialogTitle>
+          <DialogDescription>{formatDate(transaction.date)}</DialogDescription>
+        </div>
+        <span
+          className={cn(
+            "figures shrink-0 text-2xl font-extrabold tracking-[-0.02em]",
+            transaction.amount > 0 && "text-positive",
+          )}
+        >
+          {formatMoney(transaction.amount, transaction.currency, { signed: true })}
+        </span>
+      </div>
+      <dl className="grid gap-3 rounded-2xl bg-raised p-4 text-sm sm:grid-cols-[8rem_1fr]">
+        <dt className="text-muted-foreground">{t("transactions.reference")}</dt>
+        <dd className="break-words">{transaction.description || "–"}</dd>
+      </dl>
+      <fieldset className="grid gap-3">
+        <legend className="mb-3 text-sm font-bold text-label">{t("business.assign")}</legend>
+        <div className="grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={choice === option.value}
+              onClick={() => setChoice(option.value)}
               className={cn(
-                "figures shrink-0 text-2xl font-extrabold tracking-[-0.02em]",
-                transaction.amount > 0 && "text-positive",
+                "grid rounded-xl px-3 py-2 text-left text-sm ring-1 ring-divider transition-colors hover:bg-raised",
+                choice === option.value && "bg-brand/12 font-bold text-nav-active-text ring-brand/40",
               )}
             >
-              {formatMoney(transaction.amount, transaction.currency, { signed: true })}
-            </span>
-          </div>
-          <dl className="grid gap-3 rounded-2xl bg-raised p-4 text-sm sm:grid-cols-[8rem_1fr]">
-            <dt className="text-muted-foreground">{t("transactions.reference")}</dt>
-            <dd className="break-words">{transaction.description || "–"}</dd>
-          </dl>
-          <fieldset className="grid gap-3">
-            <legend className="mb-3 text-sm font-bold text-label">{t("business.assign")}</legend>
-            <div className="grid max-h-80 gap-2 overflow-y-auto sm:grid-cols-2">
-              {options.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  aria-pressed={choice === option.value}
-                  onClick={() => setChoice(option.value)}
-                  className={cn(
-                    "grid rounded-xl px-3 py-2 text-left text-sm ring-1 ring-divider transition-colors hover:bg-raised",
-                    choice === option.value && "bg-brand/12 font-bold text-nav-active-text ring-brand/40",
-                  )}
-                >
-                  <span className="truncate">{option.label}</span>
-                  {option.hint && <span className="truncate text-xs font-normal text-muted-foreground">{option.hint}</span>}
-                </button>
-              ))}
-            </div>
-          </fieldset>
-          {save.isError && <Notice>{t("common.error")}</Notice>}
-          <div className="flex flex-wrap justify-end gap-2">
-            <DialogClose asChild>
-              <Button variant="outline">{t("common.cancel")}</Button>
-            </DialogClose>
-            <Button disabled={save.isPending} onClick={() => save.mutate()}>
-              {t("common.save")}
-            </Button>
-          </div>
-        </DialogContent>
-      )}
-    </Dialog>
+              <span className="truncate">{option.label}</span>
+              {option.hint && <span className="truncate text-xs font-normal text-muted-foreground">{option.hint}</span>}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      {save.isError && <Notice>{t("common.error")}</Notice>}
+      <div className="flex flex-wrap justify-end gap-2">
+        <DialogClose asChild>
+          <Button variant="outline">{t("common.cancel")}</Button>
+        </DialogClose>
+        <Button disabled={save.isPending} onClick={() => save.mutate()}>
+          {t("common.save")}
+        </Button>
+      </div>
+    </>
   );
-}
-
-export function matchLabel(match: PaymentMatch, t: (key: string) => string): string {
-  return match.kind === "CONTRACT" && match.contract ? match.contract.customer : t(`business.kind_${match.kind}`);
 }

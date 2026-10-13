@@ -10,7 +10,6 @@
     "settings": "Settings",
     "toggle_sidebar": "Toggle sidebar",
     "subscriptions": "Subscriptions & fixed costs",
-    "business_overview": "Overview",
     "contracts": "Contracts"
   },
   "common": {
@@ -277,14 +276,6 @@
     "subscriptions": "Subscriptions",
     "contracts": "Contracts"
   },
-  "workspace": {
-    "title": "Workspace",
-    "switch": "Switch workspace",
-    "personal": "Personal",
-    "business": "Business",
-    "personal_hint": "Accounts, spending, fixed costs",
-    "business_hint": "Contracts, revenue, business accounts"
-  },
   "interval": {
     "MONTHLY": "monthly",
     "QUARTERLY": "quarterly",
@@ -363,5 +354,32 @@
     "balance": "Total balance",
     "bookings": "Bookings",
     "bookings_note": "Last {{days}} days"
+  },
+  "spaces": {
+    "default_name": "Personal",
+    "title": "Spaces",
+    "switch": "Switch space",
+    "kind": "Kind",
+    "kind_PERSONAL": "Personal",
+    "kind_BUSINESS": "Business",
+    "kind_PERSONAL_hint": "Your own accounts with spending, fixed costs and the room until payday.",
+    "kind_BUSINESS_hint": "Business accounts and customer contracts with revenue, customers and churn. The bank signs you in as a company.",
+    "create": "New space",
+    "create_hint": "A space has its own bank connections, apart from every other space.",
+    "create_submit": "Create space",
+    "edit": "Edit {{name}}",
+    "edit_hint": "Name and icon. A space keeps the kind it was created with.",
+    "name": "Name",
+    "name_placeholder": "e.g. Household",
+    "name_placeholder_business": "e.g. Agency",
+    "icon": "Icon",
+    "delete": "Delete space",
+    "delete_confirm": "Delete for good",
+    "errors": {
+      "5000": "Please enter a name.",
+      "5002": "Remove every bank and delete every contract in this space first.",
+      "5003": "The last space can't be deleted."
+    },
+    "settings": "Settings for {{name}}"
   }
 }

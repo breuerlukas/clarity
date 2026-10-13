@@ -4,12 +4,13 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AuthLayout } from "@/layouts/auth-layout";
 import { Notice } from "@/components/notice";
+import { spacePath } from "@/hooks/use-space";
 import { api, ApiError } from "@/lib/api";
 
 /**
  * Where the bank sends the browser back to. Hands code and state to the api
  * once (StrictMode would otherwise send the one-time code twice), then
- * returns to the personal or business accounts it was started from.
+ * returns to the accounts of the space it was started from.
  */
 export function ConnectCallbackPage() {
   const { t } = useTranslation();
@@ -21,9 +22,11 @@ export function ConnectCallbackPage() {
   const state = params.get("state");
   const complete = useMutation({
     mutationFn: () => api.completeConnection(code!, state!),
-    onSuccess: async ({ business }) => {
+    onSuccess: async ({ space }) => {
       await queryClient.invalidateQueries();
-      navigate(business ? "/business/accounts" : "/accounts", { replace: true });
+      const spaces = await queryClient.fetchQuery({ queryKey: ["spaces"], queryFn: api.spaces });
+      const target = spaces.spaces.find((entry) => entry.id === space);
+      navigate(target ? spacePath(target, "/accounts") : "/", { replace: true });
     },
   });
   useEffect(() => {
@@ -45,7 +48,7 @@ export function ConnectCallbackPage() {
         <div className="grid gap-6">
           <Notice>{message}</Notice>
           <Link
-            to="/accounts"
+            to="/"
             className="font-medium underline decoration-line underline-offset-4"
           >
             {t("connect.back")}

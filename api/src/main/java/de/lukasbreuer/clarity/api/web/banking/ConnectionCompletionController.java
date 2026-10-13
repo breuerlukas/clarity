@@ -74,12 +74,12 @@ public final class ConnectionCompletionController {
       .thenCompose(_ -> CompletableFuture.allOf(session.accounts(connectionId)
         .stream().map(accountRepository::save)
         .toArray(CompletableFuture[]::new)))
-      .thenApply(_ -> connected(connectionId, session.isBusiness()));
+      .thenApply(_ -> connected(connectionId, session.spaceId()));
   }
 
-  private ApiResponse connected(UUID connectionId, boolean business) {
+  private ApiResponse connected(UUID connectionId, UUID spaceId) {
     syncCoordinator.synchronizeNow(Map.of());
     return ApiResponse.success(Map.of("connection", connectionId,
-      "business", business));
+      "space", spaceId));
   }
 }

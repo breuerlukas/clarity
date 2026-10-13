@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Notice } from "@/components/notice";
+import { useSpace } from "@/hooks/use-space";
 import { api, ApiError, type Bank } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -21,19 +22,19 @@ const COUNTRIES = ["AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI",
   "NO", "PL", "PT", "RO", "SE", "SI", "SK"];
 
 /**
- * Picks a bank and sends the owner there to sign in. A business connection
- * signs in as a company, and its accounts only show up under Business.
+ * Picks a bank and sends the owner there to sign in. The accounts go to the
+ * open space; for a business space the owner signs in as a company.
  */
 export function ConnectBankDialog({
   open,
   onOpenChange,
-  business = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  business?: boolean;
 }) {
   const { t, i18n } = useTranslation();
+  const space = useSpace();
+  const business = space.kind === "BUSINESS";
   const [country, setCountry] = useState("DE");
   const [query, setQuery] = useState("");
   const [bank, setBank] = useState<Bank | null>(null);
@@ -49,7 +50,7 @@ export function ConnectBankDialog({
     staleTime: 60 * 60_000,
   });
   const start = useMutation({
-    mutationFn: (selected: Bank) => api.startConnection(selected, business),
+    mutationFn: (selected: Bank) => api.startConnection(selected, space.id),
     onSuccess: ({ url }) => window.location.assign(url),
   });
   const needle = query.trim().toLocaleLowerCase();

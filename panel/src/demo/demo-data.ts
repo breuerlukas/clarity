@@ -5,10 +5,12 @@ import type {
   Connection,
   Contract,
   RecurringPayment,
+  Space,
   Transaction,
 } from "@/lib/api";
 import { isoDate } from "@/lib/dates";
 import {
+  BUSINESS_SPACE,
   demoBusinessConnections,
   demoBusinessTransactions,
   demoContracts,
@@ -76,11 +78,15 @@ function day(month: Date, dayOfMonth: number) {
   return new Date(month.getFullYear(), month.getMonth(), Math.min(dayOfMonth, last));
 }
 
+export const PERSONAL_SPACE = "home";
+
 export interface DemoDatabase {
+  spaces: Space[];
+  /** Of every space. */
   connections: Connection[];
   transactions: Transaction[];
+  /** Of the personal space. */
   recurring: RecurringPayment[];
-  businessConnections: Connection[];
   businessTransactions: BusinessTransaction[];
   contracts: Contract[];
 }
@@ -144,10 +150,13 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
   transactions.sort((first, second) => second.date.localeCompare(first.date));
   const contracts = demoContracts(today);
   return {
-    connections: connections(today),
+    spaces: [
+      { id: PERSONAL_SPACE, slug: "home", name: "", icon: "wallet", kind: "PERSONAL" },
+      { id: BUSINESS_SPACE, slug: "agentur", name: "Agentur", icon: "palette", kind: "BUSINESS" },
+    ],
+    connections: [...connections(today), ...demoBusinessConnections(today)],
     transactions,
     recurring: recurring(today, transactions),
-    businessConnections: demoBusinessConnections(today),
     businessTransactions: demoBusinessTransactions(today, contracts),
     contracts,
   };
@@ -168,6 +177,7 @@ function connections(today: Date): Connection[] {
   return [
     {
       id: "openbank",
+      space: PERSONAL_SPACE,
       bank_name: "Openbank",
       bank_country: "DE",
       valid_until: today.getTime() + 1000 * 60 * 60 * 24 * 142,
@@ -178,6 +188,7 @@ function connections(today: Date): Connection[] {
     },
     {
       id: "paypal",
+      space: PERSONAL_SPACE,
       bank_name: "PayPal",
       bank_country: "DE",
       valid_until: today.getTime() + 1000 * 60 * 60 * 24 * 11,

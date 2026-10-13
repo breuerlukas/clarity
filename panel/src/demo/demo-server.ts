@@ -5,8 +5,9 @@ import {
   type ContractDraft,
   type OwnerSession,
   type PaymentKind,
+  type SpaceKind,
 } from "@/lib/api";
-import { createDemoDatabase } from "@/demo/demo-data";
+import { createDemoDatabase, PERSONAL_SPACE } from "@/demo/demo-data";
 
 /**
  * Answers the panel's api calls in the browser for the public demo. Changes
@@ -55,6 +56,14 @@ export async function handleDemoRequest(
     case "POST /sessions/close-others/":
       sessions.splice(1);
       return ok({ closed: 1 });
+    case "GET /spaces/":
+      return ok({ spaces: database.spaces });
+    case "POST /spaces/create/":
+      return createSpace(String(body.name ?? "").trim(), String(body.icon), String(body.kind) as SpaceKind);
+    case "POST /spaces/update/":
+      return updateSpace(String(body.id), String(body.name ?? "").trim(), String(body.icon));
+    case "POST /spaces/delete/":
+      return deleteSpace(String(body.id));
     case "GET /connections/":
       return ok({ connections: database.connections });
     case "POST /accounts/spending/":
@@ -64,21 +73,19 @@ export async function handleDemoRequest(
     case "POST /connections/delete/":
       return removeConnection(String(body.id));
     case "GET /transactions/":
-      return ok({ transactions: transactionsBetween(url.searchParams.get("from"), url.searchParams.get("to")) });
+      return ok({ transactions: inSpace(database.transactions, url.searchParams).filter(between(url.searchParams)) });
     case "POST /transactions/category/":
       return categorize(String(body.id), body.category as Category, Boolean(body.remember));
     case "GET /recurring/":
-      return ok({ payments: database.recurring });
-    case "GET /business/connections/":
-      return ok({ connections: database.businessConnections });
+      return ok({ payments: url.searchParams.get("space") === PERSONAL_SPACE ? database.recurring : [] });
     case "GET /business/transactions/":
-      return ok({ transactions: businessTransactionsBetween(url.searchParams.get("from"), url.searchParams.get("to")) });
+      return ok({ transactions: inSpace(database.businessTransactions, url.searchParams).filter(between(url.searchParams)) });
     case "POST /business/transactions/assign/":
       return assignPayment(String(body.id), String(body.kind), String(body.contract ?? ""));
     case "GET /business/contracts/":
-      return ok({ contracts: database.contracts });
+      return ok({ contracts: database.contracts.filter((contract) => contract.space === url.searchParams.get("space")) });
     case "POST /business/contracts/create/":
-      return saveContract(null, body);
+      return saveContract(null, body, String(body.space));
     case "POST /business/contracts/update/":
       return saveContract(findContract(String(body.id)), body);
     case "POST /business/contracts/end/":
@@ -94,10 +101,78 @@ export async function handleDemoRequest(
   }
 }
 
-function transactionsBetween(from: string | null, to: string | null) {
-  return database.transactions.filter(
-    (transaction) => (!from || transaction.date >= from) && (!to || transaction.date <= to),
+function between(params: URLSearchParams) {
+  const from = params.get("from");
+  const to = params.get("to");
+  return (transaction: { date: string }) => (!from || transaction.date >= from) && (!to || transaction.date <= to);
+}
+
+/** The transactions of the accounts of the space the request names. */
+function inSpace<T extends { account: string }>(transactions: T[], params: URLSearchParams): T[] {
+  const accounts = new Set(
+    database.connections
+      .filter((connection) => connection.space === params.get("space"))
+      .flatMap((connection) => connection.accounts.map((account) => account.id)),
   );
+  return transactions.filter((transaction) => accounts.has(transaction.account));
+}
+
+function slugFor(name: string, except?: string) {
+  const base =
+    name
+      .toLowerCase()
+      .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+      .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+      .slice(0, 40) || "space";
+  const taken = new Set(database.spaces.filter((space) => space.id !== except).map((space) => space.slug));
+  let slug = base;
+  for (let number = 2; taken.has(slug); number += 1) {
+    slug = `${base}-${number}`;
+  }
+  return slug;
+}
+
+function createSpace(name: string, icon: string, kind: SpaceKind) {
+  if (!name || !["PERSONAL", "BUSINESS"].includes(kind)) {
+    throw new ApiError(400, 5000);
+  }
+  const space = { id: `space-${Date.now()}`, slug: slugFor(name), name, icon, kind };
+  database.spaces.push(space);
+  return ok({ space });
+}
+
+function updateSpace(id: string, name: string, icon: string) {
+  const space = database.spaces.find((entry) => entry.id === id);
+  if (!space) {
+    throw new ApiError(400, 5001);
+  }
+  if (!name) {
+    throw new ApiError(400, 5000);
+  }
+  if (name !== space.name) {
+    space.slug = slugFor(name, id);
+  }
+  Object.assign(space, { name, icon });
+  return ok({ space });
+}
+
+function deleteSpace(id: string) {
+  const space = database.spaces.find((entry) => entry.id === id);
+  if (!space) {
+    throw new ApiError(400, 5001);
+  }
+  if (database.spaces.length === 1) {
+    throw new ApiError(400, 5003);
+  }
+  if (
+    database.connections.some((connection) => connection.space === id) ||
+    database.contracts.some((contract) => contract.space === id)
+  ) {
+    throw new ApiError(400, 5002);
+  }
+  database.spaces.splice(database.spaces.indexOf(space), 1);
+  return ok();
 }
 
 function categorize(id: string, category: Category, remember: boolean) {
@@ -116,24 +191,15 @@ function categorize(id: string, category: Category, remember: boolean) {
 }
 
 function removeConnection(id: string) {
-  const list = database.connections.some((entry) => entry.id === id)
-    ? database.connections
-    : database.businessConnections;
-  const connection = list.find((entry) => entry.id === id);
+  const connection = database.connections.find((entry) => entry.id === id);
   if (!connection) {
     throw new ApiError(400, 2002);
   }
   const accounts = new Set(connection.accounts.map((account) => account.id));
-  list.splice(list.indexOf(connection), 1);
+  database.connections.splice(database.connections.indexOf(connection), 1);
   database.transactions = database.transactions.filter((entry) => !accounts.has(entry.account));
   database.businessTransactions = database.businessTransactions.filter((entry) => !accounts.has(entry.account));
   return ok();
-}
-
-function businessTransactionsBetween(from: string | null, to: string | null) {
-  return database.businessTransactions.filter(
-    (transaction) => (!from || transaction.date >= from) && (!to || transaction.date <= to),
-  );
 }
 
 function assignPayment(id: string, kind: string, contract: string) {
@@ -158,7 +224,7 @@ function findContract(id: string) {
 }
 
 /** The same checks as the api, so the demo refuses what the server would. */
-function saveContract(contract: Contract | null, body: Record<string, unknown>) {
+function saveContract(contract: Contract | null, body: Record<string, unknown>, space = "") {
   const draft = body as unknown as ContractDraft;
   const customer = String(draft.customer ?? "").trim();
   const amount = Number(draft.amount);
@@ -175,6 +241,9 @@ function saveContract(contract: Contract | null, body: Record<string, unknown>) 
   if (!valid) {
     throw new ApiError(400, 4000);
   }
+  if (!contract && database.spaces.find((entry) => entry.id === space)?.kind !== "BUSINESS") {
+    throw new ApiError(400, 5001);
+  }
   const fields = {
     customer,
     amount,
@@ -187,7 +256,7 @@ function saveContract(contract: Contract | null, body: Record<string, unknown>) 
     Object.assign(contract, fields);
     return ok({ contract });
   }
-  const created: Contract = { id: `contract-${Date.now()}`, ...fields, end_date: null, created_at: Date.now() };
+  const created: Contract = { id: `contract-${Date.now()}`, space, ...fields, end_date: null, created_at: Date.now() };
   database.contracts.push(created);
   return ok({ contract: created });
 }

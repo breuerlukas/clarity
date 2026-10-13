@@ -92,6 +92,8 @@ export interface Account {
 
 export interface Connection {
   id: string;
+  /** The space its accounts belong to. */
+  space: string;
   bank_name: string;
   bank_country: string;
   valid_until: number;
@@ -118,6 +120,7 @@ export type BillingInterval = "MONTHLY" | "QUARTERLY" | "HALF_YEARLY" | "YEARLY"
  */
 export interface Contract {
   id: string;
+  space: string;
   customer: string;
   /** Per invoice, net. */
   amount: number;
@@ -129,7 +132,21 @@ export interface Contract {
   created_at: number;
 }
 
-export type ContractDraft = Omit<Contract, "id" | "end_date" | "created_at">;
+export type ContractDraft = Omit<Contract, "id" | "space" | "end_date" | "created_at">;
+
+export type SpaceKind = "PERSONAL" | "BUSINESS";
+
+/**
+ * A separate set of banks (and, for a business, contracts). The first space
+ * has no name until the owner gives it one.
+ */
+export interface Space {
+  id: string;
+  slug: string;
+  name: string;
+  icon: string;
+  kind: SpaceKind;
+}
 
 /**
  * What a business booking is: a contract payment, a private withdrawal
@@ -184,9 +201,15 @@ export const api = {
   sessions: () => get<{ sessions: OwnerSession[] }>("/sessions/"),
   closeSession: (id: string) => post("/sessions/close/", { id }),
   closeOtherSessions: () => post<{ closed: number }>("/sessions/close-others/"),
-  transactions: (from: string, to: string) =>
+  spaces: () => get<{ spaces: Space[] }>("/spaces/"),
+  createSpace: (name: string, icon: string, kind: SpaceKind) =>
+    post<{ space: Space }>("/spaces/create/", { name, icon, kind }),
+  updateSpace: (id: string, name: string, icon: string) =>
+    post<{ space: Space }>("/spaces/update/", { id, name, icon }),
+  deleteSpace: (id: string) => post("/spaces/delete/", { id }),
+  transactions: (space: string, from: string, to: string) =>
     get<{ transactions: Transaction[] }>(
-      `/transactions/?from=${from}&to=${to}`,
+      `/transactions/?space=${space}&from=${from}&to=${to}`,
     ),
   categorize: (id: string, category: Category, remember: boolean) =>
     post<{ updated: number }>("/transactions/category/", {
@@ -194,7 +217,8 @@ export const api = {
       category,
       remember,
     }),
-  recurring: () => get<{ payments: RecurringPayment[] }>("/recurring/"),
+  recurring: (space: string) =>
+    get<{ payments: RecurringPayment[] }>(`/recurring/?space=${space}`),
   connections: () => get<{ connections: Connection[] }>("/connections/"),
   markSpending: (id: string, spending: boolean) =>
     post("/accounts/spending/", { id, spending }),
@@ -202,26 +226,25 @@ export const api = {
   removeConnection: (id: string) => post("/connections/delete/", { id }),
   banks: (country: string) =>
     get<{ banks: Bank[] }>(`/banks/?country=${encodeURIComponent(country)}`),
-  startConnection: (bank: Bank, business = false) =>
+  startConnection: (bank: Bank, space: string) =>
     post<{ url: string }>("/connections/start/", {
       bank: bank.name,
       country: bank.country,
       maximum_consent_validity: bank.maximum_consent_validity,
-      business,
+      space,
     }),
   completeConnection: (code: string, state: string) =>
-    post<{ business: boolean }>("/connections/complete/", { code, state }),
-  businessConnections: () =>
-    get<{ connections: Connection[] }>("/business/connections/"),
-  businessTransactions: (from: string, to: string) =>
+    post<{ space: string }>("/connections/complete/", { code, state }),
+  businessTransactions: (space: string, from: string, to: string) =>
     get<{ transactions: BusinessTransaction[] }>(
-      `/business/transactions/?from=${from}&to=${to}`,
+      `/business/transactions/?space=${space}&from=${from}&to=${to}`,
     ),
   assignPayment: (id: string, kind: PaymentKind | "AUTO", contract?: string) =>
     post("/business/transactions/assign/", { id, kind, contract: contract ?? "" }),
-  contracts: () => get<{ contracts: Contract[] }>("/business/contracts/"),
-  createContract: (draft: ContractDraft) =>
-    post<{ contract: Contract }>("/business/contracts/create/", { ...draft }),
+  contracts: (space: string) =>
+    get<{ contracts: Contract[] }>(`/business/contracts/?space=${space}`),
+  createContract: (space: string, draft: ContractDraft) =>
+    post<{ contract: Contract }>("/business/contracts/create/", { space, ...draft }),
   updateContract: (id: string, draft: ContractDraft) =>
     post<{ contract: Contract }>("/business/contracts/update/", { id, ...draft }),
   endContract: (id: string, endDate: string) =>

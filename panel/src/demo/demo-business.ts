@@ -50,9 +50,12 @@ const EXPENSES = [
 const monthStart = (today: Date, monthsAgo: number, day: number) =>
   addMonths(isoDate(new Date(today.getFullYear(), today.getMonth(), Math.min(day, 28))), -monthsAgo);
 
+export const BUSINESS_SPACE = "agency";
+
 export function demoContracts(today: Date): Contract[] {
   return CONTRACTS.map((contract, index) => ({
     id: `contract-${index + 1}`,
+    space: BUSINESS_SPACE,
     customer: contract.customer,
     amount: contract.amount,
     interval: contract.interval,
@@ -71,6 +74,7 @@ export function demoBusinessConnections(today: Date): Connection[] {
   return [
     {
       id: "business-bank",
+      space: BUSINESS_SPACE,
       bank_name: "Qonto",
       bank_country: "DE",
       valid_until: today.getTime() + 1000 * 60 * 60 * 24 * 121,

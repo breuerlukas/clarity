@@ -5,9 +5,11 @@ import de.lukasbreuer.clarity.api.business.contract.ContractRepository;
 import de.lukasbreuer.clarity.api.business.payment.PaymentAssignment;
 import de.lukasbreuer.clarity.api.business.payment.PaymentAssignmentRepository;
 import de.lukasbreuer.clarity.api.business.payment.PaymentKind;
+import de.lukasbreuer.clarity.api.space.SpaceKind;
 import de.lukasbreuer.clarity.api.transaction.Transaction;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
+import de.lukasbreuer.clarity.api.web.request.UuidParameter;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
 import de.lukasbreuer.clarity.api.web.transaction.TransactionController.DateRange;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,10 +29,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * The bookings of the business accounts, each with what the owner assigned it
- * to by hand. Without such an assignment the panel matches it on its own.
+ * The bookings of a business space, each with what the owner assigned it to
+ * by hand. Without such an assignment the panel matches it on its own.
  * Error codes: 3000 invalid date range, 4001 unknown contract, 4003 unknown
- * business transaction, 4004 unknown kind.
+ * business transaction, 4004 unknown kind, 5001 invalid space.
  */
 @RestController
 @RequiredArgsConstructor
@@ -45,13 +47,18 @@ public final class BusinessTransactionController {
 
   @RequestMapping(path = "/business/transactions/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findTransactions(
-    @RequestParam("from") String from, @RequestParam("to") String to
+    @RequestParam("space") String space, @RequestParam("from") String from,
+    @RequestParam("to") String to
   ) {
+    var spaceId = UuidParameter.parse(space);
     var range = DateRange.parse(from, to);
+    if (spaceId.isEmpty()) {
+      return ApiResponse.error(5001).future();
+    }
     if (range.isEmpty() || range.get().days() > MAXIMUM_RANGE_DAYS) {
       return ApiResponse.error(3000).future();
     }
-    return accountScope.accountIds(true)
+    return accountScope.accountIds(spaceId.get())
       .thenCompose(accountIds -> transactionRepository.findByAccountsBetween(
         accountIds, range.get().from(), range.get().to()))
       .thenCompose(transactions -> assignmentRepository.findAll()
@@ -89,7 +96,7 @@ public final class BusinessTransactionController {
   private CompletableFuture<Optional<Transaction>> findBusinessTransaction(
     UUID transactionId
   ) {
-    return accountScope.accountIds(true)
+    return accountScope.accountIds(SpaceKind.BUSINESS)
       .thenCompose(accountIds -> transactionRepository.findById(transactionId)
         .thenApply(transaction -> transaction.filter(entry ->
           accountIds.contains(entry.accountId()))));

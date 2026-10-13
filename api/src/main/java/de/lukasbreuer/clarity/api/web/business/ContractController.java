@@ -3,13 +3,17 @@ package de.lukasbreuer.clarity.api.web.business;
 import de.lukasbreuer.clarity.api.business.contract.Contract;
 import de.lukasbreuer.clarity.api.business.contract.ContractRepository;
 import de.lukasbreuer.clarity.api.business.payment.PaymentAssignmentRepository;
+import de.lukasbreuer.clarity.api.space.Space;
+import de.lukasbreuer.clarity.api.space.SpaceRepository;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
+import de.lukasbreuer.clarity.api.web.request.UuidParameter;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -21,20 +25,27 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /**
- * Creates, changes and ends customer contracts. Revenue figures are derived
- * from them in the panel, so a change shows up there right away. Error codes:
- * 4000 invalid contract, 4001 unknown contract, 4002 end date before the
- * start.
+ * Creates, changes and ends the customer contracts of a business space.
+ * Revenue figures are derived from them in the panel, so a change shows up
+ * there right away. Error codes: 4000 invalid contract, 4001 unknown
+ * contract, 4002 end date before the start, 5001 unknown or personal space.
  */
 @RestController
 @RequiredArgsConstructor
 public final class ContractController {
   private final ContractRepository contractRepository;
   private final PaymentAssignmentRepository assignmentRepository;
+  private final SpaceRepository spaceRepository;
 
   @RequestMapping(path = "/business/contracts/", method = RequestMethod.GET)
-  public CompletableFuture<ApiResponse> findContracts() {
-    return contractRepository.findAll()
+  public CompletableFuture<ApiResponse> findContracts(
+    @RequestParam("space") String space
+  ) {
+    var spaceId = UuidParameter.parse(space);
+    if (spaceId.isEmpty()) {
+      return ApiResponse.error(5001).future();
+    }
+    return contractRepository.findBySpaceId(spaceId.get())
       .thenApply(contracts -> ApiResponse.success(Map.of("contracts",
         contracts.stream()
           .sorted(Comparator.comparing(Contract::startDate))
@@ -47,13 +58,21 @@ public final class ContractController {
   public CompletableFuture<ApiResponse> create(
     @RequestBody String payload, HttpServletResponse response
   ) {
-    var draft = ContractDraft.parse(ApiRequestBody.of(payload, response));
+    var body = ApiRequestBody.of(payload, response);
+    var spaceId = body.getUUID("space");
+    var draft = ContractDraft.parse(body);
+    if (spaceId == null) {
+      return ApiResponse.error(5001).future();
+    }
     if (draft.isEmpty()) {
       return ApiResponse.error(4000).future();
     }
-    return contractRepository.save(draft.get().create())
-      .thenApply(contract -> ApiResponse.success(Map.of("contract",
-        contract.information())));
+    return spaceRepository.findById(spaceId)
+      .thenCompose(space -> space.filter(Space::isBusiness).isEmpty() ?
+        ApiResponse.error(5001).future() :
+        contractRepository.save(draft.get().create(spaceId))
+          .thenApply(contract -> ApiResponse.success(Map.of("contract",
+            contract.information()))));
   }
 
   @RequestMapping(path = "/business/contracts/update/",

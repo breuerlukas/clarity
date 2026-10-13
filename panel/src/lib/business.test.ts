@@ -15,6 +15,7 @@ import { addMonths, daysBetween } from "@/lib/dates";
 
 const contract = (overrides: Partial<Contract> = {}): Contract => ({
   id: crypto.randomUUID(),
+  space: "agency",
   customer: "Müller GmbH",
   amount: 1200,
   interval: "MONTHLY",

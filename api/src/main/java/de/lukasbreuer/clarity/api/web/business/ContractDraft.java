@@ -42,8 +42,9 @@ record ContractDraft(
       noticeMonths >= 0 && noticeMonths <= termMonths;
   }
 
-  Contract create() {
-    return Contract.create(UUID.randomUUID(), customer, amount, interval,
+  Contract create(UUID spaceId) {
+    return Contract.create(UUID.randomUUID(), spaceId, customer, amount,
+      interval,
       startDate, termMonths, noticeMonths, null, System.currentTimeMillis());
   }
 

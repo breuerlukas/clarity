@@ -7,6 +7,7 @@ import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
 import de.lukasbreuer.clarity.api.transaction.category.CategoryRule;
 import de.lukasbreuer.clarity.api.transaction.category.CategoryRuleApplication;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
+import de.lukasbreuer.clarity.api.web.request.UuidParameter;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Lists the personal transactions of a date range (at most about two years
- * at once) and changes their category. Error codes: 3000 invalid date range,
- * 3001 unknown transaction, 3002 unknown category.
+ * Lists the transactions of one space in a date range (at most about two
+ * years at once) and changes their category. Error codes: 3000 invalid date
+ * range, 3001 unknown transaction, 3002 unknown category, 5001 invalid space.
  */
 @RestController
 @RequiredArgsConstructor
@@ -38,13 +39,18 @@ public final class TransactionController {
 
   @RequestMapping(path = "/transactions/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findTransactions(
-    @RequestParam("from") String from, @RequestParam("to") String to
+    @RequestParam("space") String space, @RequestParam("from") String from,
+    @RequestParam("to") String to
   ) {
+    var spaceId = UuidParameter.parse(space);
     var range = DateRange.parse(from, to);
+    if (spaceId.isEmpty()) {
+      return ApiResponse.error(5001).future();
+    }
     if (range.isEmpty() || range.get().days() > MAXIMUM_RANGE_DAYS) {
       return ApiResponse.error(3000).future();
     }
-    return accountScope.accountIds(false)
+    return accountScope.accountIds(spaceId.get())
       .thenCompose(accountIds -> transactionRepository.findByAccountsBetween(
         accountIds, range.get().from(), range.get().to()))
       .thenApply(transactions -> ApiResponse.success(Map.of("transactions",

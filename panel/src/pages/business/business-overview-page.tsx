@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/notice";
 import { PageHeader, Panel } from "@/components/panel";
 import { RevenueChart } from "@/components/charts/revenue-chart";
-import { useBusinessConnections, useContracts } from "@/hooks/use-business";
-import { HISTORY_MONTHS } from "@/hooks/use-finances";
+import { useContracts } from "@/hooks/use-business";
+import { HISTORY_MONTHS, useConnections } from "@/hooks/use-finances";
+import { useSpacePath } from "@/hooks/use-space";
 import { revenueHistory, upcomingEvents, type RevenuePoint } from "@/lib/business";
 import { isoDate } from "@/lib/dates";
 import { formatMoney, formatMonth, formatPercent } from "@/lib/format";
@@ -22,7 +23,8 @@ import { ContractEvents } from "@/pages/business/contract-events";
 export function BusinessOverviewPage() {
   const { t } = useTranslation();
   const contracts = useContracts();
-  const connections = useBusinessConnections();
+  const connections = useConnections();
+  const path = useSpacePath();
   if (contracts.data?.length === 0) {
     return <EmptyBusiness />;
   }
@@ -34,7 +36,7 @@ export function BusinessOverviewPage() {
   };
   return (
     <>
-      <PageHeader title={t("nav.business_overview")} />
+      <PageHeader title={t("nav.overview")} />
       {(contracts.isError || connections.isError) && <Notice className="mb-6">{t("common.error")}</Notice>}
       {history && contracts.data ? (
         <div className="grid gap-6">
@@ -48,12 +50,12 @@ export function BusinessOverviewPage() {
             </div>
             <div className="flex min-w-0 flex-col gap-6">
               {connections.data?.length ? (
-                <AccountsCard connections={connections.data} viewAll="/business/accounts" business />
+                <AccountsCard connections={connections.data} viewAll={path("/accounts")} business />
               ) : (
                 <Panel title={t("nav.accounts")}>
                   <p className="text-muted-foreground">{t("business.accounts_empty")}</p>
                   <Button asChild variant="outline" className="self-start">
-                    <Link to="/business/accounts">{t("accounts.connect")}</Link>
+                    <Link to={path("/accounts")}>{t("accounts.connect")}</Link>
                   </Button>
                 </Panel>
               )}
@@ -104,6 +106,7 @@ function RevenueFigures({ history }: { history: RevenuePoint[] }) {
 
 function EmptyBusiness() {
   const { t } = useTranslation();
+  const path = useSpacePath();
   return (
     <div className="grid max-w-xl gap-4 pt-10">
       <h1 className="text-[30px] leading-tight font-extrabold tracking-[-0.02em]">
@@ -111,7 +114,7 @@ function EmptyBusiness() {
       </h1>
       <p className="text-muted-foreground">{t("business.empty_text")}</p>
       <Button asChild size="lg" className="mt-2 justify-self-start">
-        <Link to="/business/contracts?new=1">
+        <Link to={path("/contracts?new=1")}>
           <Plus />
           {t("business.add_contract")}
         </Link>

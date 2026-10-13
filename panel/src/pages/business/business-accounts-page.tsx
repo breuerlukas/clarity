@@ -6,35 +6,42 @@ import { AmountBadge } from "@/components/amount-badge";
 import { Notice } from "@/components/notice";
 import { PageHeader, Panel } from "@/components/panel";
 import { SyncButton } from "@/components/sync-button";
-import { useBusinessConnections, useBusinessTransactions, useContracts } from "@/hooks/use-business";
-import { useConnections } from "@/hooks/use-finances";
+import { useBusinessTransactions, useContracts } from "@/hooks/use-business";
+import { useAllConnections, useConnections } from "@/hooks/use-finances";
+import { useSpaces } from "@/hooks/use-space";
 import type { BusinessTransaction } from "@/lib/api";
-import { matchPayment, personalIbans, type PaymentMatch } from "@/lib/business";
+import { matchLabel, matchPayment, personalIbans, type PaymentMatch } from "@/lib/business";
 import { addDays, isoDate } from "@/lib/dates";
 import { formatDay, formatMoney } from "@/lib/format";
 import { total } from "@/lib/overview";
 import { ConnectBankDialog } from "@/pages/accounts/connect-bank-dialog";
 import { ConnectionCard } from "@/pages/accounts/connection-card";
-import { AssignPaymentDialog, matchLabel } from "@/pages/business/assign-payment-dialog";
+import { AssignPaymentDialog } from "@/pages/business/assign-payment-dialog";
 
 const RECENT_DAYS = 90;
 
 /**
  * The business accounts: connecting them, their balance, and the bookings of
  * the last 90 days with the contract, private withdrawal or deposit each one
- * belongs to.
+ * belongs to. Private means to or from an account in a personal space.
  */
 export function BusinessAccountsPage() {
   const { t } = useTranslation();
-  const connections = useBusinessConnections();
-  const personal = useConnections();
+  const connections = useConnections();
+  const spaces = useSpaces();
+  const allConnections = useAllConnections();
   const contracts = useContracts();
   const today = isoDate(new Date());
   const transactions = useBusinessTransactions(addDays(today, -RECENT_DAYS), today);
   const [connecting, setConnecting] = useState(false);
   const [selected, setSelected] = useState<BusinessTransaction | null>(null);
+  const personalSpaces = new Set(
+    (spaces.data ?? []).filter((space) => space.kind === "PERSONAL").map((space) => space.id),
+  );
   const ownIbans = personalIbans(
-    (personal.data ?? []).flatMap((connection) => connection.accounts.map((account) => account.iban)),
+    (allConnections.data ?? [])
+      .filter((connection) => personalSpaces.has(connection.space))
+      .flatMap((connection) => connection.accounts.map((account) => account.iban)),
   );
   const matchOf = (transaction: BusinessTransaction) => matchPayment(transaction, contracts.data ?? [], ownIbans);
   const accounts = (connections.data ?? []).flatMap((connection) => connection.accounts);
@@ -85,7 +92,7 @@ export function BusinessAccountsPage() {
           </Panel>
         </div>
       )}
-      <ConnectBankDialog open={connecting} onOpenChange={setConnecting} business />
+      <ConnectBankDialog open={connecting} onOpenChange={setConnecting} />
       <AssignPaymentDialog
         transaction={selected}
         match={selected ? matchPayment({ ...selected, assignment: null }, contracts.data ?? [], ownIbans) : null}
