@@ -40,8 +40,8 @@ export function CategoryDonut({
   }
   const animate = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
-    <div className="grid items-center gap-5 sm:grid-cols-[168px_minmax(0,1fr)]">
-      <div className="relative mx-auto size-[168px]">
+    <div className="grid items-center gap-x-8 gap-y-5 sm:grid-cols-[148px_minmax(0,1fr)]">
+      <div className="relative mx-auto size-[148px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -84,14 +84,13 @@ export function CategoryDonut({
           <span className="figures text-base font-extrabold">{formatMoney(total, "EUR", { compact: true })}</span>
         </span>
       </div>
-      <ul className="grid gap-1.5 text-sm">
+      <ul className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
         {slices.map((slice) => (
-          <li key={slice.label} className="flex items-center justify-between gap-3">
-            <span className="flex min-w-0 items-center gap-2">
-              <Swatch color={slice.fill} />
-              <span className="truncate">{slice.label}</span>
-            </span>
-            <span className="figures font-bold text-muted-foreground">{formatPercent(slice.amount / total)}</span>
+          <li key={slice.label} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2">
+            <Swatch color={slice.fill} />
+            <span className="truncate">{slice.label}</span>
+            <span className="figures font-bold">{formatPercent(slice.amount / total)}</span>
+            <span className="figures col-start-2 col-end-4 text-xs text-muted-foreground">{formatMoney(slice.amount)}</span>
           </li>
         ))}
       </ul>

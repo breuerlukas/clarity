@@ -11,6 +11,8 @@ import { formatMoney, formatMonth, formatMonthShort, formatPercent } from "@/lib
 import { categoryMatrix, topCounterparties } from "@/lib/statistics";
 import { cn } from "@/lib/utils";
 
+const TOP = 5;
+
 /**
  * The categories as a ranked list beside the split as a ring; the selected
  * one gets its own monthly chart and the places that money went to. One
@@ -33,7 +35,7 @@ export function CategoriesTab({
   }
   const merchants = topCounterparties(
     transactions.filter((transaction) => transaction.category === selected.category),
-    5,
+    TOP,
   );
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
@@ -77,13 +79,13 @@ export function CategoriesTab({
         <Panel title={t("statistics.split")}>
           <CategoryDonut rows={rows} onSelect={setChosen} />
         </Panel>
-        <Panel
-          title={t(`category.${selected.category}`)}
-          aside={t("statistics.category_summary", {
-            total: formatMoney(selected.total),
-            average: formatMoney(selected.average),
-          })}
-        >
+        <Panel title={t(`category.${selected.category}`)}>
+          <p className="-mt-3 truncate text-sm text-muted-foreground">
+            {t("statistics.category_summary", {
+              total: formatMoney(selected.total),
+              average: formatMoney(selected.average),
+            })}
+          </p>
           <div style={{ height: 280 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={months.map((month, index) => ({ month, amount: selected.amounts[index] }))} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
@@ -116,6 +118,10 @@ export function CategoriesTab({
                     <span className="figures font-bold">{formatMoney(merchant.amount)}</span>
                   </span>
                 </li>
+              ))}
+              {/* Always room for the full list, so switching categories doesn't move the page. */}
+              {Array.from({ length: TOP - merchants.length }, (_, index) => (
+                <li key={`empty-${index}`} className="text-[15px]" aria-hidden="true">&nbsp;</li>
               ))}
             </ul>
           </div>
