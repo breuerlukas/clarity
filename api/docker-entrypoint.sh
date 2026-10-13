@@ -34,6 +34,9 @@ secure_cookies = ${SECURE_COOKIES}
 application_id = ${ENABLE_BANKING_APPLICATION_ID}
 key_file = /app/secrets/enable-banking.pem
 redirect_url = ${BANKING_REDIRECT_URL:-${PUBLIC_URL}/connect/callback}
+
+[secrets]
+key_file = /app/data/clarity.key
 EOF
 
 chmod 600 config.ini

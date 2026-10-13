@@ -30,6 +30,7 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.3")
   testImplementation("org.springframework:spring-test:7.0.9")
+  testImplementation("com.icegreen:greenmail:2.1.14")
 
   implementation("com.google.guava:guava:33.7.2-jre")
 
@@ -58,6 +59,10 @@ dependencies {
   runtimeOnly("io.jsonwebtoken:jjwt-orgjson:0.13.0")
 
   implementation("dev.samstevens.totp:totp:1.7.1")
+
+  implementation("jakarta.mail:jakarta.mail-api:2.1.5")
+  implementation("org.eclipse.angus:angus-mail:2.0.5")
+  implementation("org.apache.pdfbox:pdfbox:3.0.8")
 
   spotbugsPlugins("com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0")
 

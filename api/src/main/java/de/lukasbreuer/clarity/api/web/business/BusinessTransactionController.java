@@ -2,6 +2,10 @@ package de.lukasbreuer.clarity.api.web.business;
 
 import de.lukasbreuer.clarity.api.banking.account.AccountScope;
 import de.lukasbreuer.clarity.api.business.contract.ContractRepository;
+import de.lukasbreuer.clarity.api.business.invoice.Invoice;
+import de.lukasbreuer.clarity.api.business.invoice.InvoicePayment;
+import de.lukasbreuer.clarity.api.business.invoice.InvoicePaymentRepository;
+import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
 import de.lukasbreuer.clarity.api.business.payment.PaymentAssignment;
 import de.lukasbreuer.clarity.api.business.payment.PaymentAssignmentRepository;
 import de.lukasbreuer.clarity.api.business.payment.PaymentKind;
@@ -43,6 +47,8 @@ public final class BusinessTransactionController {
   private final TransactionRepository transactionRepository;
   private final PaymentAssignmentRepository assignmentRepository;
   private final ContractRepository contractRepository;
+  private final InvoiceRepository invoiceRepository;
+  private final InvoicePaymentRepository invoicePaymentRepository;
   private final AccountScope accountScope;
 
   @RequestMapping(path = "/business/transactions/", method = RequestMethod.GET)
@@ -63,7 +69,30 @@ public final class BusinessTransactionController {
         accountIds, range.get().from(), range.get().to()))
       .thenCompose(transactions -> assignmentRepository.findAll()
         .thenApply(assignments -> ApiResponse.success(Map.of("transactions",
-          information(transactions, assignments)))));
+          information(transactions, assignments,
+            invoices(spaceId.get(), transactions))))));
+  }
+
+  /**
+   * The invoices each booking pays, by transaction.
+   */
+  private Map<UUID, List<Map<String, Object>>> invoices(
+    UUID spaceId, List<Transaction> transactions
+  ) {
+    if (transactions.isEmpty()) {
+      return Map.of();
+    }
+    var numbers = invoiceRepository.findBySpaceId(spaceId).join().stream()
+      .collect(Collectors.toMap(Invoice::id, Invoice::number));
+    return invoicePaymentRepository.findByTransactionIdIn(transactions.stream()
+        .map(Transaction::id).toList()).join().stream()
+      .filter(payment -> !payment.rejected())
+      .filter(payment -> numbers.containsKey(payment.invoiceId()))
+      .collect(Collectors.groupingBy(InvoicePayment::transactionId,
+        Collectors.mapping(payment -> Map.<String, Object>of(
+          "id", payment.invoiceId(),
+          "number", numbers.get(payment.invoiceId()),
+          "amount", payment.amount()), Collectors.toList())));
   }
 
   /**
@@ -128,7 +157,8 @@ public final class BusinessTransactionController {
   }
 
   private List<Map<String, Object>> information(
-    List<Transaction> transactions, List<PaymentAssignment> assignments
+    List<Transaction> transactions, List<PaymentAssignment> assignments,
+    Map<UUID, List<Map<String, Object>>> invoices
   ) {
     var byTransaction = assignments.stream().collect(Collectors.toMap(
       PaymentAssignment::transactionId, Function.identity()));
@@ -137,6 +167,8 @@ public final class BusinessTransactionController {
       var assignment = byTransaction.get(transaction.id());
       information.put("assignment", assignment == null ? null :
         assignment.information());
+      information.put("invoices", invoices.getOrDefault(transaction.id(),
+        List.of()));
       return information;
     }).toList();
   }

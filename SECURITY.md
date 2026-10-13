@@ -31,5 +31,9 @@ probe a running instance from the outside.
 - Keep `.env`, `secrets/` and database backups private; they are as sensitive
   as your bank statements.
 - Use full-disk encryption on the machine Clarity runs on. The database
-  itself is not encrypted at rest.
+  itself is not encrypted at rest, except mailbox passwords, which are
+  encrypted with the key in the `api-data` volume.
+- Connect a mailbox with an app password or a user that can only read mail
+  where your provider offers one. Clarity never changes a mailbox, but the
+  password would allow it.
 - Update regularly: `git pull && docker compose up -d --build`.

@@ -26,6 +26,9 @@ services:
       BANKING_REDIRECT_URL: ${BANKING_REDIRECT_URL:-}
     volumes:
       - ./secrets:/app/secrets:ro
+      # The key mailbox passwords are encrypted with, kept apart from the
+      # database. Back it up together with the database.
+      - api-data:/app/data
     depends_on:
       postgres:
         condition: service_healthy
@@ -54,3 +57,4 @@ networks:
 
 volumes:
   postgres:
+  api-data:

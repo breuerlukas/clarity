@@ -5,6 +5,7 @@ import de.lukasbreuer.clarity.api.banking.account.BankAccount;
 import de.lukasbreuer.clarity.api.banking.account.BankAccountRepository;
 import de.lukasbreuer.clarity.api.banking.connection.BankConnection;
 import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
+import de.lukasbreuer.clarity.api.business.invoice.matching.InvoiceMatcher;
 import de.lukasbreuer.clarity.api.transaction.category.Categorizer;
 import de.lukasbreuer.clarity.api.transaction.category.CategorizerFactory;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,8 @@ import java.util.stream.Collectors;
  * Decides which accounts to sync and makes sure only one sync runs at a time.
  * The hourly schedule only picks accounts that are due; a sync the owner
  * starts takes every account and tells the bank the owner is present, which
- * PSD2 does not count against the daily limit.
+ * PSD2 does not count against the daily limit. New bookings are matched
+ * against open invoices afterwards.
  */
 @Component
 @RequiredArgsConstructor
@@ -35,6 +37,7 @@ public final class SyncCoordinator {
   private final BankConnectionRepository connectionRepository;
   private final CategorizerFactory categorizerFactory;
   private final EnableBankingSigner signer;
+  private final InvoiceMatcher invoiceMatcher;
   private final AtomicBoolean running = new AtomicBoolean(false);
 
   @Scheduled(fixedDelay = 1, initialDelay = 1, timeUnit = TimeUnit.HOURS)
@@ -63,6 +66,7 @@ public final class SyncCoordinator {
       .thenCompose(connections -> categorizerFactory.create()
         .thenCompose(categorizer -> synchronize(validConnectionIds(connections),
           categorizer, filter, headers)))
+      .thenRun(invoiceMatcher::matchAll)
       .handle((_, _) -> finish());
   }
 

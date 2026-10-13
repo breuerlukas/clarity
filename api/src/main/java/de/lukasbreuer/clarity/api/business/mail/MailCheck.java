@@ -1,0 +1,114 @@
+package de.lukasbreuer.clarity.api.business.mail;
+
+import de.lukasbreuer.clarity.api.business.invoice.InvoiceDirection;
+import de.lukasbreuer.clarity.api.business.invoice.matching.InvoiceMatcher;
+import de.lukasbreuer.clarity.api.log.Log;
+import de.lukasbreuer.clarity.api.secret.SecretBox;
+import de.lukasbreuer.clarity.api.space.Space;
+import de.lukasbreuer.clarity.api.space.SpaceRepository;
+import jakarta.mail.AuthenticationFailedException;
+import jakarta.mail.FolderNotFoundException;
+import jakarta.mail.MessagingException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+/**
+ * Fetches new mails of every mailbox every 15 minutes, or of one space when
+ * the owner asks, and matches payments afterwards. Only one check runs at a
+ * time. A failing mailbox records why on itself and the others go on.
+ */
+@Component
+@RequiredArgsConstructor
+public final class MailCheck {
+  private final Log log;
+  private final MailboxRepository mailboxRepository;
+  private final MailFolderCursorRepository cursorRepository;
+  private final SpaceRepository spaceRepository;
+  private final MailImport mailImport;
+  private final InvoiceMatcher invoiceMatcher;
+  private final SecretBox secretBox;
+  private final AtomicBoolean running = new AtomicBoolean(false);
+
+  @Scheduled(fixedDelay = 15, initialDelay = 2, timeUnit = TimeUnit.MINUTES)
+  void checkAll() {
+    if (running.compareAndSet(false, true)) {
+      try {
+        check(mailboxRepository.findAll().join());
+      } finally {
+        running.set(false);
+      }
+    }
+  }
+
+  /**
+   * @return False if a check is running already
+   */
+  public boolean checkNow(UUID spaceId) {
+    if (!running.compareAndSet(false, true)) {
+      return false;
+    }
+    CompletableFuture.runAsync(() -> {
+      try {
+        check(mailboxRepository.findBySpaceId(spaceId).join());
+      } finally {
+        running.set(false);
+      }
+    });
+    return true;
+  }
+
+  private void check(List<Mailbox> mailboxes) {
+    for (var mailbox : mailboxes) {
+      try {
+        spaceRepository.findById(mailbox.spaceId()).join()
+          .filter(Space::isBusiness)
+          .ifPresent(space -> check(space, mailbox));
+      } catch (RuntimeException exception) {
+        log.processError(exception);
+      }
+    }
+  }
+
+  private void check(Space space, Mailbox mailbox) {
+    var reader = MailFolderReader.create(log, cursorRepository);
+    try (var store = MailServer.connect(mailbox.host(), mailbox.port(),
+      mailbox.security(), mailbox.username(),
+      secretBox.decrypt(mailbox.encryptedPassword()))) {
+      reader.read(store, mailbox, mailbox.incomingFolder(), mail ->
+        mailImport.store(space, mailbox, InvoiceDirection.INCOMING, mail));
+      if (mailbox.outgoingFolder() != null) {
+        reader.read(store, mailbox, mailbox.outgoingFolder(), mail ->
+          mailImport.store(space, mailbox, InvoiceDirection.OUTGOING, mail));
+      }
+      mailbox.markChecked();
+    } catch (MessagingException | IllegalStateException exception) {
+      mailbox.markFailed(describe(exception));
+    }
+    mailboxRepository.save(mailbox).join();
+    invoiceMatcher.match(space.id());
+  }
+
+  /**
+   * Short reasons the panel can show; the server's own message is often
+   * long and technical.
+   */
+  static String describe(Exception exception) {
+    if (exception instanceof AuthenticationFailedException) {
+      return "LOGIN";
+    }
+    if (exception instanceof FolderNotFoundException) {
+      return "FOLDER";
+    }
+    if (exception instanceof IllegalStateException) {
+      return "PASSWORD";
+    }
+    return "CONNECTION";
+  }
+}

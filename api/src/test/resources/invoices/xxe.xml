@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
+<ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+  <cbc:ID>&xxe;</cbc:ID>
+  <cbc:IssueDate>2026-10-01</cbc:IssueDate>
+  <cac:LegalMonetaryTotal>
+    <cbc:PayableAmount currencyID="EUR">1.00</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+</ubl:Invoice>

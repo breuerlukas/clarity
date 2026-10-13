@@ -2,6 +2,8 @@ package de.lukasbreuer.clarity.api.web.space;
 
 import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
 import de.lukasbreuer.clarity.api.business.contract.ContractRepository;
+import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
+import de.lukasbreuer.clarity.api.business.mail.MailboxRepository;
 import de.lukasbreuer.clarity.api.space.Space;
 import de.lukasbreuer.clarity.api.space.SpaceKind;
 import de.lukasbreuer.clarity.api.space.SpaceRepository;
@@ -25,9 +27,10 @@ import java.util.stream.Collectors;
 
 /**
  * Creates, renames and removes spaces. The kind is chosen once; a space only
- * goes once its banks are removed and its contracts deleted, and the last
- * one stays. Error codes: 5000 invalid name, icon or kind, 5001 unknown
- * space, 5002 space still has banks or contracts, 5003 last space.
+ * goes once its banks and mailboxes are removed and its contracts and
+ * invoices deleted, and the last one stays. Error codes: 5000 invalid name,
+ * icon or kind, 5001 unknown space, 5002 space still has banks, mailboxes,
+ * contracts or invoices, 5003 last space.
  */
 @RestController
 @RequiredArgsConstructor
@@ -38,6 +41,8 @@ public final class SpaceController {
   private final SpaceRepository spaceRepository;
   private final BankConnectionRepository connectionRepository;
   private final ContractRepository contractRepository;
+  private final MailboxRepository mailboxRepository;
+  private final InvoiceRepository invoiceRepository;
 
   @RequestMapping(path = "/spaces/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findSpaces() {
@@ -139,8 +144,15 @@ public final class SpaceController {
       .thenCompose(connections -> connections.stream()
         .anyMatch(connection -> space.id().equals(connection.spaceId())) ?
         CompletableFuture.completedFuture(false) :
-        contractRepository.existsBySpaceId(space.id())
-          .thenApply(hasContracts -> !hasContracts));
+        hasBusinessData(space.id()).thenApply(hasData -> !hasData));
+  }
+
+  private CompletableFuture<Boolean> hasBusinessData(UUID spaceId) {
+    return contractRepository.existsBySpaceId(spaceId)
+      .thenCombine(mailboxRepository.existsBySpaceId(spaceId),
+        Boolean::logicalOr)
+      .thenCombine(invoiceRepository.existsBySpaceId(spaceId),
+        Boolean::logicalOr);
   }
 
   /**
