@@ -46,6 +46,18 @@ dependencies {
   implementation("dev.samstevens.totp:totp:1.7.1")
 
   spotbugsPlugins("com.h3xstream.findsecbugs:findsecbugs-plugin:1.14.0")
+
+  constraints {
+    /*
+     * Spring Boot 4.1.1 ships Tomcat 11.0.24, which has critical access
+     * control and authentication bypasses (GHSA-gcx9-497g-6cp6,
+     * GHSA-9xv2-5v5q-p794, GHSA-h3x4-894j-xpx5). Drop these once Spring
+     * Boot brings 11.0.25 or later on its own.
+     */
+    implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.27")
+    implementation("org.apache.tomcat.embed:tomcat-embed-el:11.0.27")
+    implementation("org.apache.tomcat.embed:tomcat-embed-websocket:11.0.27")
+  }
 }
 
 checkstyle {

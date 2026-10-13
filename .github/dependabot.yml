@@ -1,9 +1,14 @@
+# New releases wait a week before Dependabot proposes them, so a hijacked
+# release is usually found and pulled before it reaches this repository.
+# Security updates are not delayed.
 version: 2
 updates:
   - package-ecosystem: gradle
     directory: /api
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       gradle:
         patterns: [ "*" ]
@@ -13,6 +18,8 @@ updates:
     directory: /panel
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       npm:
         patterns: [ "*" ]
@@ -22,16 +29,22 @@ updates:
     directories: [ /api, /panel ]
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: docker-compose
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       actions:
         patterns: [ "*" ]
