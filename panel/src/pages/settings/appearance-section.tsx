@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { Monitor, Moon, Settings2, Sun } from "lucide-react";
-import { Flag } from "@/components/flag";
 import { LANGUAGES } from "@/locales/i18n";
 import { useTheme, type ThemePreference } from "@/lib/theme";
 import { Segmented } from "@/components/segmented";
@@ -22,7 +21,6 @@ export function AppearanceSection() {
           options={LANGUAGES.map((language) => ({
             value: language.code as string,
             label: language.name,
-            leading: <Flag country={language.flag} />,
           }))}
           onChange={(language) => i18n.changeLanguage(language)}
         />

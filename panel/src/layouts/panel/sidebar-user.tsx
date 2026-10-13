@@ -27,7 +27,6 @@ import {
 import { useSidebar } from "@/components/ui/sidebar";
 import { useSession } from "@/hooks/use-session";
 import { api } from "@/lib/api";
-import { Flag } from "@/components/flag";
 import { LANGUAGES } from "@/locales/i18n";
 import { useTheme, type ThemePreference } from "@/lib/theme";
 import { useOpenSettings } from "@/layouts/settings/settings-dialog-context";
@@ -108,7 +107,6 @@ export function SidebarUser() {
               >
                 {LANGUAGES.map((language) => (
                   <DropdownMenuRadioItem key={language.code} value={language.code}>
-                    <Flag country={language.flag} />
                     {language.name}
                   </DropdownMenuRadioItem>
                 ))}
