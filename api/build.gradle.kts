@@ -4,7 +4,7 @@
  */
 buildscript {
   dependencies {
-    classpath(platform("tools.jackson:jackson-bom:3.1.7"))
+    classpath(platform("tools.jackson:jackson-bom:3.2.3"))
   }
 }
 
@@ -67,7 +67,7 @@ dependencies {
    * platform lifts every Jackson module to the same fixed patch release;
    * drop it once Spring Boot brings 3.1.7 or later on its own.
    */
-  implementation(platform("tools.jackson:jackson-bom:3.1.7"))
+  implementation(platform("tools.jackson:jackson-bom:3.2.3"))
 
   constraints {
     /*
