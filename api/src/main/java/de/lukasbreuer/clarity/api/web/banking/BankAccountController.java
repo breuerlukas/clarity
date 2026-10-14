@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @RestController
 @RequiredArgsConstructor
-public final class AccountController {
+public final class BankAccountController {
   private final BankAccountRepository accountRepository;
 
   @RequestMapping(path = "/accounts/spending/", method = RequestMethod.POST)
