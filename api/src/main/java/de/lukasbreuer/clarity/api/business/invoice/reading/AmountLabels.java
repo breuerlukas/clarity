@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -22,10 +21,10 @@ final class AmountLabels {
   static final String GAP = "[^\\n\\d]{0,40}?";
 
   /**
-   * @param labels Regular expressions, each followed by its amount
+   * @param labels In the order they are trusted, each followed by its amount
    */
-  static AmountLabels of(String... labels) {
-    return new AmountLabels(Arrays.stream(labels)
+  static AmountLabels of(LabelPhrases labels) {
+    return new AmountLabels(labels.each().stream()
       .map(label -> Pattern.compile("\\b" + label + "\\b" + GAP + AMOUNT,
         FLAGS))
       .toList());

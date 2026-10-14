@@ -34,7 +34,8 @@ final class TextInvoiceReaderTest {
     Due date: 2026-10-30
     """;
 
-  private final TextInvoiceReader reader = TextInvoiceReader.create();
+  private final TextInvoiceReader reader = TextInvoiceReader.create(
+    InvoiceVocabularyFile.load().vocabulary());
 
   @Test
   void readsGermanInvoice() {
@@ -71,5 +72,19 @@ final class TextInvoiceReaderTest {
       Rechnung
       Vielen Dank für Ihre Bestellung.
       """, RECEIVED).isEmpty());
+  }
+
+  @Test
+  void readsHyphenatedLabelsAndPaymentTerms() {
+    var fields = reader.read("""
+      Rechnungs-Nr.: 2026-77
+      Datum: 3. Oktober 2026
+      Zu zahlender Betrag: 59,50 €
+      Zahlbar innerhalb von 14 Tagen.
+      """, RECEIVED).orElseThrow();
+    assertEquals("2026-77", fields.number());
+    assertEquals(LocalDate.of(2026, 10, 3), fields.invoiceDate());
+    assertEquals(LocalDate.of(2026, 10, 17), fields.dueDate());
+    assertEquals(new BigDecimal("59.50"), fields.grossAmount());
   }
 }

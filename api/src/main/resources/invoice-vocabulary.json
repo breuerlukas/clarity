@@ -1,0 +1,17 @@
+{
+  "headings": ["rechnung", "invoice", "faktura"],
+  "other_documents": ["angebot", "kostenvoranschlag", "lieferschein", "auftragsbestätigung", "gutschrift", "quote", "quotation", "offer", "delivery note", "credit note"],
+  "number_labels": ["rechnungs nummer", "rechnungs nr", "rechnung nr", "rechnung #", "invoice no", "invoice number", "invoice #", "beleg nummer", "beleg nr"],
+  "gross_labels": ["rechnungsbetrag", "gesamtbetrag", "bruttobetrag", "endbetrag", "zahlbetrag", "zu zahlender betrag", "zu zahlen", "gesamt brutto", "summe brutto", "brutto summe", "amount due", "total due", "total amount", "gesamtsumme", "total", "summe", "gesamt"],
+  "net_labels": ["nettobetrag", "summe netto", "netto summe", "gesamt netto", "zwischensumme", "subtotal", "net amount", "netto"],
+  "tax_labels": ["umsatzsteuer", "ust", "mwst", "mehrwertsteuer", "vat", "sales tax"],
+  "invoice_date_labels": ["rechnungsdatum", "belegdatum", "invoice date", "datum", "date"],
+  "due_date_labels": ["fälligkeit am", "fälligkeit bis", "fälligkeit zum", "fällig am", "fällig bis", "fällig zum", "fälligkeit", "fällig", "zahlbar bis", "zahlungsziel", "due date", "due", "payable by"],
+  "payment_terms": ["innerhalb von {days} tagen", "innerhalb {days} tagen", "binnen {days} tagen", "within {days} days"],
+  "months": {
+    "januar": 1, "january": 1, "februar": 2, "february": 2, "märz": 3, "march": 3,
+    "april": 4, "mai": 5, "may": 5, "juni": 6, "june": 6, "juli": 7, "july": 7,
+    "august": 8, "september": 9, "oktober": 10, "october": 10,
+    "november": 11, "dezember": 12, "december": 12
+  }
+}

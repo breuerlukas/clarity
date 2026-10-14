@@ -19,12 +19,14 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor(staticName = "create")
 public final class TextInvoiceReader {
+  private final InvoiceVocabulary vocabulary;
+
   /**
    * @param received When the mail arrived, the invoice date if the text has
    *                 none
    */
   public Optional<InvoiceFields> read(String text, LocalDate received) {
-    var invoiceText = InvoiceText.of(text);
+    var invoiceText = InvoiceText.of(vocabulary, text);
     if (!invoiceText.isInvoice()) {
       return Optional.empty();
     }

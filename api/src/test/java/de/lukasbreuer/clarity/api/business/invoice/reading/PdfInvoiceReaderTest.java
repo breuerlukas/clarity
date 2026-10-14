@@ -73,7 +73,8 @@ final class PdfInvoiceReaderTest {
     var ocr = Ocr.create(testLog());
     return InvoiceRecognition.create(ocr,
       ElectronicInvoiceReader.create(SecureXml.create()),
-      PdfInvoiceReader.create(ocr), TextInvoiceReader.create());
+      PdfInvoiceReader.create(ocr), TextInvoiceReader.create(
+        InvoiceVocabularyFile.load().vocabulary()));
   }
 
   private Log testLog() {

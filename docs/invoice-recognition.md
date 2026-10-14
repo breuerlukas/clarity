@@ -15,6 +15,14 @@ through the same steps; the first one that finds an invoice wins.
    server; no invoice leaves it. Without Tesseract installed, scans are
    skipped.
 
+The words these labels are looked for by live in
+`api/src/main/resources/invoice-vocabulary.json`: headings, the labels in
+front of number, amounts and dates, payment terms ("innerhalb von {days}
+Tagen") and month names. A space in a label also matches a hyphen or no
+space, so `rechnungs nr` finds "Rechnungsnr." and "Rechnungs-Nr."; amount
+labels are tried in the order of the file. A label an invoice uses that is
+missing goes there.
+
 Invoices from steps 3 and 4 are marked *to review* until the owner confirms
 or corrects them, since labels and layouts vary.
 

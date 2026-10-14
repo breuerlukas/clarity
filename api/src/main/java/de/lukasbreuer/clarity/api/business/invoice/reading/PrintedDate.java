@@ -9,7 +9,8 @@ import java.util.Optional;
 
 /**
  * A date as invoices print it: "01.10.2026", "1.10.26", "2026-10-01",
- * "01/10/2026" (day first) or "1. Oktober 2026" / "1 October 2026".
+ * "01/10/2026" (day first) or "1. Oktober 2026" / "1 October 2026", with
+ * the month names of the invoice vocabulary.
  */
 @RequiredArgsConstructor(staticName = "of")
 final class PrintedDate {
@@ -19,18 +20,8 @@ final class PrintedDate {
   static final String PATTERN =
     "(\\d{1,2}\\.\\s?\\d{1,2}\\.\\s?\\d{2,4}|\\d{4}-\\d{2}-\\d{2}|" +
       "\\d{1,2}/\\d{1,2}/\\d{4}|\\d{1,2}\\.?\\s+\\p{L}+\\s+\\d{4})";
-  private static final Map<String, Integer> MONTHS = Map.ofEntries(
-    Map.entry("januar", 1), Map.entry("january", 1),
-    Map.entry("februar", 2), Map.entry("february", 2),
-    Map.entry("märz", 3), Map.entry("march", 3), Map.entry("april", 4),
-    Map.entry("mai", 5), Map.entry("may", 5), Map.entry("juni", 6),
-    Map.entry("june", 6), Map.entry("juli", 7), Map.entry("july", 7),
-    Map.entry("august", 8), Map.entry("september", 9),
-    Map.entry("oktober", 10), Map.entry("october", 10),
-    Map.entry("november", 11), Map.entry("dezember", 12),
-    Map.entry("december", 12));
-
   private final String value;
+  private final Map<String, Integer> months;
 
   Optional<LocalDate> date() {
     try {
@@ -63,7 +54,7 @@ final class PrintedDate {
   }
 
   private Optional<LocalDate> writtenOut(String[] words) {
-    var month = Optional.ofNullable(MONTHS.get(words[1]
+    var month = Optional.ofNullable(months.get(words[1]
       .toLowerCase(Locale.GERMAN)));
     return month.filter(_ -> words.length == 3)
       .map(number -> LocalDate.of(Integer.parseInt(words[2]), number,
