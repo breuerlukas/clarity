@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @RequiredArgsConstructor
-public final class PaymentReconciliation {
+public final class InvoiceMatching {
   private static final int EARLY_PAYMENT_DAYS = 30;
 
   private final InvoiceRepository invoiceRepository;
@@ -43,10 +43,10 @@ public final class PaymentReconciliation {
   public void matchAll() {
     spaceRepository.findByKind(SpaceKind.BUSINESS).join().stream()
       .map(Space::id)
-      .forEach(this::reconcile);
+      .forEach(this::match);
   }
 
-  public synchronized void reconcile(UUID spaceId) {
+  public synchronized void match(UUID spaceId) {
     var invoices = invoiceRepository.findBySpaceId(spaceId).join();
     if (invoices.isEmpty()) {
       return;

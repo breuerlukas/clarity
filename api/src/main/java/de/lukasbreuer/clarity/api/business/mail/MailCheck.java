@@ -1,7 +1,7 @@
 package de.lukasbreuer.clarity.api.business.mail;
 
 import de.lukasbreuer.clarity.api.business.invoice.InvoiceDirection;
-import de.lukasbreuer.clarity.api.business.invoice.matching.PaymentReconciliation;
+import de.lukasbreuer.clarity.api.business.invoice.matching.InvoiceMatching;
 import de.lukasbreuer.clarity.api.log.Log;
 import de.lukasbreuer.clarity.api.secret.SecretBox;
 import de.lukasbreuer.clarity.api.space.Space;
@@ -37,7 +37,7 @@ public final class MailCheck {
   private final MailServer mailServer;
   private final MailFolderReader folderReader;
   private final MailImport mailImport;
-  private final PaymentReconciliation reconciliation;
+  private final InvoiceMatching invoiceMatching;
   private final SecretBox secretBox;
   private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -88,7 +88,7 @@ public final class MailCheck {
       mailbox.markFailed(failureReason(exception));
     }
     mailboxRepository.save(mailbox).join();
-    reconciliation.reconcile(space.id());
+    invoiceMatching.match(space.id());
   }
 
   /**

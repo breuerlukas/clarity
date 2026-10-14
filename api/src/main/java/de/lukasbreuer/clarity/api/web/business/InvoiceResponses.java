@@ -2,7 +2,7 @@ package de.lukasbreuer.clarity.api.web.business;
 
 import de.lukasbreuer.clarity.api.business.invoice.Invoice;
 import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
-import de.lukasbreuer.clarity.api.business.invoice.matching.PaymentReconciliation;
+import de.lukasbreuer.clarity.api.business.invoice.matching.InvoiceMatching;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,13 +22,13 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 final class InvoiceResponses {
   private final InvoiceRepository invoiceRepository;
-  private final PaymentReconciliation reconciliation;
+  private final InvoiceMatching invoiceMatching;
 
   /**
    * Newest invoice first.
    */
   ApiResponse list(List<Invoice> invoices) {
-    var payments = reconciliation.linksOf(invoices);
+    var payments = invoiceMatching.linksOf(invoices);
     var today = LocalDate.now();
     return ApiResponse.success(Map.of("invoices", invoices.stream()
       .sorted(Comparator.comparing(Invoice::invoiceDate).reversed())
@@ -45,7 +45,7 @@ final class InvoiceResponses {
   }
 
   private ApiResponse single(Invoice invoice) {
-    var payments = reconciliation.linksOf(List.of(invoice));
+    var payments = invoiceMatching.linksOf(List.of(invoice));
     return ApiResponse.success(Map.of("invoice",
       invoice.information(payments, LocalDate.now())));
   }

@@ -6,8 +6,8 @@ import de.lukasbreuer.clarity.api.business.invoice.InvoiceDirection;
 import de.lukasbreuer.clarity.api.business.invoice.InvoicePayment;
 import de.lukasbreuer.clarity.api.business.invoice.InvoicePaymentRepository;
 import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
+import de.lukasbreuer.clarity.api.business.invoice.matching.InvoiceMatching;
 import de.lukasbreuer.clarity.api.business.invoice.matching.PaymentMatching;
-import de.lukasbreuer.clarity.api.business.invoice.matching.PaymentReconciliation;
 import de.lukasbreuer.clarity.api.transaction.Transaction;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
@@ -33,7 +33,7 @@ final class InvoicePaymentLinking {
   private final InvoiceRepository invoiceRepository;
   private final InvoicePaymentRepository paymentRepository;
   private final TransactionRepository transactionRepository;
-  private final PaymentReconciliation reconciliation;
+  private final InvoiceMatching invoiceMatching;
   private final InvoiceResponses responses;
   private final AccountScope accountScope;
 
@@ -62,7 +62,7 @@ final class InvoicePaymentLinking {
   private CompletableFuture<ApiResponse> linkInSpace(
     Invoice invoice, Transaction transaction
   ) {
-    var invoicePayments = reconciliation.linksOf(List.of(invoice));
+    var invoicePayments = invoiceMatching.linksOf(List.of(invoice));
     if (isLinked(invoicePayments, transaction)) {
       return ApiResponse.error(7002).future();
     }
