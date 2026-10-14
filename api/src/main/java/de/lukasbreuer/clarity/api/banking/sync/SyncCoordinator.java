@@ -66,7 +66,7 @@ public final class SyncCoordinator {
       .thenCompose(connections -> categorizerFactory.create()
         .thenCompose(categorizer -> synchronize(validConnectionIds(connections),
           categorizer, filter, headers)))
-      .thenRun(reconciliation::reconcileAll)
+      .thenRun(reconciliation::matchAll)
       .handle((_, _) -> finish());
   }
 

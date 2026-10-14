@@ -40,7 +40,7 @@ public final class PaymentReconciliation {
   private final SpaceRepository spaceRepository;
   private final AccountScope accountScope;
 
-  public void reconcileAll() {
+  public void matchAll() {
     spaceRepository.findByKind(SpaceKind.BUSINESS).join().stream()
       .map(Space::id)
       .forEach(this::reconcile);
