@@ -14,6 +14,16 @@ deadlines, MRR, ARR, active customers and churn derived from them, and
 matches incoming payments on its accounts to the contracts; transfers to and
 from your personal accounts count as private withdrawals or deposits.
 
+A business space can also read **invoices** from an IMAP mailbox: bills that
+arrive in the inbox and invoices you send from it (the sent folder).
+E-invoices (XRechnung, ZUGFeRD, Factur-X) are read exactly; other PDFs and
+scans are read from their text, with OCR running on your own server, and
+marked for you to check. Clarity matches the payments on your business
+accounts to them, by invoice number, amount, IBAN and name, including partial
+payments, several invoices in one transfer and early-payment discounts, notes
+payment advices (Zahlungsavis) from customers, and compares invoiced with
+received income and billed with paid expenses month by month.
+
 React and Tailwind in the panel, Spring Boot on Java 25 and Postgres behind it.
 Bank access goes through [Enable Banking](https://enablebanking.com).
 
@@ -38,6 +48,10 @@ cookies, only their hash is stored, and repeated failed sign-ins lock the
 address out for a while. The panel loads nothing from third parties, and out
 of the box it only listens on `127.0.0.1`; the api and the database are never
 published.
+
+Mailboxes are read without changing anything in them, only over TLS. Their
+passwords are encrypted with a key that is created on the first start and
+kept outside the database, in the `api-data` volume.
 
 Found a problem? See [SECURITY.md](SECURITY.md).
 
@@ -99,8 +113,16 @@ restart with `docker compose up -d`. On the phone, open the address and choose
 | Restore | `docker compose exec -T postgres psql -U clarity clarity < clarity.sql` |
 | Logs | `docker compose logs -f api` |
 
-Backups contain all your transactions. Keep them as safe as your bank
-statements, ideally encrypted.
+Backups contain all your transactions and invoices. Keep them as safe as your
+bank statements, ideally encrypted. Mailbox passwords are encrypted with the
+key in the `api-data` volume; without a copy of it you enter them again after
+a restore.
+
+New mails are read every 15 minutes; *Check now* on the invoices page reads
+them right away. Connecting a mailbox is described in
+[docs/mailboxes.md](docs/mailboxes.md), how invoices are read and matched in
+[docs/invoice-recognition.md](docs/invoice-recognition.md) and
+[docs/invoice-matching.md](docs/invoice-matching.md).
 
 Clarity syncs every account every six hours on its own; *Update now* on the
 accounts page syncs right away.

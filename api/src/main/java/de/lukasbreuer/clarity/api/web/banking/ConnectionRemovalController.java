@@ -5,6 +5,7 @@ import de.lukasbreuer.clarity.api.banking.account.BankAccount;
 import de.lukasbreuer.clarity.api.banking.account.BankAccountRepository;
 import de.lukasbreuer.clarity.api.banking.connection.BankConnection;
 import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
+import de.lukasbreuer.clarity.api.business.invoice.InvoicePaymentRepository;
 import de.lukasbreuer.clarity.api.business.payment.PaymentAssignmentRepository;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
@@ -34,6 +35,7 @@ public final class ConnectionRemovalController {
   private final BankAccountRepository accountRepository;
   private final TransactionRepository transactionRepository;
   private final PaymentAssignmentRepository assignmentRepository;
+  private final InvoicePaymentRepository invoicePaymentRepository;
 
   @RequestMapping(path = "/connections/delete/", method = RequestMethod.POST)
   public CompletableFuture<ApiResponse> delete(
@@ -71,12 +73,19 @@ public final class ConnectionRemovalController {
   }
 
   private CompletableFuture<Void> deleteAccounts(List<BankAccount> accounts) {
-    accounts.forEach(account -> {
-      assignmentRepository.deleteByAccountId(account.id());
-      transactionRepository.deleteByAccountId(account.id());
-    });
+    accounts.forEach(this::deleteBookings);
     return CompletableFuture.allOf(accounts.stream()
       .map(accountRepository::delete)
       .toArray(CompletableFuture[]::new));
+  }
+
+  /**
+   * The bookings of an account with what links them to contracts and
+   * invoices.
+   */
+  private void deleteBookings(BankAccount account) {
+    assignmentRepository.deleteByAccountId(account.id());
+    invoicePaymentRepository.deleteByAccountId(account.id());
+    transactionRepository.deleteByAccountId(account.id());
   }
 }

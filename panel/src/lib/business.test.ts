@@ -38,6 +38,7 @@ const payment = (overrides: Partial<BusinessTransaction> = {}): BusinessTransact
   description: "Rechnung 2026-10",
   category: "INCOME",
   assignment: null,
+  invoices: [],
   ...overrides,
 });
 
