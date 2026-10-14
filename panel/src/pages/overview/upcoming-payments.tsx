@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Panel } from "@/components/panel";
 import { AmountBadge } from "@/components/amount-badge";
 import { CategoryIcon } from "@/components/category-icon";
+import { LedgerSkeleton } from "@/components/ledger";
 import { useSpacePath } from "@/hooks/use-space";
 import type { RecurringPayment } from "@/lib/api";
 import { formatDay } from "@/lib/format";
@@ -27,6 +28,7 @@ export function UpcomingPayments({
   return (
     <Panel title={t("overview.upcoming")} viewAll={path("/subscriptions")} className={className}>
       {payments?.length === 0 && <p className="text-muted-foreground">{t("overview.fixed_empty")}</p>}
+      {!payments && <LedgerSkeleton rows={VISIBLE} />}
       <ul className="zebra -mx-2">
         {next.map((payment) => (
           <li

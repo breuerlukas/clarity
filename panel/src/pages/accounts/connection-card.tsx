@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { PiggyBank, RefreshCw, Trash2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogClose,
@@ -12,15 +12,20 @@ import {
 } from "@/components/ui/dialog";
 import { Notice } from "@/components/notice";
 import { Panel } from "@/components/panel";
+import { Segmented } from "@/components/segmented";
 import { api, type Account, type Connection } from "@/lib/api";
 import { formatDate, formatMoney, formatRelative, maskIban } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 const DAY = 24 * 60 * 60 * 1000;
 const WARNING_DAYS = 14;
 
 /**
- * One bank with its accounts. Business accounts never count towards the
- * owner's spending money, so they have no switch for it.
+ * One bank with its accounts. The header says how long the bank's consent
+ * lasts, each account shows whether it is everyday money or savings, and
+ * the footer holds what can be done with the connection. Business accounts
+ * never count towards the owner's spending money, so they have no choice
+ * for it.
  */
 export function ConnectionCard({
   connection,
@@ -35,36 +40,35 @@ export function ConnectionCard({
   const [removing, setRemoving] = useState(false);
   const [now] = useState(Date.now);
   const daysLeft = Math.ceil((connection.valid_until - now) / DAY);
+  // 0 for an account that was never synced.
+  const oldest = Math.min(...connection.accounts.map((account) => account.last_synced_at));
   return (
-    <Panel
-      title={connection.bank_name}
-      aside={t("accounts.valid_until", { date: formatDate(connection.valid_until) })}
-    >
-      {daysLeft <= WARNING_DAYS && (
-        <div className="flex flex-wrap items-center gap-3">
-          <Notice>
-            {daysLeft <= 0
-              ? t("accounts.expired")
-              : t("accounts.expiring", { count: daysLeft })}
-          </Notice>
-          <Button size="sm" variant="outline" onClick={onReconnect}>
-            {t("accounts.connect")}
-          </Button>
-        </div>
-      )}
-      <ul className="zebra -mx-2">
+    <Panel title={connection.bank_name} aside={<AccessBadge daysLeft={daysLeft} validUntil={connection.valid_until} />}>
+      <ul className="-my-3 divide-y divide-divider">
         {connection.accounts.map((account) => (
           <AccountRow key={account.id} account={account} business={business} />
         ))}
       </ul>
-      <Button
-        variant="link"
-        size="sm"
-        className="self-start px-0 text-muted-foreground"
-        onClick={() => setRemoving(true)}
-      >
-        {t("accounts.remove")}
-      </Button>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-divider pt-4">
+        <span className="mr-auto text-sm text-muted-foreground">
+          {oldest ? t("accounts.last_synced", { time: formatRelative(oldest) }) : t("accounts.never_synced")}
+        </span>
+        {daysLeft <= WARNING_DAYS && (
+          <Button size="sm" onClick={onReconnect}>
+            <RefreshCw />
+            {t("accounts.renew")}
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-muted-foreground hover:text-destructive"
+          onClick={() => setRemoving(true)}
+        >
+          <Trash2 />
+          {t("accounts.remove")}
+        </Button>
+      </div>
       <RemoveDialog
         connection={connection}
         open={removing}
@@ -74,30 +78,44 @@ export function ConnectionCard({
   );
 }
 
+/** Quiet while the consent lasts, a warning in its last two weeks. */
+function AccessBadge({ daysLeft, validUntil }: { daysLeft: number; validUntil: number }) {
+  const { t } = useTranslation();
+  if (daysLeft > WARNING_DAYS) {
+    return <span>{t("accounts.valid_until", { date: formatDate(validUntil) })}</span>;
+  }
+  return (
+    <span
+      className={cn(
+        "rounded-full px-2.5 py-0.5 text-xs font-bold",
+        daysLeft <= 0 ? "bg-negative/12 text-negative" : "bg-warning/12 text-warning",
+      )}
+    >
+      {daysLeft <= 0 ? t("accounts.expired") : t("accounts.expiring", { count: daysLeft })}
+    </span>
+  );
+}
+
 function AccountRow({ account, business }: { account: Account; business: boolean }) {
   const { t } = useTranslation();
-  const status = account.sync_failure
-    ? null
-    : account.last_synced_at
-      ? t("accounts.last_synced", { time: formatRelative(account.last_synced_at) })
-      : t("accounts.never_synced");
   return (
-    <li className="zebra-row grid gap-1 rounded-xl px-2 py-3">
-      <div className="grid grid-cols-[1fr_auto] items-baseline gap-4">
-        <span className="min-w-0 truncate font-medium">{account.name}</span>
-        <span className="figures font-semibold">
+    <li className="grid gap-3 py-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2">
+        <span className="grid min-w-0">
+          <span className="truncate font-bold">{account.name}</span>
+          {account.iban && (
+            <span className="figures text-sm text-muted-foreground">{maskIban(account.iban)}</span>
+          )}
+        </span>
+        <span className="figures text-lg font-extrabold">
           {account.balance === null
             ? "—"
             : formatMoney(account.balance, account.currency)}
         </span>
       </div>
-      <div className="flex flex-wrap justify-between gap-x-4 text-sm text-muted-foreground">
-        <span className="figures">{maskIban(account.iban)}</span>
-        {status && <span>{status}</span>}
-      </div>
-      {!business && <SpendingSwitch account={account} />}
+      {!business && <SpendingChoice account={account} />}
       {account.sync_failure && (
-        <Notice className="mt-1 text-sm">
+        <Notice className="text-sm">
           {account.sync_failure === "consent"
             ? t("accounts.failure_consent")
             : t("accounts.failure_other", { reason: account.sync_failure })}
@@ -151,27 +169,28 @@ function RemoveDialog({
     </Dialog>
   );
 }
-/** Whether this account's money counts towards the room until payday. */
-function SpendingSwitch({ account }: { account: Account }) {
+/**
+ * Everyday accounts count towards the room until payday, savings don't; the
+ * same words the overview shows next to each account. Shows the new choice
+ * right away while it is saved.
+ */
+function SpendingChoice({ account }: { account: Account }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const toggle = useMutation({
     mutationFn: (spending: boolean) => api.markSpending(account.id, spending),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["connections"] }),
   });
-  const id = `spending-${account.id}`;
   return (
-    <div className="mt-1 flex items-center justify-between gap-4 text-sm">
-      <label htmlFor={id} className="grid">
-        <span className="font-bold">{t("accounts.spending")}</span>
-        <span className="text-xs text-muted-foreground">{t("accounts.spending_hint")}</span>
-      </label>
-      <Switch
-        id={id}
-        checked={account.spending}
-        disabled={toggle.isPending}
-        onCheckedChange={(checked) => toggle.mutate(checked)}
-      />
-    </div>
+    <Segmented<"everyday" | "savings">
+      size="sm"
+      label={t("accounts.spending")}
+      value={(toggle.isPending ? toggle.variables : account.spending) ? "everyday" : "savings"}
+      options={[
+        { value: "everyday", label: t("overview.account_everyday"), icon: Wallet },
+        { value: "savings", label: t("overview.account_savings"), icon: PiggyBank },
+      ]}
+      onChange={(value) => toggle.mutate(value === "everyday")}
+    />
   );
 }

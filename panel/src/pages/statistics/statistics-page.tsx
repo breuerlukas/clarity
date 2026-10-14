@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ChartColumnBig, Shapes, Store } from "lucide-react";
-import { PageHeader } from "@/components/panel";
+import { PageHeader, PanelSkeleton } from "@/components/panel";
 import { PeriodPicker } from "@/components/period-picker";
 import { Notice } from "@/components/notice";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -77,7 +77,7 @@ export function StatisticsPage() {
             </TabsContent>
           </>
         ) : (
-          <div className="mt-6 h-96 rounded-3xl border bg-card" aria-busy="true" />
+          <PanelSkeleton className="mt-6 h-96" />
         )}
       </Tabs>
     </>

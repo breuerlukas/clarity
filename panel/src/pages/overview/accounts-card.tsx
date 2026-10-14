@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Panel } from "@/components/panel";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Connection } from "@/lib/api";
 import { formatMoney, maskIban } from "@/lib/format";
 import { total } from "@/lib/overview";
@@ -23,10 +24,15 @@ export function AccountsCard({
     <Panel title={t("nav.accounts")} viewAll={viewAll}>
       <div className="grid gap-1">
         <span className="text-sm text-muted-foreground">{t("overview.total")}</span>
-        <span className="figures text-3xl font-extrabold tracking-[-0.02em]">
-          {formatMoney(total(accounts.map((account) => account.balance ?? 0)))}
-        </span>
+        {connections ? (
+          <span className="figures text-3xl font-extrabold tracking-[-0.02em]">
+            {formatMoney(total(accounts.map((account) => account.balance ?? 0)))}
+          </span>
+        ) : (
+          <Skeleton className="h-9 w-44" />
+        )}
       </div>
+      {!connections && <Skeleton className="h-36 rounded-2xl" aria-busy="true" />}
       <div className="grid gap-4">
         {connections?.map((connection) => (
           <div key={connection.id} className="grid gap-1.5">

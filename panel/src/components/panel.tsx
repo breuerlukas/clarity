@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { ChevronRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 /** A card: white (graphite in dark mode), rounded, with an optional heading. */
@@ -29,6 +30,18 @@ export function Panel({
       {title && <CardHeading title={title} aside={aside} viewAll={viewAll} />}
       {children}
     </section>
+  );
+}
+
+/** A card still loading: a bar for the title, a block for the content. */
+export function PanelSkeleton({ className }: { className?: string }) {
+  return (
+    <Panel className={className}>
+      <div className="flex flex-1 flex-col gap-5" aria-busy="true">
+        <Skeleton className="h-6 w-36" />
+        <Skeleton className="flex-1 rounded-2xl" />
+      </div>
+    </Panel>
   );
 }
 

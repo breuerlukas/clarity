@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -108,6 +109,12 @@ export function ConnectBankDialog({
           )}
           aria-busy={banks.isPending}
         >
+          {banks.isPending &&
+            Array.from({ length: 6 }, (_, index) => (
+              <li key={index} className="px-3 py-3">
+                <Skeleton className="h-4" style={{ width: `${40 + ((index * 23) % 45)}%` }} />
+              </li>
+            ))}
           {banks.data && matches.length === 0 && (
             <li className="p-3 text-muted-foreground">{t("connect.empty")}</li>
           )}

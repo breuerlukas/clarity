@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { PageHeader, Panel } from "@/components/panel";
 import { PeriodPicker } from "@/components/period-picker";
 import { Notice } from "@/components/notice";
-import { Ledger, LedgerDay, LedgerRow } from "@/components/ledger";
+import { Ledger, LedgerDay, LedgerRow, LedgerSkeleton } from "@/components/ledger";
 import { useTransactionsBetween } from "@/hooks/use-finances";
 import { usePeriodParam } from "@/hooks/use-period-param";
 import { CategoryDialog } from "@/pages/transactions/category-dialog";
@@ -95,6 +95,7 @@ export function TransactionsPage() {
             </p>
           )}
           <div className="-mx-6 min-h-0 flex-1 border-t border-line px-6 lg:overflow-y-auto">
+            {transactions.isPending && <LedgerSkeleton rows={10} />}
             <Ledger>
               {groupByDay(shown).map(([day, rows]) => (
                 <LedgerDay key={day} label={formatDay(day)}>

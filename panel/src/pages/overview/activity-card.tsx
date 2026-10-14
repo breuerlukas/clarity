@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Panel } from "@/components/panel";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ActivityHeatmap } from "@/components/charts/activity-heatmap";
 import type { Transaction } from "@/lib/api";
 import { isoDate } from "@/lib/dates";
@@ -17,7 +18,7 @@ export function ActivityCard({ transactions }: { transactions?: Transaction[] })
       {transactions ? (
         <ActivityHeatmap transactions={transactions} from={isoDate(from)} to={isoDate(today)} />
       ) : (
-        <div className="h-32" aria-busy="true" />
+        <Skeleton className="h-48 rounded-2xl" aria-busy="true" />
       )}
     </Panel>
   );

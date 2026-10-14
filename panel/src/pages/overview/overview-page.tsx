@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/notice";
-import { PageHeader } from "@/components/panel";
+import { PageHeader, PanelSkeleton } from "@/components/panel";
 import { SyncButton } from "@/components/sync-button";
 import { useConnections, useHistory, useRecurringPayments } from "@/hooks/use-finances";
 import { useSpacePath } from "@/hooks/use-space";
@@ -42,11 +42,11 @@ export function OverviewPage() {
       )}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-6">
-          {room ? <SpendingRoomCard room={room} /> : <Placeholder height="h-72" />}
+          {room ? <SpendingRoomCard room={room} /> : <PanelSkeleton className="h-72" />}
           {accounts && history.data ? (
             <BalanceCard accounts={accounts} history={history.data} />
           ) : (
-            <Placeholder height="h-80" />
+            <PanelSkeleton className="h-80" />
           )}
           <RecentTransactions transactions={history.data} className="flex-1" />
         </div>
@@ -58,10 +58,6 @@ export function OverviewPage() {
       </div>
     </>
   );
-}
-
-function Placeholder({ height }: { height: string }) {
-  return <div className={`${height} rounded-3xl border bg-card`} aria-busy="true" />;
 }
 
 function EmptyOverview() {

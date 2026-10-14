@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { Transaction } from "@/lib/api";
 import { isoDate } from "@/lib/dates";
 import { formatDay, formatMoney, formatMonthShort } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 interface Day {
   date: string;
@@ -16,7 +17,9 @@ const LEVELS = [14, 26, 40, 56, 72];
  * One square per day, weeks as columns. The color says whether more came in
  * (green) or went out (blue) that day; the strength says how much, on a
  * square-root scale so salary and rent days don't wash out everything else.
- * Transfers between own accounts are left out.
+ * Transfers between own accounts are left out. Leaving is handled on the
+ * grid, not per square, so the label doesn't flicker across the gaps; the
+ * label has its own fixed line, so nothing moves while hovering.
  */
 export function ActivityHeatmap({
   transactions,
@@ -36,6 +39,7 @@ export function ActivityHeatmap({
         <div
           className="grid gap-[3px]"
           style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(8px, 1fr))` }}
+          onMouseLeave={() => setHovered(null)}
         >
           {weeks.map((week, column) => (
             <div key={column} className="grid content-start gap-[3px]">
@@ -54,8 +58,11 @@ export function ActivityHeatmap({
                     aria-label={`${formatDay(day.date)}: +${formatMoney(day.income)}, -${formatMoney(day.spending)}`}
                     onMouseEnter={() => setHovered(day)}
                     onFocus={() => setHovered(day)}
-                    onMouseLeave={() => setHovered(null)}
-                    className="aspect-square w-full rounded-[3px] outline-offset-1"
+                    onBlur={() => setHovered(null)}
+                    className={cn(
+                      "aspect-square w-full rounded-[3px] outline-none transition-shadow duration-150",
+                      hovered?.date === day.date && "ring-2 ring-foreground/70 ring-offset-1 ring-offset-card",
+                    )}
                     style={{ backgroundColor: color(day, maximum) }}
                   />
                 ) : (
@@ -66,8 +73,8 @@ export function ActivityHeatmap({
           ))}
         </div>
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2 text-xs text-muted-foreground">
-        <span className="min-h-4" aria-live="polite">
+      <div className="grid gap-2 text-xs text-muted-foreground">
+        <span className="h-4 truncate" aria-live="polite">
           {hovered &&
             (hovered.income === 0 && hovered.spending === 0
               ? `${formatDay(hovered.date)}: ${t("statistics.activity_none")}`

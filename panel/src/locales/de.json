@@ -9,7 +9,7 @@
     "banking": "Banken",
     "settings": "Einstellungen",
     "toggle_sidebar": "Seitenleiste ein- oder ausblenden",
-    "subscriptions": "Abos & Fixkosten",
+    "subscriptions": "Fixkosten",
     "contracts": "Verträge"
   },
   "common": {
@@ -21,7 +21,7 @@
     "view_all": "Alle ansehen",
     "close": "Schließen",
     "demo_only": "In der Demo nicht möglich.",
-    "demo": "Demo mit Beispieldaten",
+    "demo": "Demo",
     "demo_source": "Auf GitHub ansehen"
   },
   "category": {
@@ -127,22 +127,23 @@
     "sync_busy": "Wird bereits aktualisiert.",
     "connect": "Bank verbinden",
     "valid_until": "Zugriff bis {{date}}",
-    "expiring_one": "Zugriff läuft morgen ab.",
-    "expiring_other": "Zugriff läuft in {{count}} Tagen ab.",
-    "expired": "Zugriff abgelaufen.",
+    "expiring_one": "Läuft morgen ab",
+    "expiring_other": "Läuft in {{count}} Tagen ab",
+    "expired": "Abgelaufen",
     "last_synced": "Aktualisiert {{time}}",
     "never_synced": "Noch nicht aktualisiert",
     "failure_consent": "Zugriff abgelaufen. Bitte neu verbinden.",
     "failure_other": "Aktualisierung fehlgeschlagen ({{reason}}).",
-    "remove": "Entfernen",
+    "remove": "Bank entfernen",
+    "renew": "Zugriff erneuern",
     "remove_title": "{{bank}} entfernen?",
     "remove_text": "Der Zugriff wird widerrufen und alle Transaktionen dieser Konten werden gelöscht.",
     "remove_confirm": "Bank entfernen",
     "empty_title": "Noch keine Bank verbunden",
     "empty_text": "Verbinde deine Bank, um Konten und Transaktionen zu sehen. Clarity bekommt nur Lesezugriff.",
     "not_configured": "Enable Banking ist noch nicht eingerichtet (siehe docs/enable-banking.md).",
-    "spending": "Im Spielraum berücksichtigen",
-    "spending_hint": "Für Spar- und Tagesgeldkonten ausschalten."
+    "spending": "Kontoart",
+    "spending_hint": "Alltagskonten zählen zum Geld, das bis zum nächsten Gehalt übrig ist. Spar- und Tagesgeldkonten bleiben außen vor."
   },
   "connect": {
     "title": "Bank verbinden",
@@ -160,6 +161,8 @@
     "hint_business": "Du meldest dich bei deiner Bank als Unternehmen an. Die Konten erscheinen nur unter Business."
   },
   "statistics": {
+    "split": "Aufteilung",
+    "share_rest": "Übrige",
     "range": "Zeitraum",
     "months_one": "{{count}} Monat",
     "months_other": "{{count}} Monate",
@@ -272,9 +275,12 @@
   },
   "subscriptions": {
     "filter": "Filter",
-    "all": "Alle",
-    "subscriptions": "Abos",
-    "contracts": "Verträge"
+    "per_month": "{{amount}} im Monat",
+    "group_home": "Wohnen & Nebenkosten",
+    "group_subscriptions": "Abos",
+    "group_insurance": "Versicherungen",
+    "group_other": "Weitere Verträge",
+    "group_savings": "Sparpläne"
   },
   "interval": {
     "MONTHLY": "monatlich",
