@@ -1,63 +1,49 @@
 package de.lukasbreuer.clarity.api.business.invoice.reading;
 
+import lombok.RequiredArgsConstructor;
+
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.regex.Pattern;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 /**
- * Finds IBANs in text, written with or without the usual spaces, and keeps
- * only those whose check digits are right, so a reference number that
+ * An IBAN as written somewhere, with or without the usual spaces. It is
+ * only valid when its check digits are right, so a reference number that
  * happens to look like one is not taken.
  */
+@RequiredArgsConstructor(staticName = "of")
 public final class Iban {
-  private static final Pattern CANDIDATE = Pattern.compile(
-    "\\b([A-Z]{2}[0-9]{2}(?: ?[A-Z0-9]{4}){2,7}(?: ?[A-Z0-9]{1,4})?)\\b");
+  private static final int MINIMUM_LENGTH = 15;
+  private static final int MAXIMUM_LENGTH = 34;
   private static final BigInteger NINETY_SEVEN = BigInteger.valueOf(97);
 
-  private Iban() {
+  private final String text;
+
+  public String normalized() {
+    return text.replaceAll("\\s", "").toUpperCase(Locale.ROOT);
   }
 
-  public static Optional<String> find(String text) {
-    var matcher = CANDIDATE.matcher(text.toUpperCase());
-    while (matcher.find()) {
-      var iban = longestValid(matcher.group(1).split(" "));
-      if (iban.isPresent()) {
-        return iban;
-      }
-    }
-    return Optional.empty();
+  public boolean isValid() {
+    var iban = normalized();
+    return hasIbanShape(iban) && checksum(iban).equals(BigInteger.ONE);
+  }
+
+  private boolean hasIbanShape(String iban) {
+    return iban.length() >= MINIMUM_LENGTH &&
+      iban.length() <= MAXIMUM_LENGTH &&
+      iban.matches("[A-Z]{2}[0-9]{2}[A-Z0-9]+");
   }
 
   /**
-   * The match may have taken a group of the text after the IBAN, so groups
-   * are dropped from the end until the check digits fit.
+   * ISO 13616: the country and check digits move to the end, letters become
+   * numbers (A = 10), and the whole number modulo 97 is 1.
    */
-  private static Optional<String> longestValid(String[] groups) {
-    for (var count = groups.length; count > 0; count--) {
-      var iban = String.join("", Arrays.copyOf(groups, count));
-      if (isValid(iban)) {
-        return Optional.of(iban);
-      }
-    }
-    return Optional.empty();
-  }
-
-  public static String normalize(String iban) {
-    return iban.replaceAll("\\s", "").toUpperCase();
-  }
-
-  public static boolean isValid(String iban) {
-    if (iban.length() < 15 || iban.length() > 34 ||
-      !iban.matches("[A-Z]{2}[0-9]{2}[A-Z0-9]+")) {
-      return false;
-    }
+  private BigInteger checksum(String iban) {
     var rearranged = iban.substring(4) + iban.substring(0, 4);
-    var digits = new StringBuilder();
-    for (var character : rearranged.toCharArray()) {
-      digits.append(Character.getNumericValue(character));
-    }
-    return new BigInteger(digits.toString()).mod(NINETY_SEVEN)
-      .equals(BigInteger.ONE);
+    var digits = rearranged.chars()
+      .mapToObj(character -> String.valueOf(Character.getNumericValue(
+        character)))
+      .collect(Collectors.joining());
+    return new BigInteger(digits).mod(NINETY_SEVEN);
   }
 }

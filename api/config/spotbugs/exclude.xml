@@ -16,4 +16,12 @@
     <Class name="de.lukasbreuer.clarity.api.log.Log"/>
     <Bug pattern="INFORMATION_EXPOSURE_THROUGH_AN_ERROR_MESSAGE"/>
   </Match>
+  <!--
+    Tesseract runs as a fixed command from a constant; the invoice only
+    reaches it as an image on standard input, never as an argument.
+  -->
+  <Match>
+    <Class name="de.lukasbreuer.clarity.api.business.invoice.reading.TesseractRun"/>
+    <Bug pattern="COMMAND_INJECTION"/>
+  </Match>
 </FindBugsFilter>

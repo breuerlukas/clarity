@@ -119,7 +119,10 @@ key in the `api-data` volume; without a copy of it you enter them again after
 a restore.
 
 New mails are read every 15 minutes; *Check now* on the invoices page reads
-them right away.
+them right away. Connecting a mailbox is described in
+[docs/mailboxes.md](docs/mailboxes.md), how invoices are read and matched in
+[docs/invoice-recognition.md](docs/invoice-recognition.md) and
+[docs/invoice-matching.md](docs/invoice-matching.md).
 
 Clarity syncs every account every six hours on its own; *Update now* on the
 accounts page syncs right away.

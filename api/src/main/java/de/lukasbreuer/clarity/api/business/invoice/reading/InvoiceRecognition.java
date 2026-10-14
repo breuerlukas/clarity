@@ -14,9 +14,12 @@ import java.util.Optional;
  * invoice numbers they announce.
  */
 @Component
-@RequiredArgsConstructor
+@RequiredArgsConstructor(staticName = "create")
 public final class InvoiceRecognition {
   private final Ocr ocr;
+  private final ElectronicInvoiceReader electronicReader;
+  private final PdfInvoiceReader pdfReader;
+  private final TextInvoiceReader textReader;
 
   /**
    * @param invoice The invoice the file is, if it is one
@@ -34,27 +37,40 @@ public final class InvoiceRecognition {
    */
   public Result recognise(InvoiceFile file, LocalDate received) {
     if (file.isXml()) {
-      return new Result(ElectronicInvoiceReader.read(file.content())
-        .map(fields -> new RecognisedInvoice(fields, InvoiceFormat.XRECHNUNG,
-          false)), "");
+      return recogniseXml(file);
     }
     if (file.isPdf()) {
-      return PdfInvoiceReader.read(file.content(), ocr)
-        .map(content -> recognisePdf(content, received))
-        .orElseGet(Result::nothing);
+      return recognisePdfFile(file, received);
     }
     if (file.isImage()) {
-      return ocr.read(file.content())
-        .map(text -> fromText(text, InvoiceFormat.OCR, received))
-        .orElseGet(Result::nothing);
+      return recogniseImage(file, received);
     }
     return Result.nothing();
   }
 
-  private Result recognisePdf(
-    PdfInvoiceReader.Content content, LocalDate received
-  ) {
-    var electronic = content.xml().flatMap(ElectronicInvoiceReader::read);
+  private Result recogniseXml(InvoiceFile file) {
+    return new Result(electronicReader.read(file.content())
+      .map(fields -> new RecognisedInvoice(fields, InvoiceFormat.XRECHNUNG,
+        false)), "");
+  }
+
+  private Result recognisePdfFile(InvoiceFile file, LocalDate received) {
+    return pdfReader.read(file.content())
+      .map(content -> recognisePdf(content, received))
+      .orElseGet(Result::nothing);
+  }
+
+  private Result recogniseImage(InvoiceFile file, LocalDate received) {
+    return ocr.read(file.content())
+      .map(text -> fromText(text, InvoiceFormat.OCR, received))
+      .orElseGet(Result::nothing);
+  }
+
+  /**
+   * An embedded e-invoice wins over the PDF's text.
+   */
+  private Result recognisePdf(PdfContent content, LocalDate received) {
+    var electronic = content.xml().flatMap(electronicReader::read);
     if (electronic.isPresent()) {
       return new Result(Optional.of(new RecognisedInvoice(electronic.get(),
         InvoiceFormat.ZUGFERD, false)), content.text());
@@ -66,7 +82,7 @@ public final class InvoiceRecognition {
   private Result fromText(
     String text, InvoiceFormat format, LocalDate received
   ) {
-    return new Result(TextInvoiceReader.read(text, received)
+    return new Result(textReader.read(text, received)
       .map(fields -> new RecognisedInvoice(fields, format, true)), text);
   }
 }

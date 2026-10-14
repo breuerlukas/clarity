@@ -51,23 +51,16 @@ public final class InvoiceMatcher {
     if (invoices.isEmpty()) {
       return;
     }
-    var payments = payments(invoices);
-    var result = PaymentMatching.match(invoices, transactions(spaceId,
-      invoices), payments, excludedTransactions());
-    if (!result.links().isEmpty()) {
-      paymentRepository.saveAll(result.links()).join();
-    }
-    if (!result.settled().isEmpty()) {
-      invoiceRepository.saveAll(result.settled()).join();
-    }
+    var result = PaymentMatching.create(invoices, payments(invoices))
+      .match(transactions(spaceId, invoices), excludedTransactions());
+    store(result);
   }
 
-  public synchronized List<PaymentMatching.Suggestion> suggest(
-    Invoice invoice
-  ) {
+  public synchronized List<PaymentSuggestion> suggest(Invoice invoice) {
     var invoices = List.of(invoice);
-    return PaymentMatching.suggest(invoice, transactions(invoice.spaceId(),
-      invoices), payments(invoices), excludedTransactions());
+    return PaymentMatching.create(invoices, payments(invoices))
+      .suggest(invoice, transactions(invoice.spaceId(), invoices),
+        excludedTransactions());
   }
 
   /**
@@ -79,6 +72,15 @@ public final class InvoiceMatcher {
     }
     return paymentRepository.findByInvoiceIdIn(invoices.stream()
       .map(Invoice::id).toList()).join();
+  }
+
+  private void store(MatchResult result) {
+    if (!result.links().isEmpty()) {
+      paymentRepository.saveAll(result.links()).join();
+    }
+    if (!result.settled().isEmpty()) {
+      invoiceRepository.saveAll(result.settled()).join();
+    }
   }
 
   private List<Transaction> transactions(

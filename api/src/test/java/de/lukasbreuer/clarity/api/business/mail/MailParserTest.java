@@ -19,8 +19,41 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 final class MailParserTest {
+  private final MailParser parser = MailParser.create();
+
   @Test
-  void keepsInvoiceAttachmentsAndText() throws Exception {
+  void readsSenderRecipientAndText() throws Exception {
+    var mail = parser.parse(invoiceMail());
+    assertEquals("Ihre Rechnung 2026-1187", mail.subject());
+    assertEquals("Druckerei Weber", mail.sender());
+    assertEquals("office@breuer.example", mail.recipient());
+    assertEquals(1_790_000_000_000L, mail.receivedAt());
+    assertTrue(mail.body().contains("Anbei Ihre Rechnung."));
+  }
+
+  @Test
+  void keepsOnlyInvoiceAttachments() throws Exception {
+    var mail = parser.parse(invoiceMail());
+    assertEquals(1, mail.attachments().size());
+    assertEquals("rechnung.pdf", mail.attachments().getFirst().name());
+  }
+
+  @Test
+  void recognisesPaymentAdvices() {
+    assertTrue(isAdvice("Zahlungsavis 4711", ""));
+    assertTrue(isAdvice("Payment", "Remittance advice for RE-1"));
+    assertFalse(isAdvice("Rechnung 4711", "Anbei die Rechnung"));
+  }
+
+  private boolean isAdvice(String subject, String body) {
+    return PaymentAdvice.of(new ReceivedMail(subject, "", "", 0, body,
+      List.of())).isAdvice();
+  }
+
+  /**
+   * A text, a PDF invoice, an inline logo and an archive.
+   */
+  private MimeMessage invoiceMail() throws Exception {
     var message = new MimeMessage(Session.getInstance(new Properties()));
     message.setFrom(new InternetAddress("billing@weber.example",
       "Druckerei Weber"));
@@ -28,6 +61,12 @@ final class MailParserTest {
       new InternetAddress("office@breuer.example"));
     message.setSubject("Ihre Rechnung 2026-1187");
     message.setSentDate(new Date(1_790_000_000_000L));
+    message.setContent(parts());
+    message.saveChanges();
+    return message;
+  }
+
+  private MimeMultipart parts() throws Exception {
     var multipart = new MimeMultipart();
     var text = new MimeBodyPart();
     text.setText("Anbei Ihre Rechnung.", "UTF-8");
@@ -38,27 +77,7 @@ final class MailParserTest {
       MimeBodyPart.INLINE));
     multipart.addBodyPart(attachment("archiv.zip", "application/zip",
       MimeBodyPart.ATTACHMENT));
-    message.setContent(multipart);
-    message.saveChanges();
-
-    var mail = MailParser.parse(message);
-    assertEquals("Ihre Rechnung 2026-1187", mail.subject());
-    assertEquals("Druckerei Weber", mail.sender());
-    assertEquals("office@breuer.example", mail.recipient());
-    assertEquals(1_790_000_000_000L, mail.receivedAt());
-    assertTrue(mail.body().contains("Anbei Ihre Rechnung."));
-    assertEquals(1, mail.attachments().size());
-    assertEquals("rechnung.pdf", mail.attachments().getFirst().name());
-  }
-
-  @Test
-  void recognisesPaymentAdvices() {
-    assertTrue(PaymentAdvice.isAdvice(new ReceivedMail("Zahlungsavis 4711",
-      "", "", 0, "", List.of())));
-    assertTrue(PaymentAdvice.isAdvice(new ReceivedMail("Payment",
-      "", "", 0, "Remittance advice for RE-1", List.of())));
-    assertFalse(PaymentAdvice.isAdvice(new ReceivedMail("Rechnung 4711",
-      "", "", 0, "Anbei die Rechnung", List.of())));
+    return multipart;
   }
 
   private MimeBodyPart attachment(

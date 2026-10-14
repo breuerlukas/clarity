@@ -6,7 +6,6 @@ import de.lukasbreuer.clarity.api.business.invoice.reading.Iban;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Optional;
 
 /**
@@ -20,43 +19,44 @@ record InvoiceDraft(InvoiceDirection direction, InvoiceFields fields) {
 
   static Optional<InvoiceDraft> parse(ApiRequestBody body) {
     try {
-      var iban = Iban.normalize(body.getString("iban", 34));
-      var dueDate = body.getString("due_date", 10);
-      var draft = new InvoiceDraft(
-        InvoiceDirection.find(body.getString("direction", 16)).orElseThrow(),
-        new InvoiceFields(body.getString("number", 60).trim(),
-          body.getString("issuer", 200).trim(),
-          body.getString("recipient", 200).trim(),
-          iban.isEmpty() ? null : iban,
-          body.getString("currency", 3).toUpperCase(),
-          optionalAmount(body.getString("net_amount", 24)),
-          optionalAmount(body.getString("tax_amount", 24)),
-          new BigDecimal(body.getString("gross_amount", 24)),
-          LocalDate.parse(body.getString("invoice_date", 10)),
-          dueDate.isEmpty() ? null : LocalDate.parse(dueDate)));
-      return draft.isValid() ? Optional.of(draft) : Optional.empty();
+      var form = InvoiceForm.of(body);
+      return Optional.of(new InvoiceDraft(form.direction(), form.fields()))
+        .filter(InvoiceDraft::isValid);
     } catch (Exception exception) {
       return Optional.empty();
     }
   }
 
-  private static BigDecimal optionalAmount(String value) {
-    return value.isBlank() ? null : new BigDecimal(value.trim());
-  }
-
   private boolean isValid() {
-    return !fields.number().isEmpty() && !fields.issuer().isEmpty() &&
-      !fields.recipient().isEmpty() &&
-      (fields.iban() == null || Iban.isValid(fields.iban())) &&
-      fields.currency().matches("[A-Z]{3}") &&
-      isAmount(fields.grossAmount(), false) &&
-      isAmount(fields.netAmount(), true) &&
-      isAmount(fields.taxAmount(), true) &&
-      (fields.dueDate() == null ||
-        !fields.dueDate().isBefore(fields.invoiceDate()));
+    return hasParties() && hasValidIban() &&
+      fields.currency().matches("[A-Z]{3}") && hasValidAmounts() &&
+      hasValidDueDate();
   }
 
-  private static boolean isAmount(BigDecimal amount, boolean optional) {
+  private boolean hasParties() {
+    return !fields.number().isEmpty() && !fields.issuer().isEmpty() &&
+      !fields.recipient().isEmpty();
+  }
+
+  private boolean hasValidIban() {
+    return fields.iban() == null || Iban.of(fields.iban()).isValid();
+  }
+
+  private boolean hasValidAmounts() {
+    return isAmount(fields.grossAmount(), false) &&
+      isAmount(fields.netAmount(), true) &&
+      isAmount(fields.taxAmount(), true);
+  }
+
+  private boolean hasValidDueDate() {
+    return fields.dueDate() == null ||
+      !fields.dueDate().isBefore(fields.invoiceDate());
+  }
+
+  /**
+   * @param optional Whether the amount may be unknown or zero
+   */
+  private boolean isAmount(BigDecimal amount, boolean optional) {
     if (amount == null) {
       return optional;
     }

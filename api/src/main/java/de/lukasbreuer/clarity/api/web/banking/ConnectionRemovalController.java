@@ -73,13 +73,19 @@ public final class ConnectionRemovalController {
   }
 
   private CompletableFuture<Void> deleteAccounts(List<BankAccount> accounts) {
-    accounts.forEach(account -> {
-      assignmentRepository.deleteByAccountId(account.id());
-      invoicePaymentRepository.deleteByAccountId(account.id());
-      transactionRepository.deleteByAccountId(account.id());
-    });
+    accounts.forEach(this::deleteBookings);
     return CompletableFuture.allOf(accounts.stream()
       .map(accountRepository::delete)
       .toArray(CompletableFuture[]::new));
+  }
+
+  /**
+   * The bookings of an account with what links them to contracts and
+   * invoices.
+   */
+  private void deleteBookings(BankAccount account) {
+    assignmentRepository.deleteByAccountId(account.id());
+    invoicePaymentRepository.deleteByAccountId(account.id());
+    transactionRepository.deleteByAccountId(account.id());
   }
 }

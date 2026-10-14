@@ -4,11 +4,8 @@ import de.lukasbreuer.clarity.api.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Recognises text in images with Tesseract, which the api image installs.
@@ -17,9 +14,8 @@ import java.util.concurrent.TimeUnit;
  * simply not read.
  */
 @Component
-@RequiredArgsConstructor
+@RequiredArgsConstructor(staticName = "create")
 public final class Ocr {
-  private static final long TIMEOUT_SECONDS = 60;
   private static final String[] LIST_LANGUAGES =
     {"tesseract", "--list-langs"};
   private static final String[] GERMAN_AND_ENGLISH =
@@ -28,86 +24,47 @@ public final class Ocr {
     {"tesseract", "stdin", "stdout", "-l", "eng"};
 
   private final Log log;
-  private volatile Optional<String[]> command;
+  private volatile Optional<String[]> detectedCommand;
 
   public boolean isAvailable() {
     return command().isPresent();
   }
 
   /**
+   * @param image A PNG or JPEG
+   */
+  public Optional<String> read(byte[] image) {
+    return command().flatMap(tesseract -> TesseractRun.of(tesseract, log)
+      .outputFor(image));
+  }
+
+  /**
+   * Looked up once, on the first scan.
+   */
+  private Optional<String[]> command() {
+    if (detectedCommand == null) {
+      detectedCommand = detectCommand();
+    }
+    return detectedCommand;
+  }
+
+  /**
    * German and English if the German data is installed (as in the api
    * image), English alone otherwise.
    */
-  private Optional<String[]> command() {
-    if (command == null) {
-      var installed = run(LIST_LANGUAGES, null).map(String::lines)
-        .map(lines -> lines.map(String::trim).toList());
-      command = installed.filter(languages -> languages.contains("eng"))
-        .map(languages -> languages.contains("deu") ? GERMAN_AND_ENGLISH :
-          ENGLISH);
-      if (command.isEmpty()) {
-        log.info("Tesseract is not installed, scanned invoices are not read");
-      }
+  private Optional<String[]> detectCommand() {
+    var command = installedLanguages()
+      .filter(languages -> languages.contains("eng"))
+      .map(languages -> languages.contains("deu") ? GERMAN_AND_ENGLISH :
+        ENGLISH);
+    if (command.isEmpty()) {
+      log.info("Tesseract is not installed, scanned invoices are not read");
     }
     return command;
   }
 
-  /**
-   * @param image A PNG or JPEG
-   */
-  public Optional<String> read(byte[] image) {
-    if (!isAvailable()) {
-      return Optional.empty();
-    }
-    Path input = null;
-    try {
-      input = Files.createTempFile("clarity-ocr", ".img");
-      Files.write(input, image);
-      return run(command().orElseThrow(), input);
-    } catch (IOException exception) {
-      return Optional.empty();
-    } finally {
-      deleteQuietly(input);
-    }
-  }
-
-  /**
-   * @param input The file Tesseract reads from its standard input, or none
-   */
-  private Optional<String> run(String[] command, Path input) {
-    Path output = null;
-    try {
-      output = Files.createTempFile("clarity-ocr", ".txt");
-      var builder = new ProcessBuilder(command)
-        .redirectOutput(output.toFile())
-        .redirectError(ProcessBuilder.Redirect.DISCARD);
-      if (input != null) {
-        builder.redirectInput(input.toFile());
-      }
-      var process = builder.start();
-      if (!process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-        process.destroyForcibly();
-        return Optional.empty();
-      }
-      return process.exitValue() == 0 ?
-        Optional.of(Files.readString(output)) : Optional.empty();
-    } catch (IOException exception) {
-      return Optional.empty();
-    } catch (InterruptedException exception) {
-      Thread.currentThread().interrupt();
-      return Optional.empty();
-    } finally {
-      deleteQuietly(output);
-    }
-  }
-
-  private void deleteQuietly(Path file) {
-    try {
-      if (file != null) {
-        Files.deleteIfExists(file);
-      }
-    } catch (IOException exception) {
-      log.warning("Could not delete " + file);
-    }
+  private Optional<List<String>> installedLanguages() {
+    return TesseractRun.of(LIST_LANGUAGES, log).output()
+      .map(output -> output.lines().map(String::trim).toList());
   }
 }

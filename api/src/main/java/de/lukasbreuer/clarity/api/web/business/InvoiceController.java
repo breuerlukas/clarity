@@ -1,7 +1,6 @@
 package de.lukasbreuer.clarity.api.web.business;
 
 import de.lukasbreuer.clarity.api.business.invoice.Invoice;
-import de.lukasbreuer.clarity.api.business.invoice.InvoiceDocumentRepository;
 import de.lukasbreuer.clarity.api.business.invoice.InvoicePaymentRepository;
 import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
 import de.lukasbreuer.clarity.api.business.invoice.matching.InvoiceMatcher;
@@ -10,22 +9,12 @@ import de.lukasbreuer.clarity.api.web.request.UuidParameter;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -42,8 +31,8 @@ import java.util.function.Consumer;
 public final class InvoiceController {
   private final InvoiceRepository invoiceRepository;
   private final InvoicePaymentRepository paymentRepository;
-  private final InvoiceDocumentRepository documentRepository;
   private final InvoiceMatcher invoiceMatcher;
+  private final InvoiceResponses responses;
 
   @RequestMapping(path = "/business/invoices/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findInvoices(
@@ -54,46 +43,7 @@ public final class InvoiceController {
       return ApiResponse.error(5001).future();
     }
     return invoiceRepository.findBySpaceId(spaceId.get())
-      .thenApply(invoices -> {
-        var payments = invoiceMatcher.payments(invoices);
-        var today = LocalDate.now();
-        return ApiResponse.success(Map.of("invoices", invoices.stream()
-          .sorted(Comparator.comparing(Invoice::invoiceDate).reversed())
-          .map(invoice -> invoice.information(payments, today))
-          .toList()));
-      });
-  }
-
-  /**
-   * The original file, always as a download and never rendered in the
-   * panel's origin, since anyone can mail a file.
-   */
-  @RequestMapping(path = "/business/invoices/document/",
-    method = RequestMethod.GET)
-  public CompletableFuture<ResponseEntity<byte[]>> findDocument(
-    @RequestParam("id") String id
-  ) {
-    var invoiceId = UuidParameter.parse(id);
-    if (invoiceId.isEmpty()) {
-      return CompletableFuture.completedFuture(notFound());
-    }
-    return invoiceRepository.findById(invoiceId.get())
-      .thenCompose(invoice -> invoice.map(Invoice::documentId)
-        .map(documentRepository::findById)
-        .orElse(CompletableFuture.completedFuture(Optional.empty())))
-      .thenApply(document -> document.map(entry -> ResponseEntity.ok()
-        .contentType(MediaType.parseMediaType(entry.contentType()))
-        .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition
-          .attachment().filename(entry.name(), StandardCharsets.UTF_8)
-          .build().toString())
-        .header("X-Content-Type-Options", "nosniff")
-        .header("Content-Security-Policy", "sandbox")
-        .header(HttpHeaders.CACHE_CONTROL, "no-store")
-        .body(entry.content())).orElseGet(this::notFound));
-  }
-
-  private ResponseEntity<byte[]> notFound() {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+      .thenApply(responses::list);
   }
 
   /**
@@ -145,41 +95,35 @@ public final class InvoiceController {
     if (invoiceId == null) {
       return ApiResponse.error(7001).future();
     }
-    return invoiceRepository.findById(invoiceId)
-      .thenCompose(invoice -> {
-        if (invoice.isEmpty()) {
-          return ApiResponse.error(7001).future();
-        }
-        paymentRepository.deleteByInvoiceId(invoice.get().id());
-        return invoiceRepository.delete(invoice.get())
-          .thenApply(_ -> ApiResponse.success());
-      });
+    return invoiceRepository.findById(invoiceId).thenCompose(this::remove);
+  }
+
+  private CompletableFuture<ApiResponse> remove(Optional<Invoice> invoice) {
+    if (invoice.isEmpty()) {
+      return ApiResponse.error(7001).future();
+    }
+    paymentRepository.deleteByInvoiceId(invoice.get().id());
+    return invoiceRepository.delete(invoice.get())
+      .thenApply(_ -> ApiResponse.success());
   }
 
   private CompletableFuture<ApiResponse> change(
     UUID invoiceId, Consumer<Invoice> change
   ) {
     return invoiceRepository.findById(invoiceId)
-      .thenCompose(invoice -> {
-        if (invoice.isEmpty()) {
-          return ApiResponse.error(7001).future();
-        }
-        change.accept(invoice.get());
-        return invoiceRepository.save(invoice.get())
-          .thenApply(saved -> {
-            invoiceMatcher.match(saved.spaceId());
-            return answer(saved.id());
-          });
-      });
+      .thenCompose(invoice -> invoice.isEmpty() ?
+        ApiResponse.error(7001).future() : save(invoice.get(), change));
   }
 
-  /**
-   * The invoice as stored now, after the matching may have changed it.
-   */
-  ApiResponse answer(UUID invoiceId) {
-    var invoice = invoiceRepository.findById(invoiceId).join().orElseThrow();
-    var payments = invoiceMatcher.payments(List.of(invoice));
-    return ApiResponse.success(Map.of("invoice",
-      invoice.information(payments, LocalDate.now())));
+  private CompletableFuture<ApiResponse> save(
+    Invoice invoice, Consumer<Invoice> change
+  ) {
+    change.accept(invoice);
+    return invoiceRepository.save(invoice).thenCompose(this::matchAgain);
+  }
+
+  private CompletableFuture<ApiResponse> matchAgain(Invoice invoice) {
+    invoiceMatcher.match(invoice.spaceId());
+    return responses.current(invoice.id());
   }
 }

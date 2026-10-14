@@ -1,5 +1,7 @@
 package de.lukasbreuer.clarity.api.business.invoice.matching;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -10,29 +12,50 @@ import java.util.Locale;
  * short ones must be a word of their own (or follow letters, as in
  * "RE1042"), so "104" is not found inside an IBAN or an amount.
  */
+@RequiredArgsConstructor(staticName = "of")
 public final class InvoiceNumber {
   private static final int MINIMUM_LENGTH = 3;
   private static final int SQUASHED_MINIMUM_LENGTH = 6;
 
-  private InvoiceNumber() {
-  }
+  private final String number;
 
-  public static boolean appearsIn(String number, String text) {
-    var squashed = squash(number);
-    if (squashed.length() < MINIMUM_LENGTH || text == null) {
+  public boolean appearsIn(String text) {
+    if (squashed().length() < MINIMUM_LENGTH || text == null) {
       return false;
     }
-    if (squashed.length() >= SQUASHED_MINIMUM_LENGTH &&
-      squash(text).contains(squashed)) {
-      return true;
-    }
-    return Arrays.stream(text.toUpperCase(Locale.ROOT).split("[^A-Z0-9]+"))
-      .anyMatch(word -> word.equals(squashed) || (word.endsWith(squashed) &&
-        Character.isLetter(word.charAt(word.length() - squashed.length() -
-          1))));
+    return appearsSquashedIn(text) || appearsAsWordIn(text);
   }
 
-  public static String squash(String value) {
-    return value.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]", "");
+  /**
+   * The number in upper case without separators.
+   */
+  public String squashed() {
+    return number.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]", "");
+  }
+
+  /**
+   * Whether both numbers are the same apart from case and separators.
+   */
+  public boolean sameAs(String otherNumber) {
+    return squashed().equals(InvoiceNumber.of(otherNumber).squashed());
+  }
+
+  private boolean appearsSquashedIn(String text) {
+    return squashed().length() >= SQUASHED_MINIMUM_LENGTH &&
+      InvoiceNumber.of(text).squashed().contains(squashed());
+  }
+
+  private boolean appearsAsWordIn(String text) {
+    return Arrays.stream(text.toUpperCase(Locale.ROOT).split("[^A-Z0-9]+"))
+      .anyMatch(this::isWritten);
+  }
+
+  /**
+   * @param word A word of the reference, in upper case
+   */
+  private boolean isWritten(String word) {
+    var squashed = squashed();
+    return word.equals(squashed) || (word.endsWith(squashed) &&
+      Character.isLetter(word.charAt(word.length() - squashed.length() - 1)));
   }
 }

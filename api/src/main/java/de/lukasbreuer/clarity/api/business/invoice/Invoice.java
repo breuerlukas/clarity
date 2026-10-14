@@ -15,10 +15,8 @@ import lombok.experimental.Accessors;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -36,8 +34,6 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(staticName = "create")
 public final class Invoice {
-  private static final BigDecimal TOLERANCE = new BigDecimal("0.01");
-
   @Id
   @Column(name = "id", nullable = false, updatable = false)
   private UUID id;
@@ -96,27 +92,28 @@ public final class Invoice {
   @Column(name = "created_at", nullable = false, updatable = false)
   private long createdAt;
 
-  public InvoiceFields fields() {
-    return new InvoiceFields(number, issuer, recipient, iban, currency,
-      netAmount, taxAmount, grossAmount, invoiceDate, dueDate);
-  }
-
-  /**
-   * The owner's corrections; they count as reviewed.
-   */
+  /** The owner's corrections; they count as reviewed. */
   public void edit(InvoiceDirection direction, InvoiceFields fields) {
     this.direction = direction;
+    editDetails(fields);
+    editAmounts(fields);
+    needsReview = false;
+  }
+
+  private void editDetails(InvoiceFields fields) {
     number = fields.number();
     issuer = fields.issuer();
     recipient = fields.recipient();
     iban = fields.iban();
+    invoiceDate = fields.invoiceDate();
+    dueDate = fields.dueDate();
+  }
+
+  private void editAmounts(InvoiceFields fields) {
     currency = fields.currency();
     netAmount = fields.netAmount();
     taxAmount = fields.taxAmount();
     grossAmount = fields.grossAmount();
-    invoiceDate = fields.invoiceDate();
-    dueDate = fields.dueDate();
-    needsReview = false;
   }
 
   public void settle(boolean settled) {
@@ -128,39 +125,16 @@ public final class Invoice {
     announcedAmount = amount;
   }
 
-  public BigDecimal paidAmount(List<InvoicePayment> payments) {
-    return payments.stream()
-      .filter(payment -> payment.invoiceId().equals(id))
-      .filter(payment -> !payment.rejected())
-      .map(InvoicePayment::amount)
-      .reduce(BigDecimal.ZERO, BigDecimal::add);
-  }
-
   public BigDecimal openAmount(List<InvoicePayment> payments) {
-    if (settled) {
-      return BigDecimal.ZERO;
-    }
-    return grossAmount.subtract(paidAmount(payments)).max(BigDecimal.ZERO);
+    return InvoiceBalance.of(this, payments).open();
   }
 
   public boolean isPaid(List<InvoicePayment> payments) {
-    return openAmount(payments).compareTo(TOLERANCE) < 0;
+    return InvoiceBalance.of(this, payments).isPaid();
   }
 
   public InvoiceStatus status(List<InvoicePayment> payments, LocalDate today) {
-    if (isPaid(payments)) {
-      return InvoiceStatus.PAID;
-    }
-    if (dueDate != null && dueDate.isBefore(today)) {
-      return InvoiceStatus.OVERDUE;
-    }
-    if (paidAmount(payments).signum() > 0) {
-      return InvoiceStatus.PARTIAL;
-    }
-    if (announcedAt != null) {
-      return InvoiceStatus.ANNOUNCED;
-    }
-    return InvoiceStatus.OPEN;
+    return InvoiceBalance.of(this, payments).status(today);
   }
 
   /**
@@ -169,43 +143,7 @@ public final class Invoice {
   public Map<String, Object> information(
     List<InvoicePayment> payments, LocalDate today
   ) {
-    var information = new HashMap<String, Object>();
-    information.put("id", id);
-    information.put("space", spaceId);
-    information.put("direction", direction.name());
-    information.put("number", number);
-    information.put("issuer", issuer);
-    information.put("recipient", recipient);
-    information.put("iban", iban);
-    information.put("currency", currency);
-    information.put("net_amount", netAmount);
-    information.put("tax_amount", taxAmount);
-    information.put("gross_amount", grossAmount);
-    information.put("invoice_date", invoiceDate.toString());
-    information.put("due_date", dueDate == null ? null : dueDate.toString());
-    information.put("format", format.name());
-    information.put("needs_review", needsReview);
-    information.put("settled", settled);
-    information.put("announced_at", announcedAt == null ? null :
-      announcedAt.toString());
-    information.put("announced_amount", announcedAmount);
-    information.put("mail", mailSubject == null ? null : Map.of(
-      "subject", mailSubject,
-      "sender", mailSender == null ? "" : mailSender,
-      "received_at", Objects.requireNonNullElse(mailReceivedAt, 0L)));
-    information.put("document", documentId == null ? null : Map.of(
-      "name", documentName,
-      "content_type", documentContentType,
-      "size", documentSize));
-    information.put("payments", payments.stream()
-      .filter(payment -> payment.invoiceId().equals(id))
-      .filter(payment -> !payment.rejected())
-      .map(InvoicePayment::information)
-      .toList());
-    information.put("paid_amount", paidAmount(payments));
-    information.put("open_amount", openAmount(payments));
-    information.put("status", status(payments, today).name());
-    information.put("created_at", createdAt);
-    return information;
+    return InvoiceInformation.of(this, InvoiceBalance.of(this, payments),
+      today).toMap();
   }
 }

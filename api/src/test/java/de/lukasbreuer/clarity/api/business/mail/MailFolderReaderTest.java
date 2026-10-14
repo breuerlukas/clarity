@@ -5,6 +5,7 @@ import com.icegreen.greenmail.util.ServerSetupTest;
 import de.lukasbreuer.clarity.api.log.Log;
 import jakarta.mail.Flags;
 import jakarta.mail.Folder;
+import jakarta.mail.Message;
 import jakarta.mail.Session;
 import jakarta.mail.Store;
 import jakarta.mail.internet.InternetAddress;
@@ -13,8 +14,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 final class MailFolderReaderTest {
   private GreenMail server;
   private Store store;
+  private MailFolderReader reader;
   private final List<MailFolderCursor> cursors = new ArrayList<>();
   private final Mailbox mailbox = Mailbox.create(UUID.randomUUID(),
     UUID.randomUUID(), "localhost", 3143, MailSecurity.STARTTLS, "office",
@@ -44,6 +48,8 @@ final class MailFolderReaderTest {
     store = Session.getInstance(new Properties()).getStore("imap");
     store.connect("localhost", ServerSetupTest.IMAP.getPort(), "office",
       "secret");
+    reader = MailFolderReader.create(Log.create("Test"), cursors(),
+      MailParser.create());
   }
 
   @AfterEach
@@ -53,25 +59,35 @@ final class MailFolderReaderTest {
   }
 
   @Test
-  void readsEachMailOnceWithoutMarkingIt() throws Exception {
+  void readsEachMailOnce() throws Exception {
     deliver("Rechnung 1");
     deliver("Rechnung 2");
-    var reader = MailFolderReader.create(Log.create("Test"), cursors());
-
-    assertEquals(List.of("Rechnung 1", "Rechnung 2"), read(reader));
-    assertEquals(List.of(), read(reader));
+    assertEquals(List.of("Rechnung 1", "Rechnung 2"), read());
+    assertEquals(List.of(), read());
     deliver("Rechnung 3");
-    assertEquals(List.of("Rechnung 3"), read(reader));
+    assertEquals(List.of("Rechnung 3"), read());
+  }
 
+  @Test
+  void leavesMailsUnread() throws Exception {
+    deliver("Rechnung 1");
+    read();
     var inbox = store.getFolder("INBOX");
     inbox.open(Folder.READ_ONLY);
-    for (var message : inbox.getMessages()) {
-      assertFalse(message.isSet(Flags.Flag.SEEN));
-    }
+    var messages = Arrays.asList(inbox.getMessages());
+    assertFalse(messages.stream().anyMatch(this::isSeen));
     inbox.close(false);
   }
 
-  private List<String> read(MailFolderReader reader) throws Exception {
+  private boolean isSeen(Message message) {
+    try {
+      return message.isSet(Flags.Flag.SEEN);
+    } catch (Exception exception) {
+      throw new IllegalStateException(exception);
+    }
+  }
+
+  private List<String> read() throws Exception {
     var subjects = new ArrayList<String>();
     reader.read(store, mailbox, "INBOX", mail -> subjects.add(mail.subject()));
     return subjects;
@@ -93,15 +109,21 @@ final class MailFolderReaderTest {
     return (MailFolderCursorRepository) Proxy.newProxyInstance(
       getClass().getClassLoader(),
       new Class<?>[] {MailFolderCursorRepository.class},
-      (proxy, method, arguments) -> switch (method.getName()) {
-        case "findByMailboxIdAndFolder" -> CompletableFuture.completedFuture(
-          Optional.ofNullable(cursors.isEmpty() ? null : cursors.getFirst()));
-        case "save" -> {
-          cursors.clear();
-          cursors.add((MailFolderCursor) arguments[0]);
-          yield CompletableFuture.completedFuture(arguments[0]);
-        }
-        default -> throw new UnsupportedOperationException(method.getName());
-      });
+      (_, method, arguments) -> answer(method, arguments));
+  }
+
+  private Object answer(Method method, Object[] arguments) {
+    return switch (method.getName()) {
+      case "findByMailboxIdAndFolder" -> CompletableFuture.completedFuture(
+        Optional.ofNullable(cursors.isEmpty() ? null : cursors.getFirst()));
+      case "save" -> save((MailFolderCursor) arguments[0]);
+      default -> throw new UnsupportedOperationException(method.getName());
+    };
+  }
+
+  private CompletableFuture<MailFolderCursor> save(MailFolderCursor cursor) {
+    cursors.clear();
+    cursors.add(cursor);
+    return CompletableFuture.completedFuture(cursor);
   }
 }

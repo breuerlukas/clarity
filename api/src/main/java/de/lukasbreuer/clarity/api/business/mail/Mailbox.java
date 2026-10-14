@@ -14,6 +14,7 @@ import lombok.experimental.Accessors;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -58,26 +59,25 @@ public final class Mailbox {
   private long createdAt;
 
   /**
+   * A new server or account starts without the error of the old one.
+   *
    * @param encryptedPassword Null keeps the stored password
    */
   public void edit(
     String host, int port, MailSecurity security, String username,
     String encryptedPassword, String incomingFolder, String outgoingFolder
   ) {
-    var serverChanged = !host.equals(this.host) ||
-      !username.equals(this.username);
+    if (!host.equals(this.host) || !username.equals(this.username)) {
+      lastError = null;
+    }
     this.host = host;
     this.port = port;
     this.security = security;
     this.username = username;
-    if (encryptedPassword != null) {
-      this.encryptedPassword = encryptedPassword;
-    }
+    this.encryptedPassword = Objects.requireNonNullElse(encryptedPassword,
+      this.encryptedPassword);
     this.incomingFolder = incomingFolder;
     this.outgoingFolder = outgoingFolder;
-    if (serverChanged) {
-      lastError = null;
-    }
   }
 
   public void markChecked() {

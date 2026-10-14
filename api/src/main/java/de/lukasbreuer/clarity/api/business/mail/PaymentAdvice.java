@@ -1,5 +1,7 @@
 package de.lukasbreuer.clarity.api.business.mail;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -9,16 +11,16 @@ import java.util.regex.Pattern;
  * never imported as an invoice itself, even when its attachment looks like
  * one.
  */
+@RequiredArgsConstructor(staticName = "of")
 public final class PaymentAdvice {
   private static final Pattern ADVICE = Pattern.compile(
     "zahlungsavis|überweisungsavis|zahlungsankündigung|\\bavis\\b|" +
       "payment advice|remittance advice|payment notification",
     Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
-  private PaymentAdvice() {
-  }
+  private final ReceivedMail mail;
 
-  public static boolean isAdvice(ReceivedMail mail) {
+  public boolean isAdvice() {
     return ADVICE.matcher(mail.subject()).find() ||
       ADVICE.matcher(mail.body().toLowerCase(Locale.GERMAN)).find();
   }

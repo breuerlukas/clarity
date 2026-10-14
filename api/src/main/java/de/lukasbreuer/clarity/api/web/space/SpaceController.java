@@ -1,9 +1,5 @@
 package de.lukasbreuer.clarity.api.web.space;
 
-import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
-import de.lukasbreuer.clarity.api.business.contract.ContractRepository;
-import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
-import de.lukasbreuer.clarity.api.business.mail.MailboxRepository;
 import de.lukasbreuer.clarity.api.space.Space;
 import de.lukasbreuer.clarity.api.space.SpaceKind;
 import de.lukasbreuer.clarity.api.space.SpaceRepository;
@@ -39,10 +35,7 @@ public final class SpaceController {
   private static final String ICON_PATTERN = "[a-z0-9-]{1,32}";
 
   private final SpaceRepository spaceRepository;
-  private final BankConnectionRepository connectionRepository;
-  private final ContractRepository contractRepository;
-  private final MailboxRepository mailboxRepository;
-  private final InvoiceRepository invoiceRepository;
+  private final SpaceContents spaceContents;
 
   @RequestMapping(path = "/spaces/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findSpaces() {
@@ -132,27 +125,11 @@ public final class SpaceController {
     if (spaces.size() == 1) {
       return ApiResponse.error(5003).future();
     }
-    return isEmpty(space.get())
+    return spaceContents.isEmpty(space.get())
       .thenCompose(empty -> empty ?
         spaceRepository.delete(space.get())
           .thenApply(_ -> ApiResponse.success()) :
         ApiResponse.error(5002).future());
-  }
-
-  private CompletableFuture<Boolean> isEmpty(Space space) {
-    return connectionRepository.findAll()
-      .thenCompose(connections -> connections.stream()
-        .anyMatch(connection -> space.id().equals(connection.spaceId())) ?
-        CompletableFuture.completedFuture(false) :
-        hasBusinessData(space.id()).thenApply(hasData -> !hasData));
-  }
-
-  private CompletableFuture<Boolean> hasBusinessData(UUID spaceId) {
-    return contractRepository.existsBySpaceId(spaceId)
-      .thenCombine(mailboxRepository.existsBySpaceId(spaceId),
-        Boolean::logicalOr)
-      .thenCombine(invoiceRepository.existsBySpaceId(spaceId),
-        Boolean::logicalOr);
   }
 
   /**

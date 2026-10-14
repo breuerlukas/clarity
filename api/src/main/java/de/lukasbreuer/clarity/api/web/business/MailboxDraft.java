@@ -1,9 +1,14 @@
 package de.lukasbreuer.clarity.api.web.business;
 
 import de.lukasbreuer.clarity.api.business.mail.MailSecurity;
+import de.lukasbreuer.clarity.api.business.mail.Mailbox;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
+import lombok.With;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * The connection details of a mailbox as the panel sends them, checked: a
@@ -13,7 +18,7 @@ import java.util.Optional;
  */
 record MailboxDraft(
   String host, int port, MailSecurity security, String username,
-  String password, String incomingFolder, String outgoingFolder
+  @With String password, String incomingFolder, String outgoingFolder
 ) {
   private static final String HOST_PATTERN = "[A-Za-z0-9.:\\-\\[\\]]{1,253}";
   private static final int MAXIMUM_FOLDER_LENGTH = 200;
@@ -22,14 +27,10 @@ record MailboxDraft(
     try {
       var outgoing = body.getString("outgoing_folder", MAXIMUM_FOLDER_LENGTH)
         .trim();
-      var draft = new MailboxDraft(body.getString("host", 253).trim(),
-        (int) body.getLong("port"),
-        MailSecurity.find(body.getString("security", 16)).orElseThrow(),
-        body.getString("username", 200).trim(),
-        body.getString("password", 500),
-        body.getString("incoming_folder", MAXIMUM_FOLDER_LENGTH).trim(),
-        outgoing.isEmpty() ? null : outgoing);
-      return draft.isValid() ? Optional.of(draft) : Optional.empty();
+      return Optional.of(fromBody(body,
+          body.getString("incoming_folder", MAXIMUM_FOLDER_LENGTH).trim(),
+          outgoing.isEmpty() ? null : outgoing))
+        .filter(MailboxDraft::isValid);
     } catch (Exception exception) {
       return Optional.empty();
     }
@@ -40,15 +41,21 @@ record MailboxDraft(
    */
   static Optional<MailboxDraft> parseServer(ApiRequestBody body) {
     try {
-      var draft = new MailboxDraft(body.getString("host", 253).trim(),
-        (int) body.getLong("port"),
-        MailSecurity.find(body.getString("security", 16)).orElseThrow(),
-        body.getString("username", 200).trim(),
-        body.getString("password", 500), "INBOX", null);
-      return draft.isValid() ? Optional.of(draft) : Optional.empty();
+      return Optional.of(fromBody(body, "INBOX", null))
+        .filter(MailboxDraft::isValid);
     } catch (Exception exception) {
       return Optional.empty();
     }
+  }
+
+  private static MailboxDraft fromBody(
+    ApiRequestBody body, String incomingFolder, String outgoingFolder
+  ) {
+    return new MailboxDraft(body.getString("host", 253).trim(),
+      (int) body.getLong("port"),
+      MailSecurity.find(body.getString("security", 16)).orElseThrow(),
+      body.getString("username", 200).trim(),
+      body.getString("password", 500), incomingFolder, outgoingFolder);
   }
 
   private boolean isValid() {
@@ -61,8 +68,30 @@ record MailboxDraft(
     return !password.isEmpty();
   }
 
-  MailboxDraft withPassword(String password) {
-    return new MailboxDraft(host, port, security, username, password,
+  /**
+   * The folders that have to exist on the server.
+   */
+  List<String> folders() {
+    return outgoingFolder == null ? List.of(incomingFolder) :
+      List.of(incomingFolder, outgoingFolder);
+  }
+
+  boolean changesFolders(Mailbox mailbox) {
+    return !incomingFolder.equals(mailbox.incomingFolder()) ||
+      !Objects.equals(outgoingFolder, mailbox.outgoingFolder());
+  }
+
+  Mailbox create(UUID spaceId, String encryptedPassword) {
+    return Mailbox.create(UUID.randomUUID(), spaceId, host, port, security,
+      username, encryptedPassword, incomingFolder, outgoingFolder, null, null,
+      System.currentTimeMillis());
+  }
+
+  /**
+   * @param encryptedPassword Null keeps the stored password
+   */
+  void applyTo(Mailbox mailbox, String encryptedPassword) {
+    mailbox.edit(host, port, security, username, encryptedPassword,
       incomingFolder, outgoingFolder);
   }
 }
