@@ -5,7 +5,7 @@ import de.lukasbreuer.clarity.api.banking.account.BankAccount;
 import de.lukasbreuer.clarity.api.banking.account.BankAccountRepository;
 import de.lukasbreuer.clarity.api.banking.connection.BankConnection;
 import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
-import de.lukasbreuer.clarity.api.business.invoice.matching.InvoiceMatcher;
+import de.lukasbreuer.clarity.api.business.invoice.matching.PaymentReconciliation;
 import de.lukasbreuer.clarity.api.transaction.category.Categorizer;
 import de.lukasbreuer.clarity.api.transaction.category.CategorizerFactory;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ public final class SyncCoordinator {
   private final BankConnectionRepository connectionRepository;
   private final CategorizerFactory categorizerFactory;
   private final EnableBankingSigner signer;
-  private final InvoiceMatcher invoiceMatcher;
+  private final PaymentReconciliation reconciliation;
   private final AtomicBoolean running = new AtomicBoolean(false);
 
   @Scheduled(fixedDelay = 1, initialDelay = 1, timeUnit = TimeUnit.HOURS)
@@ -66,7 +66,7 @@ public final class SyncCoordinator {
       .thenCompose(connections -> categorizerFactory.create()
         .thenCompose(categorizer -> synchronize(validConnectionIds(connections),
           categorizer, filter, headers)))
-      .thenRun(invoiceMatcher::matchAll)
+      .thenRun(reconciliation::reconcileAll)
       .handle((_, _) -> finish());
   }
 

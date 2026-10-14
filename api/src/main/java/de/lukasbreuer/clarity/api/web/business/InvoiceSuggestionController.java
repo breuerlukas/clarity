@@ -2,7 +2,7 @@ package de.lukasbreuer.clarity.api.web.business;
 
 import de.lukasbreuer.clarity.api.business.invoice.Invoice;
 import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
-import de.lukasbreuer.clarity.api.business.invoice.matching.InvoiceMatcher;
+import de.lukasbreuer.clarity.api.business.invoice.matching.PaymentReconciliation;
 import de.lukasbreuer.clarity.api.business.invoice.matching.PaymentSuggestion;
 import de.lukasbreuer.clarity.api.web.request.UuidParameter;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public final class InvoiceSuggestionController {
   private final InvoiceRepository invoiceRepository;
-  private final InvoiceMatcher invoiceMatcher;
+  private final PaymentReconciliation reconciliation;
 
   @RequestMapping(path = "/business/invoices/suggestions/",
     method = RequestMethod.GET)
@@ -41,7 +41,7 @@ public final class InvoiceSuggestionController {
 
   private ApiResponse suggestions(Invoice invoice) {
     return ApiResponse.success(Map.of("suggestions",
-      invoiceMatcher.suggest(invoice).stream()
+      reconciliation.suggest(invoice).stream()
         .map(this::information)
         .toList()));
   }

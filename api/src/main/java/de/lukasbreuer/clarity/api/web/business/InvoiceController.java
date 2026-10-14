@@ -3,7 +3,7 @@ package de.lukasbreuer.clarity.api.web.business;
 import de.lukasbreuer.clarity.api.business.invoice.Invoice;
 import de.lukasbreuer.clarity.api.business.invoice.InvoicePaymentRepository;
 import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
-import de.lukasbreuer.clarity.api.business.invoice.matching.InvoiceMatcher;
+import de.lukasbreuer.clarity.api.business.invoice.matching.PaymentReconciliation;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
 import de.lukasbreuer.clarity.api.web.request.UuidParameter;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
@@ -31,7 +31,7 @@ import java.util.function.Consumer;
 public final class InvoiceController {
   private final InvoiceRepository invoiceRepository;
   private final InvoicePaymentRepository paymentRepository;
-  private final InvoiceMatcher invoiceMatcher;
+  private final PaymentReconciliation reconciliation;
   private final InvoiceResponses responses;
 
   @RequestMapping(path = "/business/invoices/", method = RequestMethod.GET)
@@ -123,7 +123,7 @@ public final class InvoiceController {
   }
 
   private CompletableFuture<ApiResponse> matchAgain(Invoice invoice) {
-    invoiceMatcher.match(invoice.spaceId());
+    reconciliation.reconcile(invoice.spaceId());
     return responses.current(invoice.id());
   }
 }

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @RequiredArgsConstructor
-public final class InvoiceMatcher {
+public final class PaymentReconciliation {
   private static final int EARLY_PAYMENT_DAYS = 30;
 
   private final InvoiceRepository invoiceRepository;
@@ -40,25 +40,25 @@ public final class InvoiceMatcher {
   private final SpaceRepository spaceRepository;
   private final AccountScope accountScope;
 
-  public void matchAll() {
+  public void reconcileAll() {
     spaceRepository.findByKind(SpaceKind.BUSINESS).join().stream()
       .map(Space::id)
-      .forEach(this::match);
+      .forEach(this::reconcile);
   }
 
-  public synchronized void match(UUID spaceId) {
+  public synchronized void reconcile(UUID spaceId) {
     var invoices = invoiceRepository.findBySpaceId(spaceId).join();
     if (invoices.isEmpty()) {
       return;
     }
-    var result = PaymentMatching.create(invoices, payments(invoices))
+    var result = PaymentMatching.create(invoices, linksOf(invoices))
       .match(transactions(spaceId, invoices), excludedTransactions());
     store(result);
   }
 
   public synchronized List<PaymentSuggestion> suggest(Invoice invoice) {
     var invoices = List.of(invoice);
-    return PaymentMatching.create(invoices, payments(invoices))
+    return PaymentMatching.create(invoices, linksOf(invoices))
       .suggest(invoice, transactions(invoice.spaceId(), invoices),
         excludedTransactions());
   }
@@ -66,7 +66,7 @@ public final class InvoiceMatcher {
   /**
    * Every link of the given invoices, rejected ones included.
    */
-  public List<InvoicePayment> payments(List<Invoice> invoices) {
+  public List<InvoicePayment> linksOf(List<Invoice> invoices) {
     if (invoices.isEmpty()) {
       return List.of();
     }
