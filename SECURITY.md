@@ -15,6 +15,15 @@ repository instead, and include:
 You can expect an acknowledgment within 48 hours and a plan within five
 business days. Fixes are disclosed once a release is out.
 
+## How Clarity is checked
+
+Every commit is linted. Every pull request is analyzed with CodeQL and
+SpotBugs/FindSecBugs, checked for vulnerable dependencies and committed
+secrets, and tested to keep every endpoint but setup and login closed without
+a session. High and Critical findings block the merge. See
+`.github/workflows/` for the details, and `.github/security/smoke_test.py` to
+probe a running instance from the outside.
+
 ## Running Clarity safely
 
 - Keep the panel bound to `127.0.0.1` and reach it through a private network

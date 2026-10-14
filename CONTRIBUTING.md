@@ -109,8 +109,11 @@ data and no backend at all.
 - For larger changes, open an issue first so we can agree on the approach.
 - Keep the pull request focused on one thing.
 - Run `./gradlew build` in `api/` and `npm run lint && npm test && npm run build` in `panel/`
-  before you push. CI runs the same on every pull request, so please keep it
-  green.
+  before you push. CI runs the same on every pull request, plus the security
+  scans described in the README, so please keep it green.
+- A new endpoint needs the owner's session unless it is marked
+  `@PublicEndpoint`, and a public one also has to be added to
+  `PublicEndpointTest` and `.github/security/smoke_test.py` on purpose.
 - Follow the style of the code around you: the api is packaged by feature,
   repositories and controllers are asynchronous, and comments go into Javadoc
   above a method rather than inside it.

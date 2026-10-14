@@ -39,11 +39,6 @@ public class ApiResponse extends ResponseEntity<Map<String, Object>> {
     super(body, status);
   }
 
-  public ApiResponse expand(Map<String, Object> data) {
-    getBody().putAll(data);
-    return this;
-  }
-
   public CompletableFuture<ApiResponse> future() {
     return CompletableFuture.completedFuture(this);
   }

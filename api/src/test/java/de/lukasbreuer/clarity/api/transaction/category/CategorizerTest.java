@@ -34,7 +34,8 @@ final class CategorizerTest {
   @Test
   void ownRulesWinOverBuiltInKeywords() {
     var rule = CategoryRule.forCounterparty("  REWE   Markt ", Category.DINING);
-    var categorizer = Categorizer.create(KEYWORDS, List.of(rule), List.of(), false);
+    var categorizer = Categorizer.create(KEYWORDS, List.of(rule), List.of(),
+      false);
     assertEquals(Category.DINING, categorizer.categorize("REWE Markt GmbH",
       null, "", DEBIT));
   }

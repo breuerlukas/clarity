@@ -39,7 +39,8 @@ public final class AccountController {
   public CompletableFuture<ApiResponse> rename(
     @RequestBody String payload, HttpServletResponse response
   ) {
-    var name = ApiRequestBody.of(payload, response).getString("name", 64).trim();
+    var name = ApiRequestBody.of(payload, response).getString("name", 64)
+      .trim();
     if (name.isEmpty()) {
       return ApiResponse.error(1006).future();
     }

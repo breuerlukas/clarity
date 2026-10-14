@@ -28,7 +28,9 @@ public final class SessionSettingsController {
   private final SessionClosing sessionClosing;
 
   @RequestMapping(path = "/sessions/", method = RequestMethod.GET)
-  public CompletableFuture<ApiResponse> findSessions(HttpServletRequest request) {
+  public CompletableFuture<ApiResponse> findSessions(
+    HttpServletRequest request
+  ) {
     var current = currentSession(request).id();
     return sessionClosing.activeSessions()
       .thenApply(sessions -> ApiResponse.success(Map.of("sessions",

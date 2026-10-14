@@ -23,7 +23,8 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Removes a connection completely: revokes the session at Enable Banking (so
  * the bank consent ends too), then deletes its accounts and every stored
- * transaction of them, along with what business bookings were assigned to. Error code 2002: unknown connection.
+ * transaction of them, along with what business bookings were assigned to.
+ * Error code 2002: unknown connection.
  */
 @RestController
 @RequiredArgsConstructor

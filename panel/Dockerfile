@@ -22,5 +22,7 @@ USER 1000
 
 EXPOSE 8080
 
+# Docker only understands 0 (healthy) and 1 (unhealthy); wget also exits
+# with 4 or 8, hence the shell around it.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget -qO /dev/null http://127.0.0.1:8080/ || exit 1
+  CMD ["sh", "-c", "wget -qO /dev/null http://127.0.0.1:8080/ || exit 1"]

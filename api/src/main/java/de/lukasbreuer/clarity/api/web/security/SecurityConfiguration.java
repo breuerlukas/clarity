@@ -19,7 +19,8 @@ public class SecurityConfiguration implements WebMvcConfigurer {
   }
 
   @Bean
-  public FilterRegistrationBean<RequestGuardFilter> provideRequestGuardFilter() {
+  public FilterRegistrationBean<RequestGuardFilter>
+    provideRequestGuardFilter() {
     var registrationBean = new FilterRegistrationBean<>(requestGuardFilter);
     registrationBean.setOrder(1);
     return registrationBean;

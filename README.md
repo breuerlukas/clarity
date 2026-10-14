@@ -116,10 +116,22 @@ For a local database:
 `docker run -d -p 127.0.0.1:5432:5432 -e POSTGRES_USER=clarity -e POSTGRES_PASSWORD=clarity -e POSTGRES_DB=clarity postgres:18`.
 The panel's dev server proxies `/v1` to `localhost:8080`.
 
-Tests: `./gradlew test` in `api/`, `npm test` in `panel/`; `npm run lint` in
-`panel/` runs ESLint. The panel compiles with TypeScript 7 (`@typescript/native`),
-while `typescript` points to the TypeScript 6 compatibility package, because
-typescript-eslint needs its api.
+Checks: `./gradlew build` in `api/` compiles, lints (Checkstyle), looks for
+bugs and security patterns (SpotBugs with FindSecBugs) and runs the tests;
+`npm run lint && npm test` does the same for the panel. The panel compiles
+with TypeScript 7 (`@typescript/native`), while `typescript` points to the
+TypeScript 6 compatibility package, because typescript-eslint needs its api.
+
+Against a running instance, `python3 .github/security/smoke_test.py
+http://127.0.0.1:8080` checks from the outside that nothing but setup and
+login answers without a session, that the security headers are in place and
+that wrong logins lock the address out. It does lock out your own address for
+15 minutes, so run it against a throwaway instance.
+
+Every commit is linted (Checkstyle, ESLint, the workflows, Dockerfiles and
+shell scripts). Pull requests and `main` also get CodeQL, a dependency review
+and a secret scan (gitleaks). Findings of High or Critical severity fail the
+build; everything else lands in the repository's Security tab.
 
 The demo is published by `.github/workflows/pages.yml` on every push to
 `main`. In a fork, set *Settings → Pages → Source* to *GitHub Actions* once.

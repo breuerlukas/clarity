@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Patterns that only flag how Spring and Lombok are meant to be used:
+  components get their collaborators through the constructor and entities
+  hand out their fields, both on purpose.
+-->
+<FindBugsFilter>
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+  </Match>
+  <!-- Stack traces go to the server log, never into a response. -->
+  <Match>
+    <Class name="de.lukasbreuer.clarity.api.log.Log"/>
+    <Bug pattern="INFORMATION_EXPOSURE_THROUGH_AN_ERROR_MESSAGE"/>
+  </Match>
+</FindBugsFilter>
