@@ -81,6 +81,33 @@ languages installed; the Docker image brings its own.
 
 ## Java code style (follow these — they override default habits)
 
+The reviewer who checks these rules:
+
+```
+                 .-""""""""-.
+               .'   ______   '.
+              /   .' 150 '.    \        "Bad code style.
+             |   /  lines  \    |        Long functions,
+             |  |   max!!   |   |        logic in constructor,
+              \  '.______.'    /         no lombok usage.
+               '.   ____     .'          Fix!"
+            ____'-.(____).-'____
+           /    @Getter        \
+          /  @Accessors(fluent) \
+         |   ┌───────────────┐   |
+         |   │ static void?  │   |
+         |   │     NEIN.     │   |
+         |   └───────────────┘   |
+          \_____________________/
+              ||           ||
+              ||  .-----.  ||
+             _||_ | 80  | _||_
+            (____)|cols |(____)
+                  '-----'
+
+     ☕ "-> { return ...; }  ✗"
+```
+
 - **Object-oriented.** Model behaviour as classes with state + instance
   methods.
 - **Avoid static functions** — they work against OO. Prefer an instance
