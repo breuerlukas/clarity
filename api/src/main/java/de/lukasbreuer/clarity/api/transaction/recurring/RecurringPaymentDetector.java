@@ -1,7 +1,7 @@
 package de.lukasbreuer.clarity.api.transaction.recurring;
 
-import de.lukasbreuer.clarity.api.transaction.Category;
 import de.lukasbreuer.clarity.api.transaction.Transaction;
+import de.lukasbreuer.clarity.api.transaction.category.Category;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
@@ -31,7 +31,7 @@ public final class RecurringPaymentDetector {
   public List<RecurringPayment> detect(List<Transaction> transactions) {
     return transactions.stream()
       .filter(Transaction::isExpense)
-      .filter(transaction -> transaction.category() != Category.TRANSFER)
+      .filter(transaction -> !Category.TRANSFER.equals(transaction.category()))
       .collect(Collectors.groupingBy(this::groupKey))
       .values().stream()
       .map(this::detectInGroup)

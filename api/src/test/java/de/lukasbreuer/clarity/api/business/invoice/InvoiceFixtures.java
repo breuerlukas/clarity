@@ -1,7 +1,7 @@
 package de.lukasbreuer.clarity.api.business.invoice;
 
-import de.lukasbreuer.clarity.api.transaction.Category;
 import de.lukasbreuer.clarity.api.transaction.Transaction;
+import de.lukasbreuer.clarity.api.transaction.category.Category;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;

@@ -45,26 +45,29 @@ const get = <T>(path: string) => request<T>("GET", path);
 const post = <T>(path: string, body: Payload = {}) =>
   request<T>("POST", path, body);
 
-export type Category =
-  | "SALARY"
-  | "INCOME"
-  | "HOUSING"
-  | "UTILITIES"
-  | "GROCERIES"
-  | "DINING"
-  | "SHOPPING"
-  | "MOBILITY"
-  | "TRAVEL"
-  | "SUBSCRIPTIONS"
-  | "INSURANCE"
-  | "HEALTH"
-  | "LEISURE"
-  | "EDUCATION"
-  | "CASH"
-  | "FEES"
-  | "SAVINGS"
-  | "TRANSFER"
-  | "OTHER";
+/**
+ * A category's key: the name of a built-in one ("GROCERIES") or the id of
+ * one the owner created.
+ */
+export type Category = string;
+
+export type CategoryKind = "SPENDING" | "INCOME";
+
+export interface CategoryDetails {
+  key: Category;
+  /** Null while a built-in category keeps its translated label. */
+  name: string | null;
+  icon: string;
+  color: string;
+  kind: CategoryKind;
+  keywords: string[];
+  hidden: boolean;
+  built_in: boolean;
+  /** Payday, transfers and fixed costs depend on it: never hidden or deleted. */
+  system: boolean;
+}
+
+export type CategoryDraft = Pick<CategoryDetails, "name" | "icon" | "color" | "kind" | "keywords">;
 
 export interface Transaction {
   id: string;
@@ -327,6 +330,15 @@ export const api = {
       category,
       remember,
     }),
+  categories: () => get<{ categories: CategoryDetails[] }>("/categories/"),
+  createCategory: (draft: CategoryDraft) =>
+    post<{ category: CategoryDetails }>("/categories/create/", { ...draft, name: draft.name ?? "" }),
+  updateCategory: (key: Category, draft: CategoryDraft, hidden: boolean) =>
+    post<{ category: CategoryDetails }>("/categories/update/", { key, ...draft, name: draft.name ?? "", hidden }),
+  resetCategory: (key: Category) =>
+    post<{ category: CategoryDetails }>("/categories/reset/", { key }),
+  deleteCategory: (key: Category, target: Category) =>
+    post<{ moved: number }>("/categories/delete/", { key, target }),
   recurring: (space: string) =>
     get<{ payments: RecurringPayment[] }>(`/recurring/?space=${space}`),
   connections: () => get<{ connections: Connection[] }>("/connections/"),

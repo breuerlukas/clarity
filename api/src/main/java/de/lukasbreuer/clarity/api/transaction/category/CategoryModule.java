@@ -6,11 +6,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CategoryModule {
   /**
-   * Read once at startup; a broken or missing keyword file stops the boot
-   * instead of leaving every transaction uncategorized.
+   * Read once at startup; a broken or missing file stops the boot instead of
+   * leaving the categories unseeded.
    */
   @Bean
-  CategoryKeywords categoryKeywords() {
-    return CategoryKeywords.load();
+  DefaultCategories defaultCategories() {
+    return DefaultCategories.load();
   }
 }

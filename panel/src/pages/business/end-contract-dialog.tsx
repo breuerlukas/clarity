@@ -85,7 +85,7 @@ function EndContractForm({ contract, onClose }: { contract: Contract; onClose: (
               {t("common.cancel")}
             </Button>
           </DialogClose>
-          <Button type="submit" variant="destructive" disabled={end.isPending || !endDate}>
+          <Button type="submit" variant="destructive" loading={end.isPending} disabled={!endDate}>
             {t("business.end")}
           </Button>
         </div>

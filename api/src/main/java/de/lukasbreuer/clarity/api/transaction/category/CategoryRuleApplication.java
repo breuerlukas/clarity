@@ -28,7 +28,7 @@ public final class CategoryRuleApplication {
     CategoryRule rule, List<Transaction> transactions
   ) {
     var matching = transactions.stream()
-      .filter(transaction -> transaction.category() != rule.category())
+      .filter(transaction -> !transaction.category().equals(rule.category()))
       .filter(transaction -> KeywordMatch.of(transaction.counterparty(),
         rule.keyword()).matches())
       .toList();

@@ -1,6 +1,5 @@
 package de.lukasbreuer.clarity.api.transaction.recurring;
 
-import de.lukasbreuer.clarity.api.transaction.Category;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -20,7 +19,7 @@ import java.util.Map;
 @RequiredArgsConstructor(staticName = "create")
 public final class RecurringPayment {
   private final String counterparty;
-  private final Category category;
+  private final String category;
   private final BigDecimal amount;
   private final BigDecimal previousAmount;
   private final String currency;
@@ -43,7 +42,7 @@ public final class RecurringPayment {
 
   public Map<String, Object> information() {
     return Map.of("counterparty", counterparty,
-      "category", category.name(),
+      "category", category,
       "amount", amount,
       "previous_amount", previousAmount,
       "currency", currency,

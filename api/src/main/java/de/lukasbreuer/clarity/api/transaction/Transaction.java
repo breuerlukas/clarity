@@ -2,8 +2,6 @@ package de.lukasbreuer.clarity.api.transaction;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -55,9 +53,8 @@ public final class Transaction {
   private String counterpartyIban;
   @Column(name = "description", nullable = false, length = 1000)
   private String description;
-  @Enumerated(EnumType.STRING)
   @Column(name = "category", nullable = false)
-  private Category category;
+  private String category;
   @Column(name = "manually_categorized", nullable = false)
   private boolean manuallyCategorized;
 
@@ -65,14 +62,14 @@ public final class Transaction {
     return amount.signum() < 0;
   }
 
-  public void categorize(Category category) {
+  public void categorize(String category) {
     this.category = category;
   }
 
   /**
    * A category the owner picked by hand; rules never overwrite it again.
    */
-  public void categorizeManually(Category category) {
+  public void categorizeManually(String category) {
     this.category = category;
     this.manuallyCategorized = true;
   }
@@ -87,7 +84,7 @@ public final class Transaction {
     information.put("counterparty", counterparty);
     information.put("counterparty_iban", counterpartyIban);
     information.put("description", description);
-    information.put("category", category.name());
+    information.put("category", category);
     return information;
   }
 }

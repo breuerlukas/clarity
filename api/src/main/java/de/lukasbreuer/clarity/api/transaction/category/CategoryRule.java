@@ -1,10 +1,7 @@
 package de.lukasbreuer.clarity.api.transaction.category;
 
-import de.lukasbreuer.clarity.api.transaction.Category;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -29,7 +26,7 @@ import java.util.Locale;
 @AllArgsConstructor(staticName = "create")
 public final class CategoryRule {
   public static CategoryRule forCounterparty(
-    String counterparty, Category category
+    String counterparty, String category
   ) {
     var keyword = counterparty.trim().replaceAll("\\s+", " ")
       .toLowerCase(Locale.ROOT);
@@ -39,7 +36,6 @@ public final class CategoryRule {
   @Id
   @Column(name = "keyword", nullable = false, updatable = false)
   private String keyword;
-  @Enumerated(EnumType.STRING)
   @Column(name = "category", nullable = false)
-  private Category category;
+  private String category;
 }

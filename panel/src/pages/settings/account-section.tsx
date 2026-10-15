@@ -53,7 +53,7 @@ function NameRow() {
           aria-label={t("settings.name")}
           className="w-full sm:w-56"
         />
-        <Button type="submit" disabled={unchanged || rename.isPending}>
+        <Button type="submit" loading={rename.isPending} disabled={unchanged}>
           {rename.isSuccess && unchanged ? <Check /> : null}
           {t("common.save")}
         </Button>
@@ -102,7 +102,7 @@ function PasswordForm() {
         <span className="flex-1 text-[13px] text-muted-foreground" aria-live="polite">
           {change.isSuccess ? t("settings.password_changed") : ""}
         </span>
-        <Button type="submit" disabled={!current || next.length < 12 || mismatch || change.isPending}>
+        <Button type="submit" loading={change.isPending} disabled={!current || next.length < 12 || mismatch}>
           {t("settings.password_change")}
         </Button>
       </div>

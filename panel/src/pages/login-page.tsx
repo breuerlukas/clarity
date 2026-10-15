@@ -49,7 +49,7 @@ export function LoginPage() {
       {import.meta.env.VITE_DEMO === "true" && (
         <div className="mb-6 grid gap-3 rounded-2xl bg-brand/10 p-4 text-sm">
           <p>{t("login.demo")}</p>
-          <Button type="button" onClick={() => login.mutate()} disabled={login.isPending}>
+          <Button type="button" onClick={() => login.mutate()} loading={login.isPending}>
             {t("login.demo_back")}
           </Button>
         </div>
@@ -89,7 +89,7 @@ export function LoginPage() {
             {t(`login.errors.${errorCode}`, { defaultValue: t("common.error") })}
           </Notice>
         )}
-        <Button type="submit" size="lg" disabled={login.isPending}>
+        <Button type="submit" size="lg" loading={login.isPending}>
           {t("login.submit")}
         </Button>
       </form>

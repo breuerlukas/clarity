@@ -4,7 +4,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 @RequiredArgsConstructor(staticName = "create")
 public final class ApiRequestBody {
@@ -66,6 +68,21 @@ public final class ApiRequestBody {
       return false;
     }
     return body.optBoolean(key, false);
+  }
+
+  /**
+   * Is used to get a list of strings from request body
+   * @param key The key to find the content
+   * @return The values behind the key, or an empty list if it is no array
+   */
+  public List<String> getStringList(String key) {
+    var array = body.optJSONArray(key);
+    if (array == null) {
+      failure();
+      return List.of();
+    }
+    return IntStream.range(0, array.length()).mapToObj(array::optString)
+      .toList();
   }
 
   /**

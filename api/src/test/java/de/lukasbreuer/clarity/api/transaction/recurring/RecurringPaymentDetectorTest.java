@@ -1,7 +1,7 @@
 package de.lukasbreuer.clarity.api.transaction.recurring;
 
-import de.lukasbreuer.clarity.api.transaction.Category;
 import de.lukasbreuer.clarity.api.transaction.Transaction;
+import de.lukasbreuer.clarity.api.transaction.category.Category;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

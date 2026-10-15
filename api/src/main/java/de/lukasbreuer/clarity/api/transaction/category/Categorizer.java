@@ -1,6 +1,5 @@
 package de.lukasbreuer.clarity.api.transaction.category;
 
-import de.lukasbreuer.clarity.api.transaction.Category;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
  * Picks a category for a transaction, first match wins:
  * money moved between the owner's own accounts (including the top-ups of a
  * connected PayPal account) is a transfer, then the owner's own rules, then
- * the built-in merchant keywords, and whatever is left is plain income or
+ * the keywords of the categories, and whatever is left is plain income or
  * "other".
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
@@ -35,7 +34,7 @@ public final class Categorizer {
   private final Set<String> ownIbans;
   private final boolean paypalConnected;
 
-  public Category categorize(
+  public String categorize(
     String counterparty, String counterpartyIban, String description,
     BigDecimal amount
   ) {

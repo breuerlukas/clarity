@@ -1,49 +1,8 @@
-import {
-  ArrowLeftRight,
-  Banknote,
-  BookOpen,
-  Briefcase,
-  Bus,
-  CircleDashed,
-  HeartPulse,
-  Home,
-  Landmark,
-  PiggyBank,
-  Plane,
-  Plug,
-  Receipt,
-  Repeat,
-  ShieldCheck,
-  ShoppingBag,
-  ShoppingCart,
-  Ticket,
-  Utensils,
-  type LucideIcon,
-} from "lucide-react";
+import { createElement } from "react";
+import { useCategoryLook } from "@/hooks/use-categories";
 import type { Category } from "@/lib/api";
+import { categoryColorStyle, categoryIcon } from "@/lib/category-icons";
 import { cn } from "@/lib/utils";
-
-const ICONS: Record<Category, LucideIcon> = {
-  SALARY: Briefcase,
-  INCOME: Landmark,
-  HOUSING: Home,
-  UTILITIES: Plug,
-  GROCERIES: ShoppingCart,
-  DINING: Utensils,
-  SHOPPING: ShoppingBag,
-  MOBILITY: Bus,
-  TRAVEL: Plane,
-  SUBSCRIPTIONS: Repeat,
-  INSURANCE: ShieldCheck,
-  HEALTH: HeartPulse,
-  LEISURE: Ticket,
-  EDUCATION: BookOpen,
-  CASH: Banknote,
-  FEES: Receipt,
-  SAVINGS: PiggyBank,
-  TRANSFER: ArrowLeftRight,
-  OTHER: CircleDashed,
-};
 
 /** The category label always sits next to it; the icon only helps scanning. */
 export function CategoryIcon({
@@ -53,16 +12,30 @@ export function CategoryIcon({
   category: Category;
   className?: string;
 }) {
-  const Icon = ICONS[category];
+  const look = useCategoryLook()(category);
+  return <CategoryBadge icon={look.icon} color={look.color} className={className} />;
+}
+
+/** An icon in its color, also for a category that isn't saved yet. */
+export function CategoryBadge({
+  icon,
+  color,
+  className,
+}: {
+  icon: string;
+  color: string;
+  className?: string;
+}) {
   return (
     <span
       className={cn(
         "grid size-9 shrink-0 place-items-center rounded-full bg-card text-muted-foreground ring-1 ring-line",
         className,
       )}
+      style={categoryColorStyle(color)}
       aria-hidden="true"
     >
-      <Icon className="size-4" />
+      {createElement(categoryIcon(icon), { className: "size-4" })}
     </span>
   );
 }

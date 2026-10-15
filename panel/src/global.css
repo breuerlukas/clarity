@@ -97,6 +97,15 @@
   --series-4: #eda100;
   --series-5: #e87ba4;
   --series-rest: #c3c8cf;
+  /* Category colors: only the icon is tinted, the page stays graphite. */
+  --category-blue: #2f6bd0;
+  --category-teal: #0f817b;
+  --category-green: #2c8540;
+  --category-amber: #9a6400;
+  --category-orange: #bd4f1b;
+  --category-red: #bf3a3a;
+  --category-pink: #bb3d7b;
+  --category-violet: #7254c4;
 }
 
 .dark {
@@ -128,6 +137,14 @@
   --series-4: #c98500;
   --series-5: #d55181;
   --series-rest: #4a515c;
+  --category-blue: #7aa7f0;
+  --category-teal: #4fc7bd;
+  --category-green: #73c87f;
+  --category-amber: #e2b04a;
+  --category-orange: #ef9363;
+  --category-red: #ef8a8a;
+  --category-pink: #ee8fbf;
+  --category-violet: #ad97f0;
 }
 
 :root,
