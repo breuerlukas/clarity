@@ -1,26 +1,27 @@
 package de.lukasbreuer.clarity.api.transaction.category;
 
-import de.lukasbreuer.clarity.api.transaction.Category;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 final class CategorizerTest {
-  private static final CategoryKeywords KEYWORDS = CategoryKeywords.load();
+  private static final CategoryKeywords KEYWORDS =
+    CategoryKeywords.create(DefaultCategories.load().all());
   private static final BigDecimal DEBIT = new BigDecimal("-12.40");
   private static final BigDecimal CREDIT = new BigDecimal("2500.00");
 
   @Test
   void matchesBuiltInMerchantKeywords() {
     var categorizer = Categorizer.create(KEYWORDS, List.of(), List.of(), false);
-    assertEquals(Category.GROCERIES, categorizer.categorize("REWE Markt GmbH",
+    assertEquals("GROCERIES", categorizer.categorize("REWE Markt GmbH",
       null, "", DEBIT));
     assertEquals(Category.SUBSCRIPTIONS, categorizer.categorize(
       "Amazon Prime", null, "", DEBIT));
-    assertEquals(Category.SHOPPING, categorizer.categorize("AMAZON EU S.A R.L.",
+    assertEquals("SHOPPING", categorizer.categorize("AMAZON EU S.A R.L.",
       null, "", DEBIT));
   }
 
@@ -33,10 +34,10 @@ final class CategorizerTest {
 
   @Test
   void ownRulesWinOverBuiltInKeywords() {
-    var rule = CategoryRule.forCounterparty("  REWE   Markt ", Category.DINING);
+    var rule = CategoryRule.forCounterparty("  REWE   Markt ", "DINING");
     var categorizer = Categorizer.create(KEYWORDS, List.of(rule), List.of(),
       false);
-    assertEquals(Category.DINING, categorizer.categorize("REWE Markt GmbH",
+    assertEquals("DINING", categorizer.categorize("REWE Markt GmbH",
       null, "", DEBIT));
   }
 
@@ -64,5 +65,28 @@ final class CategorizerTest {
       "Danke fürs Essen", CREDIT));
     assertEquals(Category.SALARY, categorizer.categorize("Firma GmbH", null,
       "Gehalt Oktober", CREDIT));
+  }
+
+  @Test
+  void ownCategoriesWinOverBuiltInKeywords() {
+    var books = Category.create("books", "Bücher", "book-open", "gray",
+      CategoryKind.SPENDING, List.of("amazon"), false, false, 19);
+    var categories = new ArrayList<>(DefaultCategories.load().all());
+    categories.add(books);
+    var categorizer = Categorizer.create(CategoryKeywords.create(categories),
+      List.of(), List.of(), false);
+    assertEquals("books", categorizer.categorize("AMAZON EU S.A R.L.", null,
+      "", DEBIT));
+  }
+
+  @Test
+  void hiddenCategoriesTakeNoPart() {
+    var categories = DefaultCategories.load().all();
+    categories.stream().filter(category -> category.key().equals("GROCERIES"))
+      .forEach(category -> category.hide(true));
+    var categorizer = Categorizer.create(CategoryKeywords.create(categories),
+      List.of(), List.of(), false);
+    assertEquals(Category.OTHER, categorizer.categorize("REWE Markt GmbH",
+      null, "", DEBIT));
   }
 }

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Panel } from "@/components/panel";
 import { CategoryIcon } from "@/components/category-icon";
+import { useCategoryLook } from "@/hooks/use-categories";
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
 import { CategoryDonut } from "@/components/charts/category-donut";
 import type { Category, Transaction } from "@/lib/api";
@@ -26,6 +27,7 @@ export function CategoriesTab({
   months: MonthKey[];
 }) {
   const { t } = useTranslation();
+  const look = useCategoryLook();
   const rows = categoryMatrix(transactions, months);
   const [chosen, setChosen] = useState<Category | null>(null);
   const selected = rows.find((row) => row.category === chosen) ?? rows[0];
@@ -57,7 +59,7 @@ export function CategoriesTab({
                   <CategoryIcon category={row.category} />
                   <span className="grid min-w-0">
                     <span className={cn("truncate text-[15px]", row.category === selected.category && "font-extrabold text-nav-active-text")}>
-                      {t(`category.${row.category}`)}
+                      {look(row.category).label}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {t("statistics.per_month", { amount: formatMoney(row.average) })}
@@ -79,7 +81,7 @@ export function CategoriesTab({
         <Panel title={t("statistics.split")}>
           <CategoryDonut rows={rows} onSelect={setChosen} />
         </Panel>
-        <Panel title={t(`category.${selected.category}`)}>
+        <Panel title={look(selected.category).label}>
           <p className="-mt-3 truncate text-sm text-muted-foreground">
             {t("statistics.category_summary", {
               total: formatMoney(selected.total),
@@ -98,7 +100,7 @@ export function CategoriesTab({
                     active && payload?.[0] ? (
                       <ChartTooltip
                         title={formatMonth(String(payload[0].payload.month))}
-                        rows={[{ label: t(`category.${selected.category}`), value: formatMoney(Number(payload[0].value)), swatch: "var(--series-out)" }]}
+                        rows={[{ label: look(selected.category).label, value: formatMoney(Number(payload[0].value)), swatch: "var(--series-out)" }]}
                       />
                     ) : null
                   }

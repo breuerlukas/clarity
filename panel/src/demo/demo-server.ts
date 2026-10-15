@@ -12,6 +12,7 @@ import {
   type SpaceKind,
   type Transaction,
 } from "@/lib/api";
+import { createCategory, deleteCategory, resetCategory, updateCategory } from "@/demo/demo-categories";
 import { createDemoDatabase, PERSONAL_SPACE } from "@/demo/demo-data";
 import { refreshInvoice } from "@/demo/demo-invoices";
 import { isoDate } from "@/lib/dates";
@@ -82,6 +83,16 @@ export async function handleDemoRequest(
       return removeConnection(String(body.id));
     case "GET /transactions/":
       return ok({ transactions: inSpace(database.transactions, url.searchParams).filter(between(url.searchParams)) });
+    case "GET /categories/":
+      return ok({ categories: database.categories });
+    case "POST /categories/create/":
+      return createCategory(database.categories, body);
+    case "POST /categories/update/":
+      return updateCategory(database.categories, body);
+    case "POST /categories/reset/":
+      return resetCategory(database.categories, body.key);
+    case "POST /categories/delete/":
+      return deleteCategory(database.categories, database.transactions, body.key, body.target);
     case "POST /transactions/category/":
       return categorize(String(body.id), body.category as Category, Boolean(body.remember));
     case "GET /recurring/":
@@ -225,6 +236,9 @@ function categorize(id: string, category: Category, remember: boolean) {
   const transaction = database.transactions.find((entry) => entry.id === id);
   if (!transaction) {
     throw new ApiError(400, 3001);
+  }
+  if (!database.categories.some((entry) => entry.key === category)) {
+    throw new ApiError(400, 3002);
   }
   transaction.category = category;
   const others = remember

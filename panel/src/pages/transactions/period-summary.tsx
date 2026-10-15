@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Panel, PanelSkeleton } from "@/components/panel";
 import { AmountBadge } from "@/components/amount-badge";
 import { CategoryIcon } from "@/components/category-icon";
+import { useCategoryLook } from "@/hooks/use-categories";
 import type { Category, Transaction } from "@/lib/api";
 import { formatMoney } from "@/lib/format";
 import { summarizeMonth } from "@/lib/overview";
@@ -21,6 +22,7 @@ export function PeriodSummary({
   onCategoryChange: (category: Category | null) => void;
 }) {
   const { t } = useTranslation();
+  const look = useCategoryLook();
   if (!transactions) {
     return <PanelSkeleton className="hidden h-96 2xl:flex" />;
   }
@@ -44,7 +46,7 @@ export function PeriodSummary({
               )}
             >
               <CategoryIcon category={entry.category} className="size-8" />
-              <span className="truncate">{t(`category.${entry.category}`)}</span>
+              <span className="truncate">{look(entry.category).label}</span>
               <span className="figures font-bold">{formatMoney(entry.amount)}</span>
             </button>
           </li>

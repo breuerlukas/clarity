@@ -1,16 +1,18 @@
 import { useTranslation } from "react-i18next";
-import { Settings2, ShieldCheck, UserRound, type LucideIcon } from "lucide-react";
+import { Settings2, Shapes, ShieldCheck, UserRound, type LucideIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { AppearanceSection } from "@/pages/settings/appearance-section";
 import { AccountSection } from "@/pages/settings/account-section";
+import { CategoriesSection } from "@/pages/settings/categories-section";
 import { SecuritySection } from "@/pages/settings/security-section";
 import packageInformation from "@/../package.json";
 
-export type SettingsSectionId = "appearance" | "account" | "security";
+export type SettingsSectionId = "appearance" | "categories" | "account" | "security";
 
 const SECTIONS: { id: SettingsSectionId; icon: LucideIcon; Content: () => React.ReactNode }[] = [
   { id: "appearance", icon: Settings2, Content: AppearanceSection },
+  { id: "categories", icon: Shapes, Content: CategoriesSection },
   { id: "account", icon: UserRound, Content: AccountSection },
   { id: "security", icon: ShieldCheck, Content: SecuritySection },
 ];
@@ -18,7 +20,9 @@ const SECTIONS: { id: SettingsSectionId; icon: LucideIcon; Content: () => React.
 /**
  * The settings as a dialog over the page: sections on the left, the chosen
  * one on the right, the version at the foot. On phones the sections become
- * a row of tabs above the content.
+ * a row of tabs above the content. The content scrolls in a positioned box:
+ * Radix puts the hidden input of a switch inside a form absolutely, and
+ * without it that input stretched the whole dialog below the form.
  */
 export function SettingsDialog({
   open,
@@ -41,7 +45,7 @@ export function SettingsDialog({
       >
         <DialogTitle className="sr-only">{t("nav.settings")}</DialogTitle>
         <DialogDescription className="sr-only">{t(`settings.description_${current.id}`)}</DialogDescription>
-        <div className="flex min-h-0 flex-col sm:h-[580px] sm:flex-row">
+        <div className="flex min-h-0 min-w-0 flex-col sm:h-[580px] sm:flex-row">
           <nav
             aria-label={t("nav.settings")}
             className="flex shrink-0 gap-1 overflow-x-auto border-b border-divider bg-raised p-3 pr-14 sm:w-[220px] sm:pr-4 sm:flex-col sm:overflow-visible sm:rounded-l-3xl sm:border-r sm:border-b-0 sm:p-4"
@@ -73,7 +77,7 @@ export function SettingsDialog({
               {t("settings.version", { version: packageInformation.version })}
             </span>
           </nav>
-          <div className="min-w-0 flex-1 overflow-y-auto p-5 sm:p-7">
+          <div className="relative min-w-0 flex-1 overflow-y-auto p-5 sm:p-7">
             <current.Content />
           </div>
         </div>

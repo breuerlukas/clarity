@@ -46,6 +46,46 @@
     "TRANSFER": "Umbuchung",
     "OTHER": "Sonstiges"
   },
+  "categories": {
+    "manage": "Kategorien verwalten",
+    "own": "Eigene Kategorie",
+    "own_hint": "Mit Namen, Symbol und Stichwörtern",
+    "create": "Neue Kategorie",
+    "create_submit": "Anlegen",
+    "back": "Zurück",
+    "kind": "Art",
+    "kind_SPENDING": "Ausgaben",
+    "kind_INCOME": "Einnahmen",
+    "hidden": "Ausgeblendet",
+    "name": "Name",
+    "name_placeholder": "z. B. Haustiere",
+    "name_hint": "Leer lassen für den Standardnamen",
+    "icon": "Symbol",
+    "color": "Farbe",
+    "color_gray": "Grau",
+    "color_blue": "Blau",
+    "color_teal": "Petrol",
+    "color_green": "Grün",
+    "color_amber": "Gelb",
+    "color_orange": "Orange",
+    "color_red": "Rot",
+    "color_pink": "Pink",
+    "color_violet": "Violett",
+    "keywords": "Stichwörter",
+    "keywords_placeholder": "Ein Stichwort pro Zeile",
+    "keywords_hint": "Neue Buchungen mit einem Wort, das so beginnt, landen hier.",
+    "hide": "In Auswahllisten ausblenden",
+    "reset": "Zurücksetzen",
+    "delete": "Löschen",
+    "delete_confirm": "Endgültig löschen",
+    "delete_target": "Transaktionen und Regeln verschieben nach",
+    "errors": {
+      "3002": "Diese Kategorie gibt es nicht mehr.",
+      "3003": "Name, Symbol oder Stichwörter sind ungültig.",
+      "3004": "Diese Kategorie lässt sich nicht ausblenden oder löschen.",
+      "3005": "Wähle eine andere Kategorie als Ziel."
+    }
+  },
   "cycle": {
     "WEEKLY": "wöchentlich",
     "MONTHLY": "monatlich",
@@ -252,7 +292,9 @@
     "session_unknown": "Unbekanntes Gerät",
     "session_details": "{{address}}, zuletzt aktiv {{time}}",
     "session_close": "Abmelden",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "section_categories": "Kategorien",
+    "description_categories": "Namen, Symbole und Stichwörter"
   },
   "period": {
     "label": "Zeitraum",

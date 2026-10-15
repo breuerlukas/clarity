@@ -12,16 +12,18 @@ import {
 } from "@/components/ui/dialog";
 import { CategoryIcon } from "@/components/category-icon";
 import { Notice } from "@/components/notice";
+import { useCategories, useCategoryLook } from "@/hooks/use-categories";
 import { useConnections } from "@/hooks/use-finances";
-import { CATEGORIES } from "@/lib/categories";
+import { useOpenSettings } from "@/layouts/settings/settings-dialog-context";
+import { pickableCategories } from "@/lib/categories";
 import { api, type Category, type Transaction } from "@/lib/api";
 import { formatDate, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
  * A transaction up close: who, how much, when, from which account and the
- * reference, then the category as tiles and whether the choice should hold
- * for every transaction from the same counterparty.
+ * reference, then the category as tiles (the fitting kind first) and whether
+ * the choice should hold for every transaction from the same counterparty.
  */
 export function CategoryDialog({
   transaction,
@@ -46,6 +48,9 @@ function CategoryForm({ transaction, onClose }: { transaction: Transaction; onCl
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const connections = useConnections();
+  const categories = useCategories();
+  const look = useCategoryLook();
+  const openSettings = useOpenSettings();
   const [category, setCategory] = useState<Category>(transaction.category);
   const [remember, setRemember] = useState(Boolean(transaction.counterparty));
   const save = useMutation({
@@ -93,11 +98,21 @@ function CategoryForm({ transaction, onClose }: { transaction: Transaction; onCl
         <dd className="break-words">{transaction.description || "–"}</dd>
       </dl>
       <fieldset className="grid gap-3">
-        <legend className="mb-3 text-sm font-bold text-label">
+        <legend className="mb-3 flex w-full items-center justify-between gap-3 text-sm font-bold text-label">
           {t("transactions.change_category")}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              openSettings("categories");
+            }}
+            className="font-normal text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            {t("categories.manage")}
+          </button>
         </legend>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {CATEGORIES.map((option) => (
+          {pickableCategories(categories.data ?? [], transaction.category, transaction.amount > 0 ? "INCOME" : "SPENDING").map(({ key: option }) => (
             <button
               key={option}
               type="button"
@@ -109,7 +124,7 @@ function CategoryForm({ transaction, onClose }: { transaction: Transaction; onCl
               )}
             >
               <CategoryIcon category={option} className="size-7 bg-transparent ring-0 [&_svg]:size-4" />
-              <span className="truncate">{t(`category.${option}`)}</span>
+              <span className="truncate">{look(option).label}</span>
             </button>
           ))}
         </div>
@@ -125,7 +140,7 @@ function CategoryForm({ transaction, onClose }: { transaction: Transaction; onCl
         <DialogClose asChild>
           <Button variant="outline">{t("common.cancel")}</Button>
         </DialogClose>
-        <Button disabled={save.isPending} onClick={() => save.mutate()}>
+        <Button loading={save.isPending} onClick={() => save.mutate()}>
           {t("transactions.save")}
         </Button>
       </div>

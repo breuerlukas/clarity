@@ -12,27 +12,31 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Builds a {@link Categorizer} from the current state: the owner's rules, the
- * IBANs of every connected account, and whether PayPal is among the banks.
+ * Builds a {@link Categorizer} from the current state: the categories and
+ * their keywords, the owner's rules, the IBANs of every connected account,
+ * and whether PayPal is among the banks.
  */
 @Component
 @RequiredArgsConstructor
 public final class CategorizerFactory {
-  private final CategoryKeywords keywords;
+  private final CategoryRepository categoryRepository;
   private final CategoryRuleRepository ruleRepository;
   private final BankAccountRepository accountRepository;
   private final BankConnectionRepository connectionRepository;
 
   public CompletableFuture<Categorizer> create() {
-    return ruleRepository.findAll()
-      .thenCompose(rules -> accountRepository.findAll()
-        .thenCompose(accounts -> connectionRepository.findAll()
-          .thenApply(connections -> create(rules, accounts, connections))));
+    return categoryRepository.findAll()
+      .thenCompose(categories -> ruleRepository.findAll()
+        .thenCompose(rules -> accountRepository.findAll()
+          .thenCompose(accounts -> connectionRepository.findAll()
+            .thenApply(connections -> create(
+              CategoryKeywords.create(categories), rules, accounts,
+              connections)))));
   }
 
   private Categorizer create(
-    List<CategoryRule> rules, List<BankAccount> accounts,
-    List<BankConnection> connections
+    CategoryKeywords keywords, List<CategoryRule> rules,
+    List<BankAccount> accounts, List<BankConnection> connections
   ) {
     var ownIbans = accounts.stream().map(BankAccount::iban)
       .filter(Objects::nonNull).toList();

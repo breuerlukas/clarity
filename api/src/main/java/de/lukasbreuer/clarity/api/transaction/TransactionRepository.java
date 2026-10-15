@@ -54,4 +54,15 @@ public interface TransactionRepository
   @Query("delete from Transaction transaction " +
     "where transaction.accountId = :accountId")
   void deleteByAccountId(@Param("accountId") UUID accountId);
+
+  /**
+   * Synchronous for the same reason. Moves the hand-picked transactions too,
+   * since their category is about to be deleted.
+   */
+  @Modifying
+  @Transactional
+  @Query("update Transaction transaction " +
+    "set transaction.category = :target where transaction.category = :source")
+  int moveCategory(
+    @Param("source") String source, @Param("target") String target);
 }

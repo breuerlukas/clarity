@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { AmountBadge } from "@/components/amount-badge";
 import { CategoryIcon } from "@/components/category-icon";
+import { useCategoryLook } from "@/hooks/use-categories";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Transaction } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,7 @@ export function LedgerRow({
   onSelect?: (transaction: Transaction) => void;
 }) {
   const { t } = useTranslation();
+  const look = useCategoryLook();
   const content = (
     <>
       <CategoryIcon category={transaction.category} />
@@ -65,7 +67,7 @@ export function LedgerRow({
           {transaction.counterparty || t("transactions.no_counterparty")}
         </span>
         <span className="truncate text-sm text-muted-foreground">
-          {t(`category.${transaction.category}`)}
+          {look(transaction.category).label}
         </span>
       </span>
       <AmountBadge

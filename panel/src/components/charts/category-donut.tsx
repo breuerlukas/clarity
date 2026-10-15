@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { ChartTooltip, Swatch } from "@/components/charts/chart-tooltip";
+import { useCategoryLook } from "@/hooks/use-categories";
 import type { Category } from "@/lib/api";
 import { formatMoney, formatPercent } from "@/lib/format";
 import type { CategoryRow } from "@/lib/statistics";
@@ -27,10 +28,11 @@ export function CategoryDonut({
   onSelect: (category: Category) => void;
 }) {
   const { t } = useTranslation();
+  const look = useCategoryLook();
   const total = rows.reduce((sum, row) => sum + row.total, 0);
   const slices: Slice[] = rows.slice(0, SLOTS).map((row, index) => ({
     category: row.category,
-    label: t(`category.${row.category}`),
+    label: look(row.category).label,
     amount: row.total,
     fill: `var(--series-${index + 1})`,
   }));

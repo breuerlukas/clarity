@@ -1,9 +1,9 @@
 package de.lukasbreuer.clarity.api.web.transaction;
 
 import de.lukasbreuer.clarity.api.banking.account.AccountScope;
-import de.lukasbreuer.clarity.api.transaction.Category;
 import de.lukasbreuer.clarity.api.transaction.Transaction;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
+import de.lukasbreuer.clarity.api.transaction.category.CategoryRepository;
 import de.lukasbreuer.clarity.api.transaction.category.CategoryRule;
 import de.lukasbreuer.clarity.api.transaction.category.CategoryRuleApplication;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
@@ -34,6 +34,7 @@ public final class TransactionController {
   private static final long MAXIMUM_RANGE_DAYS = 800;
 
   private final TransactionRepository transactionRepository;
+  private final CategoryRepository categoryRepository;
   private final CategoryRuleApplication ruleApplication;
   private final AccountScope accountScope;
 
@@ -67,21 +68,21 @@ public final class TransactionController {
   ) {
     var body = ApiRequestBody.of(payload, response);
     var transactionId = body.getUUID("id");
-    var category = Category.find(body.getString("category", 32));
+    var category = body.getString("category", 64);
     if (transactionId == null) {
       return ApiResponse.error(3001).future();
     }
-    if (category.isEmpty()) {
-      return ApiResponse.error(3002).future();
-    }
     var remember = body.getBoolean("remember");
-    return transactionRepository.findById(transactionId)
-      .thenCompose(transaction -> categorize(transaction, category.get(),
-        remember));
+    return categoryRepository.existsById(category)
+      .thenCompose(exists -> exists ?
+        transactionRepository.findById(transactionId)
+          .thenCompose(transaction -> categorize(transaction, category,
+            remember)) :
+        ApiResponse.error(3002).future());
   }
 
   private CompletableFuture<ApiResponse> categorize(
-    Optional<Transaction> transaction, Category category, boolean remember
+    Optional<Transaction> transaction, String category, boolean remember
   ) {
     if (transaction.isEmpty()) {
       return ApiResponse.error(3001).future();

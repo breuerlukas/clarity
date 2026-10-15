@@ -46,6 +46,46 @@
     "TRANSFER": "Transfer",
     "OTHER": "Other"
   },
+  "categories": {
+    "manage": "Manage categories",
+    "own": "Your own category",
+    "own_hint": "With a name, icon and keywords",
+    "create": "New category",
+    "create_submit": "Create",
+    "back": "Back",
+    "kind": "Type",
+    "kind_SPENDING": "Spending",
+    "kind_INCOME": "Income",
+    "hidden": "Hidden",
+    "name": "Name",
+    "name_placeholder": "e.g. Pets",
+    "name_hint": "Leave empty for the default name",
+    "icon": "Icon",
+    "color": "Color",
+    "color_gray": "Gray",
+    "color_blue": "Blue",
+    "color_teal": "Teal",
+    "color_green": "Green",
+    "color_amber": "Amber",
+    "color_orange": "Orange",
+    "color_red": "Red",
+    "color_pink": "Pink",
+    "color_violet": "Violet",
+    "keywords": "Keywords",
+    "keywords_placeholder": "One keyword per line",
+    "keywords_hint": "New bookings with a word starting like this land here.",
+    "hide": "Hide from pickers",
+    "reset": "Reset",
+    "delete": "Delete",
+    "delete_confirm": "Delete for good",
+    "delete_target": "Move transactions and rules to",
+    "errors": {
+      "3002": "This category no longer exists.",
+      "3003": "The name, icon or keywords are invalid.",
+      "3004": "This category can't be hidden or deleted.",
+      "3005": "Choose another category to move to."
+    }
+  },
   "cycle": {
     "WEEKLY": "weekly",
     "MONTHLY": "monthly",
@@ -252,7 +292,9 @@
     "session_unknown": "Unknown device",
     "session_details": "{{address}}, last active {{time}}",
     "session_close": "Sign out",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "section_categories": "Categories",
+    "description_categories": "Names, icons and keywords"
   },
   "period": {
     "label": "Period",

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Panel } from "@/components/panel";
 import { CategoryIcon } from "@/components/category-icon";
+import { useCategoryLook } from "@/hooks/use-categories";
 import { Amount } from "@/components/amount";
 import type { RecurringPayment, Transaction } from "@/lib/api";
 import { formatDate } from "@/lib/format";
@@ -20,6 +21,7 @@ export function LargestExpenses({
   payments?: RecurringPayment[];
 }) {
   const { t } = useTranslation();
+  const look = useCategoryLook();
   const fixed = new Set(payments?.map((payment) => payment.counterparty));
   const expenses = largestExpenses(
     transactions.filter((transaction) => !fixed.has(transaction.counterparty)),
@@ -40,7 +42,7 @@ export function LargestExpenses({
                 {transaction.counterparty || t("transactions.no_counterparty")}
               </span>
               <span className="truncate text-sm text-muted-foreground">
-                {formatDate(transaction.date)}, {t(`category.${transaction.category}`)}
+                {formatDate(transaction.date)}, {look(transaction.category).label}
               </span>
             </span>
             <Amount value={transaction.amount} currency={transaction.currency} className="font-medium" />

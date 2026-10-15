@@ -2,6 +2,7 @@ import type {
   Account,
   BusinessTransaction,
   Category,
+  CategoryDetails,
   Connection,
   Contract,
   Invoice,
@@ -10,6 +11,7 @@ import type {
   Space,
   Transaction,
 } from "@/lib/api";
+import { demoCategories } from "@/demo/demo-categories";
 import { isoDate } from "@/lib/dates";
 import {
   BUSINESS_SPACE,
@@ -184,6 +186,7 @@ export const PERSONAL_SPACE = "home";
 
 export interface DemoDatabase {
   spaces: Space[];
+  categories: CategoryDetails[];
   /** Of every space. */
   connections: Connection[];
   transactions: Transaction[];
@@ -352,6 +355,7 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
       { id: PERSONAL_SPACE, slug: "home", name: "", icon: "wallet", kind: "PERSONAL" },
       { id: BUSINESS_SPACE, slug: "agentur", name: "Agentur", icon: "palette", kind: "BUSINESS" },
     ],
+    categories: demoCategories(),
     connections: [...connections(today), ...demoBusinessConnections(today)],
     transactions,
     recurring: recurring(today, transactions),
