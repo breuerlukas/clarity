@@ -172,7 +172,7 @@ function SpaceForm({ space, onDone }: { space: Space | null; onDone: () => void 
               {t("common.cancel")}
             </Button>
           </DialogClose>
-          <Button type="submit" disabled={save.isPending || !name.trim()}>
+          <Button type="submit" loading={save.isPending} disabled={!name.trim()}>
             {t(space ? "common.save" : "spaces.create_submit")}
           </Button>
         </div>

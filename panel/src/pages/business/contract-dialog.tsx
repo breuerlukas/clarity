@@ -223,7 +223,7 @@ function ContractForm({
               {t("common.cancel")}
             </Button>
           </DialogClose>
-          <Button type="submit" disabled={save.isPending}>
+          <Button type="submit" loading={save.isPending}>
             {t("common.save")}
           </Button>
         </div>

@@ -97,7 +97,7 @@ function AccountStep({
         required
       />
       {create.error && <ErrorText error={create.error} />}
-      <Button type="submit" size="lg" disabled={create.isPending}>
+      <Button type="submit" size="lg" loading={create.isPending}>
         {t("setup.continue")}
       </Button>
     </form>
@@ -157,7 +157,7 @@ function AuthenticatorStep({
         required
       />
       {confirm.error && <ErrorText error={confirm.error} />}
-      <Button type="submit" size="lg" disabled={confirm.isPending}>
+      <Button type="submit" size="lg" loading={confirm.isPending}>
         {t("setup.finish")}
       </Button>
     </form>

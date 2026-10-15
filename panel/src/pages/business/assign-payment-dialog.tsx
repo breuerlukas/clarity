@@ -148,7 +148,7 @@ function AssignForm({
         <DialogClose asChild>
           <Button variant="outline">{t("common.cancel")}</Button>
         </DialogClose>
-        <Button disabled={save.isPending} onClick={() => save.mutate()}>
+        <Button loading={save.isPending} onClick={() => save.mutate()}>
           {t("common.save")}
         </Button>
       </div>

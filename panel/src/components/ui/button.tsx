@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Slot as SlotPrimitive } from "radix-ui";
 import { cva, type VariantProps } from "class-variance-authority";
+import { LoaderCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -35,15 +36,23 @@ const buttonVariants = cva(
   },
 );
 
+/**
+ * `loading` disables the button and shows a spinner in front of its label
+ * while an action runs; it has no effect together with `asChild`.
+ */
 function Button({
   className,
   variant,
   size,
   asChild = false,
+  loading = false,
+  disabled,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    loading?: boolean;
   }) {
   const Comp = asChild ? Slot : "button";
 
@@ -51,8 +60,12 @@ function Button({
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
-    />
+    >
+      {asChild ? children : <>{loading && <LoaderCircle className="animate-spin" aria-hidden />}{children}</>}
+    </Comp>
   );
 }
 

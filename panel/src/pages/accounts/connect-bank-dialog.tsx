@@ -143,7 +143,8 @@ export function ConnectBankDialog({
         )}
         <Button
           size="lg"
-          disabled={!bank || start.isPending}
+          loading={start.isPending}
+          disabled={!bank}
           onClick={() => bank && start.mutate(bank)}
         >
           {t("connect.continue")}

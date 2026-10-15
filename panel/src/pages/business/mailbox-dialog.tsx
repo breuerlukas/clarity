@@ -241,7 +241,7 @@ function MailboxForm({ mailbox, onDone }: { mailbox: Mailbox | null; onDone: () 
               {t("common.cancel")}
             </Button>
           </DialogClose>
-          <Button type="submit" disabled={save.isPending}>
+          <Button type="submit" loading={save.isPending}>
             {save.isPending ? t("invoices.connecting") : t(mailbox ? "common.save" : "invoices.connect")}
           </Button>
         </div>
