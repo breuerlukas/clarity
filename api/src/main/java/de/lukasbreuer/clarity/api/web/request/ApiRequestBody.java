@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -82,6 +83,24 @@ public final class ApiRequestBody {
       return List.of();
     }
     return IntStream.range(0, array.length()).mapToObj(array::optString)
+      .toList();
+  }
+
+  /**
+   * Is used to get a list of objects from request body
+   * @param key The key to find the content
+   * @return The objects behind the key, each read like a request body, or an
+   *         empty list if it is no array
+   */
+  public List<ApiRequestBody> getBodyList(String key) {
+    var array = body.optJSONArray(key);
+    if (array == null) {
+      failure();
+      return List.of();
+    }
+    return IntStream.range(0, array.length()).mapToObj(array::optJSONObject)
+      .filter(Objects::nonNull)
+      .map(object -> create(object, response))
       .toList();
   }
 

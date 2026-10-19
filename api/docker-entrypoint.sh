@@ -37,6 +37,9 @@ redirect_url = ${BANKING_REDIRECT_URL:-${PUBLIC_URL}/connect/callback}
 
 [secrets]
 key_file = /app/data/clarity.key
+
+[receipts]
+directory = /app/data/receipts
 EOF
 
 chmod 600 config.ini

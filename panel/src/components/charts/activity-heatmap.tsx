@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Transaction } from "@/lib/api";
 import { isoDate } from "@/lib/dates";
+import { isCounted } from "@/lib/statistics";
 import { formatDay, formatMoney, formatMonthShort } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -118,7 +119,7 @@ function color(day: Day, maximum: number) {
 function layout(transactions: Transaction[], from: string, to: string) {
   const days = new Map<string, Day>();
   for (const transaction of transactions) {
-    if (transaction.category === "TRANSFER") {
+    if (!isCounted(transaction)) {
       continue;
     }
     const day = days.get(transaction.date) ?? { date: transaction.date, income: 0, spending: 0 };

@@ -1,5 +1,6 @@
 import type { Category, RecurringPayment, Transaction } from "@/lib/api";
 import { monthRange, type MonthKey } from "@/lib/dates";
+import { categoryParts, isCounted } from "@/lib/statistics";
 
 export interface MonthSummary {
   income: number;
@@ -7,17 +8,10 @@ export interface MonthSummary {
   categories: { category: Category; amount: number }[];
 }
 
-/**
- * Money moved between the owner's own accounts is neither earned nor spent,
- * so transfers stay out of every total.
- */
-const isCounted = (transaction: Transaction) =>
-  transaction.category !== "TRANSFER";
-
 const cents = (amount: number) => Math.round(amount * 100);
 
 export function summarizeMonth(transactions: Transaction[]): MonthSummary {
-  const counted = transactions.filter(isCounted);
+  const counted = categoryParts(transactions).filter(isCounted);
   const incomeCents = counted
     .filter((transaction) => transaction.amount > 0)
     .reduce((sum, transaction) => sum + cents(transaction.amount), 0);

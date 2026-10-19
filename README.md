@@ -116,7 +116,14 @@ restart with `docker compose up -d`. On the phone, open the address and choose
 Backups contain all your transactions and invoices. Keep them as safe as your
 bank statements, ideally encrypted. Mailbox passwords are encrypted with the
 key in the `api-data` volume; without a copy of it you enter them again after
-a restore.
+a restore. The same volume holds the photos and PDFs of your receipts
+(`receipts/`), which the database dump does not contain. Back it up too (the
+volume is named after the project folder, usually `clarity_api-data`):
+
+```sh
+docker run --rm -v clarity_api-data:/data -v "$PWD":/backup alpine \
+  tar czf /backup/clarity-data.tar.gz -C /data .
+```
 
 New mails are read every 15 minutes; *Check now* on the invoices page reads
 them right away. Connecting a mailbox is described in

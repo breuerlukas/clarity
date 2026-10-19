@@ -26,7 +26,7 @@ const DEFAULTS: [key: string, icon: string, kind: CategoryKind, keywords: string
   ["OTHER", "circle-dashed", "SPENDING", []],
 ];
 
-const SYSTEM = new Set(["SALARY", "INCOME", "SUBSCRIPTIONS", "TRANSFER", "OTHER"]);
+const SYSTEM = new Set(["SALARY", "INCOME", "SUBSCRIPTIONS", "TRANSFER", "CASH", "OTHER"]);
 
 function shipped(key: string): CategoryDetails | undefined {
   const entry = DEFAULTS.find(([candidate]) => candidate === key);
@@ -106,6 +106,11 @@ export function deleteCategory(categories: CategoryDetails[], transactions: Tran
   const moved = transactions.filter((transaction) => transaction.category === key);
   moved.forEach((transaction) => {
     transaction.category = String(target);
+  });
+  transactions.flatMap((transaction) => transaction.splits ?? []).forEach((part) => {
+    if (part.category === key) {
+      part.category = String(target);
+    }
   });
   categories.splice(categories.indexOf(category), 1);
   return ok({ moved: moved.length });

@@ -74,6 +74,21 @@ public final class Transaction {
     this.manuallyCategorized = true;
   }
 
+  /**
+   * Only for entries the owner books by hand, such as cash; what a bank
+   * reported stays as it was reported.
+   */
+  public void edit(
+    LocalDate bookingDate, BigDecimal amount, String counterparty,
+    String description, String category
+  ) {
+    this.bookingDate = bookingDate;
+    this.amount = amount;
+    this.counterparty = counterparty;
+    this.description = description;
+    categorizeManually(category);
+  }
+
   public Map<String, Object> information() {
     var information = new HashMap<String, Object>();
     information.put("id", id);

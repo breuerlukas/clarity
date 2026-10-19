@@ -42,6 +42,13 @@ public interface TransactionRepository
   }
 
   @Async
+  CompletableFuture<List<Transaction>> findByAccountIdIn(
+    Collection<UUID> accountIds);
+
+  @Async
+  CompletableFuture<Boolean> existsByAccountId(UUID accountId);
+
+  @Async
   CompletableFuture<List<Transaction>> findByManuallyCategorized(
     boolean manuallyCategorized);
 

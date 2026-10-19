@@ -1,32 +1,36 @@
 import { useTranslation } from "react-i18next";
 import { Panel } from "@/components/panel";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Connection } from "@/lib/api";
+import type { CashWallet, Connection } from "@/lib/api";
 import { formatMoney, maskIban } from "@/lib/format";
 import { total } from "@/lib/overview";
 
 /**
- * Every account grouped by bank, with the total on top. Business accounts
- * skip the everyday/savings label, which only matters for personal money.
+ * Every account grouped by bank, and the cash wallet when given, with the
+ * total on top. Business accounts skip the everyday/savings label, which
+ * only matters for personal money.
  */
 export function AccountsCard({
   connections,
+  cash,
   viewAll,
   business = false,
 }: {
   connections?: Connection[];
+  cash?: CashWallet;
   viewAll: string;
   business?: boolean;
 }) {
   const { t } = useTranslation();
   const accounts = (connections ?? []).flatMap((connection) => connection.accounts);
+  const balances = [...accounts.map((account) => account.balance ?? 0), cash?.balance ?? 0];
   return (
     <Panel title={t("nav.accounts")} viewAll={viewAll}>
       <div className="grid gap-1">
         <span className="text-sm text-muted-foreground">{t("overview.total")}</span>
         {connections ? (
           <span className="figures text-3xl font-extrabold tracking-[-0.02em]">
-            {formatMoney(total(accounts.map((account) => account.balance ?? 0)))}
+            {formatMoney(total(balances))}
           </span>
         ) : (
           <Skeleton className="h-9 w-44" />
@@ -61,6 +65,15 @@ export function AccountsCard({
             </ul>
           </div>
         ))}
+        {cash && (
+          <div className="grid gap-1.5">
+            <span className="text-xs font-bold text-label">{t("cash.title")}</span>
+            <div className="flex items-center justify-between gap-4 rounded-2xl bg-raised px-4 py-3">
+              <span className="text-sm font-bold">{t("cash.wallet")}</span>
+              <span className="figures text-sm font-bold">{formatMoney(cash.balance, cash.currency)}</span>
+            </div>
+          </div>
+        )}
       </div>
     </Panel>
   );

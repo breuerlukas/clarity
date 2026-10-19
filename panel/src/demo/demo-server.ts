@@ -14,13 +14,23 @@ import {
 } from "@/lib/api";
 import { createCategory, deleteCategory, resetCategory, updateCategory } from "@/demo/demo-categories";
 import { createDemoDatabase, PERSONAL_SPACE } from "@/demo/demo-data";
+import { countCash, createCashEntry, deleteCashEntry, splitTransaction, updateCashEntry, wallet, walletId } from "@/demo/demo-cash";
+import {
+  attachReceipt,
+  bookReceiptAsCash,
+  deleteReceipt,
+  receiptSuggestions,
+  scanReceipt,
+  updateReceipt,
+} from "@/demo/demo-receipts";
 import { refreshInvoice } from "@/demo/demo-invoices";
 import { isoDate } from "@/lib/dates";
 
 /**
  * Answers the panel's api calls in the browser for the public demo. Changes
- * (categories, a new name, removed banks) live in memory until reload; bank
- * logins and password changes are refused with code 9000.
+ * (categories, a new name, removed banks, cash entries, receipts) live in
+ * memory until reload; bank logins and password changes are refused with
+ * code 9000.
  */
 const database = createDemoDatabase();
 let owner = "Demo";
@@ -82,7 +92,35 @@ export async function handleDemoRequest(
     case "POST /connections/delete/":
       return removeConnection(String(body.id));
     case "GET /transactions/":
-      return ok({ transactions: inSpace(database.transactions, url.searchParams).filter(between(url.searchParams)) });
+      return ok({
+        transactions: inSpace(database.transactions, url.searchParams).filter(between(url.searchParams)).map(withReceipt),
+      });
+    case "POST /transactions/split/":
+      return splitTransaction(database, body);
+    case "GET /cash/":
+      return ok({ wallet: wallet(database, String(url.searchParams.get("space"))) });
+    case "POST /cash/count/":
+      return countCash(database, String(body.space), Number(body.balance));
+    case "POST /cash/entries/create/":
+      return createCashEntry(database, body);
+    case "POST /cash/entries/update/":
+      return updateCashEntry(database, body);
+    case "POST /cash/entries/delete/":
+      return deleteCashEntry(database, String(body.id));
+    case "GET /receipts/":
+      return ok({ receipts: database.receipts.filter((receipt) => receipt.space === url.searchParams.get("space")) });
+    case "POST /receipts/scan/":
+      return scanReceipt(database, body);
+    case "POST /receipts/update/":
+      return updateReceipt(database, body);
+    case "POST /receipts/delete/":
+      return deleteReceipt(database, body.id);
+    case "GET /receipts/suggestions/":
+      return receiptSuggestions(database, url.searchParams.get("id"));
+    case "POST /receipts/attach/":
+      return attachReceipt(database, body);
+    case "POST /receipts/cash/":
+      return bookReceiptAsCash(database, body);
     case "GET /categories/":
       return ok({ categories: database.categories });
     case "POST /categories/create/":
@@ -164,14 +202,20 @@ function between(params: URLSearchParams) {
   return (transaction: { date: string }) => (!from || transaction.date >= from) && (!to || transaction.date <= to);
 }
 
-/** The transactions of the accounts of the space the request names. */
+/** The transactions of the accounts and the cash wallet of the space the request names. */
 function inSpace<T extends { account: string }>(transactions: T[], params: URLSearchParams): T[] {
-  const accounts = new Set(
-    database.connections
+  const accounts = new Set([
+    ...database.connections
       .filter((connection) => connection.space === params.get("space"))
       .flatMap((connection) => connection.accounts.map((account) => account.id)),
-  );
+    walletId(String(params.get("space"))),
+  ]);
   return transactions.filter((transaction) => accounts.has(transaction.account));
+}
+
+function withReceipt(transaction: Transaction): Transaction {
+  const receipt = database.receipts.find((entry) => entry.transaction === transaction.id);
+  return { ...transaction, splits: transaction.splits ?? [], receipt: receipt?.id ?? null };
 }
 
 function slugFor(name: string, except?: string) {
@@ -224,7 +268,9 @@ function deleteSpace(id: string) {
   }
   if (
     database.connections.some((connection) => connection.space === id) ||
-    database.contracts.some((contract) => contract.space === id)
+    database.contracts.some((contract) => contract.space === id) ||
+    database.receipts.some((receipt) => receipt.space === id) ||
+    database.transactions.some((transaction) => transaction.account === walletId(id))
   ) {
     throw new ApiError(400, 5002);
   }
@@ -258,10 +304,16 @@ function removeConnection(id: string) {
   const accounts = new Set(connection.accounts.map((account) => account.id));
   database.connections.splice(database.connections.indexOf(connection), 1);
   database.transactions = database.transactions.filter((entry) => !accounts.has(entry.account));
+  const left = new Set(database.transactions.map((entry) => entry.id));
+  database.receipts.forEach((receipt) => {
+    if (receipt.transaction && !left.has(receipt.transaction)) {
+      receipt.transaction = null;
+    }
+  });
   database.businessTransactions = database.businessTransactions.filter((entry) => !accounts.has(entry.account));
-  const left = new Set(database.businessTransactions.map((entry) => entry.id));
+  const businessLeft = new Set(database.businessTransactions.map((entry) => entry.id));
   database.invoices.forEach((invoice) => {
-    invoice.payments = invoice.payments.filter((payment) => left.has(payment.transaction));
+    invoice.payments = invoice.payments.filter((payment) => businessLeft.has(payment.transaction));
   });
   return ok();
 }

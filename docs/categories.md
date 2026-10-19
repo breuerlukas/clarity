@@ -19,13 +19,14 @@ rules move to, so nothing is left without one.
 
 ## System categories
 
-The logic depends on five keys, so they can be renamed but neither hidden
+The logic depends on six keys, so they can be renamed but neither hidden
 nor deleted, and their kind stays fixed:
 
 | Key | Used by |
 |---|---|
 | `SALARY` | payday and the room left until it (`budget.ts`) |
 | `TRANSFER` | own transfers; left out of statistics and the heatmap |
+| `CASH` | ATM withdrawals: moved into the cash wallet, not spent |
 | `SUBSCRIPTIONS` | the subscriptions group on the fixed costs page |
 | `INCOME` | fallback of the categorizer for unknown money in |
 | `OTHER` | fallback of the categorizer for unknown money out |

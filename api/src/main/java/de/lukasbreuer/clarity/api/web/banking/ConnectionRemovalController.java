@@ -8,6 +8,8 @@ import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
 import de.lukasbreuer.clarity.api.business.invoice.InvoicePaymentRepository;
 import de.lukasbreuer.clarity.api.business.payment.PaymentAssignmentRepository;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
+import de.lukasbreuer.clarity.api.transaction.receipt.ReceiptRepository;
+import de.lukasbreuer.clarity.api.transaction.split.TransactionSplitRepository;
 import de.lukasbreuer.clarity.api.web.request.ApiRequestBody;
 import de.lukasbreuer.clarity.api.web.response.ApiResponse;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,8 +26,9 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Removes a connection completely: revokes the session at Enable Banking (so
  * the bank consent ends too), then deletes its accounts and every stored
- * transaction of them, along with what business bookings were assigned to.
- * Error code 2002: unknown connection.
+ * transaction of them, along with what business bookings were assigned to
+ * and how they were split. Their receipts stay, unassigned. Error code
+ * 2002: unknown connection.
  */
 @RestController
 @RequiredArgsConstructor
@@ -36,6 +39,8 @@ public final class ConnectionRemovalController {
   private final TransactionRepository transactionRepository;
   private final PaymentAssignmentRepository assignmentRepository;
   private final InvoicePaymentRepository invoicePaymentRepository;
+  private final TransactionSplitRepository splitRepository;
+  private final ReceiptRepository receiptRepository;
 
   @RequestMapping(path = "/connections/delete/", method = RequestMethod.POST)
   public CompletableFuture<ApiResponse> delete(
@@ -80,12 +85,14 @@ public final class ConnectionRemovalController {
   }
 
   /**
-   * The bookings of an account with what links them to contracts and
-   * invoices.
+   * The bookings of an account with what links them to contracts, invoices
+   * and receipts.
    */
   private void deleteBookings(BankAccount account) {
     assignmentRepository.deleteByAccountId(account.id());
     invoicePaymentRepository.deleteByAccountId(account.id());
+    splitRepository.deleteByAccountId(account.id());
+    receiptRepository.detachFromAccount(account.id());
     transactionRepository.deleteByAccountId(account.id());
   }
 }
