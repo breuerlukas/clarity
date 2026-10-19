@@ -9,7 +9,7 @@ import { CategoryDonut } from "@/components/charts/category-donut";
 import type { Category, Transaction } from "@/lib/api";
 import type { MonthKey } from "@/lib/dates";
 import { formatMoney, formatMonth, formatMonthShort, formatPercent } from "@/lib/format";
-import { categoryMatrix, topCounterparties } from "@/lib/statistics";
+import { categoryMatrix, categoryParts, topCounterparties } from "@/lib/statistics";
 import { cn } from "@/lib/utils";
 
 const TOP = 5;
@@ -36,7 +36,7 @@ export function CategoriesTab({
     return <Panel><p className="text-muted-foreground">{t("overview.categories_empty")}</p></Panel>;
   }
   const merchants = topCounterparties(
-    transactions.filter((transaction) => transaction.category === selected.category),
+    categoryParts(transactions).filter((transaction) => transaction.category === selected.category),
     TOP,
   );
   return (

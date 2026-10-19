@@ -9,13 +9,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Labels as {@code invoice-vocabulary.json} writes them: plain phrases in
+ * Labels as {@code invoice-vocabulary.json} and
+ * {@code receipt-vocabulary.json} write them: plain phrases in
  * which a space also stands for a hyphen or no space at all, so
  * "rechnungs nr" finds "Rechnungsnr", "Rechnungs-Nr" and "Rechnungs Nr",
  * and {@code {days}} stands for a number of days.
  */
 @RequiredArgsConstructor(staticName = "of")
-final class LabelPhrases {
+public final class LabelPhrases {
   private static final String SEPARATOR = "[\\s-]*";
   private static final String DAYS = "{days}";
   private static final String DAYS_EXPRESSION = "(\\d{1,3})";
@@ -26,7 +27,7 @@ final class LabelPhrases {
    * One expression for any of the phrases, longer ones first, so that
    * "fällig am" wins over "fällig".
    */
-  String anyOf() {
+  public String anyOf() {
     return phrases.stream()
       .sorted(Comparator.comparingInt(String::length).reversed())
       .map(this::expression)

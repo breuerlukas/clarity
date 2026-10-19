@@ -2,8 +2,27 @@ import type { Category, Transaction } from "@/lib/api";
 import { currentMonth, isoDate, shiftMonth, type MonthKey } from "@/lib/dates";
 
 const cents = (amount: number) => Math.round(amount * 100);
-const isCounted = (transaction: Transaction) =>
-  transaction.category !== "TRANSFER";
+
+/**
+ * Money moved between the owner's own accounts is neither earned nor spent,
+ * and neither is cash taken from the ATM: it moves into the cash wallet and
+ * counts once it is spent there. Both stay out of every total.
+ */
+export const isCounted = (transaction: Transaction) =>
+  transaction.category !== "TRANSFER" && transaction.category !== "CASH";
+
+/**
+ * A transaction split along its receipt as one piece per category, so the
+ * statistics count each part where it belongs; others stay as they are.
+ */
+export function categoryParts(transactions: Transaction[]): Transaction[] {
+  return transactions.flatMap((transaction) =>
+    transaction.splits?.length
+      ? transaction.splits.map((part) => ({ ...transaction, ...part }))
+      : [transaction],
+  );
+}
+
 const monthOf = (date: string): MonthKey => date.slice(0, 7);
 
 export interface MonthStatistic {
@@ -125,7 +144,7 @@ export function categoryMatrix(
 ): CategoryRow[] {
   const index = new Map(months.map((month, position) => [month, position]));
   const rows = new Map<Category, number[]>();
-  for (const transaction of transactions.filter(isCounted)) {
+  for (const transaction of categoryParts(transactions).filter(isCounted)) {
     const position = index.get(monthOf(transaction.date));
     if (position === undefined || transaction.amount >= 0) {
       continue;

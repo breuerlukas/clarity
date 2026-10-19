@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/notice";
 import { PageHeader, PanelSkeleton } from "@/components/panel";
 import { SyncButton } from "@/components/sync-button";
+import { useCashWallet } from "@/hooks/use-cash";
 import { useConnections, useHistory, useRecurringPayments } from "@/hooks/use-finances";
 import { useSpacePath } from "@/hooks/use-space";
-import { spendingRoom } from "@/lib/budget";
+import { cashAccount, spendingRoom } from "@/lib/budget";
 import { SpendingRoomCard } from "@/pages/overview/spending-room-card";
 import { AccountsCard } from "@/pages/overview/accounts-card";
 import { ActivityCard } from "@/pages/overview/activity-card";
@@ -23,21 +24,22 @@ export function OverviewPage() {
   const connections = useConnections();
   const recurring = useRecurringPayments();
   const history = useHistory();
+  const cash = useCashWallet();
   const path = useSpacePath();
   if (connections.data?.length === 0) {
     return <EmptyOverview />;
   }
   const accounts = connections.data?.flatMap((connection) => connection.accounts);
   const room =
-    accounts && recurring.data && history.data
-      ? spendingRoom(accounts, recurring.data, history.data)
+    accounts && recurring.data && history.data && cash.data
+      ? spendingRoom([...accounts, cashAccount(cash.data, t("cash.title"))], recurring.data, history.data)
       : null;
   return (
     <>
       <PageHeader title={t("nav.overview")}>
         <SyncButton connections={connections.data} />
       </PageHeader>
-      {(connections.isError || recurring.isError || history.isError) && (
+      {(connections.isError || recurring.isError || history.isError || cash.isError) && (
         <Notice className="mb-6">{t("common.error")}</Notice>
       )}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
@@ -51,7 +53,7 @@ export function OverviewPage() {
           <RecentTransactions transactions={history.data} className="flex-1" />
         </div>
         <div className="flex min-w-0 flex-col gap-6">
-          <AccountsCard connections={connections.data} viewAll={path("/accounts")} />
+          <AccountsCard connections={connections.data} cash={cash.data} viewAll={path("/accounts")} />
           <ActivityCard transactions={history.data} />
           <UpcomingPayments payments={recurring.data} payday={room?.payday} className="flex-1" />
         </div>

@@ -10,11 +10,11 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
- * Labels an invoice prints in front of an amount, such as "Gesamtbetrag",
- * in the order they are trusted.
+ * Labels an invoice or a receipt prints in front of an amount, such as
+ * "Gesamtbetrag", in the order they are trusted.
  */
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-final class AmountLabels {
+public final class AmountLabels {
   static final int FLAGS = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
   static final String AMOUNT =
     "(-?(?:\\d{1,3}(?:[.,' ]\\d{3})+|\\d+)(?:[.,]\\d{1,2})?)";
@@ -23,7 +23,7 @@ final class AmountLabels {
   /**
    * @param labels In the order they are trusted, each followed by its amount
    */
-  static AmountLabels of(LabelPhrases labels) {
+  public static AmountLabels of(LabelPhrases labels) {
     return new AmountLabels(labels.each().stream()
       .map(label -> Pattern.compile("\\b" + label + "\\b" + GAP + AMOUNT,
         FLAGS))
@@ -37,7 +37,7 @@ final class AmountLabels {
    * for a label printed several times the largest amount, since subtotals
    * come before the total.
    */
-  Optional<BigDecimal> firstIn(String text) {
+  public Optional<BigDecimal> firstIn(String text) {
     return patterns.stream()
       .map(pattern -> amounts(pattern, text))
       .filter(amounts -> !amounts.isEmpty())

@@ -79,6 +79,70 @@ export interface Transaction {
   description: string;
   category: Category;
   counterparty_iban?: string | null;
+  /** The categories it is split into, with its sign; empty when not split. */
+  splits?: SplitPart[];
+  /** The receipt that belongs to it. */
+  receipt?: string | null;
+}
+
+export interface SplitPart {
+  category: Category;
+  amount: number;
+}
+
+/**
+ * The cash of a space. Its entries are transactions on `id`; ATM
+ * withdrawals (category CASH) since `started_on` fill it.
+ */
+export interface CashWallet {
+  id: string;
+  space: string;
+  balance: number;
+  currency: string;
+  started_on: string;
+}
+
+export interface CashEntryDraft {
+  date: string;
+  /** Negative for money spent. */
+  amount: number;
+  counterparty: string;
+  category: Category;
+  note: string;
+}
+
+export interface ReceiptItem {
+  name: string;
+  amount: number;
+}
+
+/** A photographed or uploaded receipt with what was read from it. */
+export interface Receipt {
+  id: string;
+  space: string;
+  /** The card payment or cash entry it belongs to; null until assigned. */
+  transaction: string | null;
+  merchant: string;
+  date: string | null;
+  total: number | null;
+  items: ReceiptItem[];
+  file: { name: string; content_type: string; size: number };
+  created_at: number;
+}
+
+/** The fields the owner corrects, the date and total empty while unknown. */
+export interface ReceiptDraft {
+  merchant: string;
+  date: string;
+  total: string;
+  items: ReceiptItem[];
+}
+
+export interface ReceiptUpload {
+  name: string;
+  content_type: string;
+  /** Base64. */
+  content: string;
 }
 
 export interface Account {
@@ -330,6 +394,35 @@ export const api = {
       category,
       remember,
     }),
+  splitTransaction: (id: string, splits: SplitPart[]) =>
+    post<{ splits: SplitPart[] }>("/transactions/split/", {
+      id,
+      splits: splits.map((part) => ({ ...part, amount: String(part.amount) })),
+    }),
+  cashWallet: (space: string) => get<{ wallet: CashWallet }>(`/cash/?space=${space}`),
+  countCash: (space: string, balance: number) =>
+    post<{ wallet: CashWallet }>("/cash/count/", { space, balance: String(balance) }),
+  createCashEntry: (space: string, draft: CashEntryDraft) =>
+    post<{ transaction: Transaction }>("/cash/entries/create/", { space, ...draft, amount: String(draft.amount) }),
+  updateCashEntry: (id: string, draft: CashEntryDraft) =>
+    post<{ transaction: Transaction }>("/cash/entries/update/", { id, ...draft, amount: String(draft.amount) }),
+  deleteCashEntry: (id: string) => post("/cash/entries/delete/", { id }),
+  receipts: (space: string) => get<{ receipts: Receipt[] }>(`/receipts/?space=${space}`),
+  scanReceipt: (space: string, upload: ReceiptUpload) =>
+    post<{ receipt: Receipt }>("/receipts/scan/", { space, ...upload }),
+  updateReceipt: (id: string, draft: ReceiptDraft) =>
+    post<{ receipt: Receipt }>("/receipts/update/", {
+      id,
+      ...draft,
+      items: draft.items.map((item) => ({ ...item, amount: String(item.amount) })),
+    }),
+  deleteReceipt: (id: string) => post("/receipts/delete/", { id }),
+  receiptSuggestions: (id: string) =>
+    get<{ suggestions: Transaction[] }>(`/receipts/suggestions/?id=${id}`),
+  attachReceipt: (id: string, transaction: string) =>
+    post<{ receipt: Receipt; transaction: Transaction }>("/receipts/attach/", { id, transaction }),
+  bookReceiptAsCash: (id: string, category: Category) =>
+    post<{ receipt: Receipt; transaction: Transaction }>("/receipts/cash/", { id, category }),
   categories: () => get<{ categories: CategoryDetails[] }>("/categories/"),
   createCategory: (draft: CategoryDraft) =>
     post<{ category: CategoryDetails }>("/categories/create/", { ...draft, name: draft.name ?? "" }),
@@ -399,6 +492,10 @@ export const api = {
   unlinkPayment: (id: string) =>
     post<{ invoice: Invoice }>("/business/invoices/payments/unlink/", { id }),
 };
+
+/** Where the browser loads a receipt's photo or PDF. */
+export const receiptFileUrl = (id: string) =>
+  `/v1/receipts/file/?id=${encodeURIComponent(id)}`;
 
 /** Where the browser downloads an invoice's original file. */
 export const invoiceDocumentUrl = (id: string) =>

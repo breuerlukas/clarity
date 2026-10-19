@@ -9,7 +9,10 @@ import { balanceHistory } from "@/lib/statistics";
 const DAYS = 90;
 const CHANGE_DAYS = 30;
 
-/** All accounts together over the last 90 days, and the change in 30. */
+/**
+ * All bank accounts together over the last 90 days, and the change in 30.
+ * Cash entries stay out: they never touched these balances.
+ */
 export function BalanceCard({
   accounts,
   history,
@@ -19,7 +22,11 @@ export function BalanceCard({
 }) {
   const { t } = useTranslation();
   const balance = total(accounts.map((account) => account.balance ?? 0));
-  const curve = balanceHistory(history, balance).slice(-DAYS);
+  const banked = new Set(accounts.map((account) => account.id));
+  const curve = balanceHistory(
+    history.filter((transaction) => banked.has(transaction.account)),
+    balance,
+  ).slice(-DAYS);
   const reference = curve.length > CHANGE_DAYS ? curve[curve.length - 1 - CHANGE_DAYS] : null;
   return (
     <Panel

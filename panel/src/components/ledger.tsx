@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { Banknote, ReceiptText, Split } from "lucide-react";
 import { AmountBadge } from "@/components/amount-badge";
 import { CategoryIcon } from "@/components/category-icon";
 import { useCategoryLook } from "@/hooks/use-categories";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Transaction } from "@/lib/api";
+import { isCounted } from "@/lib/statistics";
 import { cn } from "@/lib/utils";
 
 export function Ledger({
@@ -52,9 +54,12 @@ export function LedgerDay({ label, children }: { label: string; children: ReactN
 
 export function LedgerRow({
   transaction,
+  cash = false,
   onSelect,
 }: {
   transaction: Transaction;
+  /** An entry of the cash wallet; without a counterparty it is a count. */
+  cash?: boolean;
   onSelect?: (transaction: Transaction) => void;
 }) {
   const { t } = useTranslation();
@@ -64,16 +69,19 @@ export function LedgerRow({
       <CategoryIcon category={transaction.category} />
       <span className="grid min-w-0 gap-0.5">
         <span className="truncate font-medium">
-          {transaction.counterparty || t("transactions.no_counterparty")}
+          {transaction.counterparty || t(cash ? "cash.correction" : "transactions.no_counterparty")}
         </span>
-        <span className="truncate text-sm text-muted-foreground">
-          {look(transaction.category).label}
+        <span className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <span className="truncate">{look(transaction.category).label}</span>
+          {cash && <Banknote className="size-3.5 shrink-0" aria-label={t("cash.title")} />}
+          {transaction.receipt && <ReceiptText className="size-3.5 shrink-0" aria-label={t("receipts.attached")} />}
+          {Boolean(transaction.splits?.length) && <Split className="size-3.5 shrink-0" aria-label={t("transactions.split")} />}
         </span>
       </span>
       <AmountBadge
         value={transaction.amount}
         currency={transaction.currency}
-        neutral={transaction.category === "TRANSFER"}
+        neutral={!isCounted(transaction)}
       />
     </>
   );

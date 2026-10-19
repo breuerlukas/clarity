@@ -89,3 +89,25 @@ describe("categoryMatrix and topCounterparties", () => {
     ]);
   });
 });
+
+describe("categoryParts", () => {
+  it("counts the parts of a split transaction and leaves ATM withdrawals out", () => {
+    const rows = categoryMatrix(
+      [
+        {
+          ...transaction("2026-10-02", -10, "GROCERIES"),
+          splits: [
+            { category: "GROCERIES", amount: -7 },
+            { category: "HEALTH", amount: -3 },
+          ],
+        },
+        transaction("2026-10-03", -100, "CASH"),
+      ],
+      ["2026-10"],
+    );
+    expect(rows.map((row) => [row.category, row.total])).toEqual([
+      ["GROCERIES", 7],
+      ["HEALTH", 3],
+    ]);
+  });
+});

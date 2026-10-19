@@ -1,0 +1,13 @@
+{
+  "total_labels": [
+    "zu zahlen", "summe", "gesamtsumme", "gesamtbetrag", "gesamt", "endbetrag",
+    "total", "amount due", "betrag"
+  ],
+  "other_lines": [
+    "zwischensumme", "subtotal", "mwst", "ust", "steuer", "netto", "brutto",
+    "tax", "vat", "rückgeld", "rueckgeld", "gegeben", "change", "bar",
+    "cash", "kartenzahlung", "girocard", "ec cash", "visa", "mastercard",
+    "maestro", "kontaktlos", "terminal", "beleg", "trace", "tse", "kasse",
+    "bon", "datum", "uhrzeit", "tel", "steuer nr", "ust id"
+  ]
+}

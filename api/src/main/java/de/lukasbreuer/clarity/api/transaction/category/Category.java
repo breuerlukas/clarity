@@ -24,8 +24,8 @@ import java.util.Set;
  * keys already stored on transactions and rules stay valid; own ones get a
  * random key. A built-in category without a name shows its translated label.
  * The system categories are the ones the logic depends on (payday,
- * transfers, fixed costs and the categorizer's fallbacks): they can be
- * renamed, but neither hidden nor deleted.
+ * transfers, cash withdrawals, fixed costs and the categorizer's
+ * fallbacks): they can be renamed, but neither hidden nor deleted.
  */
 @Entity
 @Table(name = "category")
@@ -38,9 +38,10 @@ public final class Category {
   public static final String INCOME = "INCOME";
   public static final String SUBSCRIPTIONS = "SUBSCRIPTIONS";
   public static final String TRANSFER = "TRANSFER";
+  public static final String CASH = "CASH";
   public static final String OTHER = "OTHER";
   private static final Set<String> SYSTEM_KEYS =
-    Set.of(SALARY, INCOME, SUBSCRIPTIONS, TRANSFER, OTHER);
+    Set.of(SALARY, INCOME, SUBSCRIPTIONS, TRANSFER, CASH, OTHER);
 
   @Id
   @Column(name = "category_key", nullable = false, updatable = false)
