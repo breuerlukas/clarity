@@ -369,8 +369,8 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
   const businessTransactions = demoBusinessTransactions(today, contracts);
   return {
     spaces: [
-      { id: PERSONAL_SPACE, slug: "home", name: "", icon: "wallet", kind: "PERSONAL" },
-      { id: BUSINESS_SPACE, slug: "agentur", name: "Agentur", icon: "palette", kind: "BUSINESS" },
+      { id: PERSONAL_SPACE, slug: "home", name: "", icon: "wallet", kind: "PERSONAL", monthly_budget: null },
+      { id: BUSINESS_SPACE, slug: "agentur", name: "Agentur", icon: "palette", kind: "BUSINESS", monthly_budget: null },
     ],
     categories: demoCategories(),
     connections: [...connections(today), ...demoBusinessConnections(today)],

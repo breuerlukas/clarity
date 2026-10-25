@@ -352,16 +352,31 @@
     "next": "Nächster Zeitraum"
   },
   "room": {
-    "title_salary": "Verfügbar bis zum Gehalt am {{date}}",
-    "title_month_end": "Verfügbar bis Monatsende",
+    "title_salary": "Noch frei bis zum Gehalt am {{date}}",
     "per_day_one": "<strong>{{amount}}</strong> für heute",
     "per_day_other": "Etwa <strong>{{amount}} pro Tag</strong> für {{days}} Tage",
-    "short": "Deine Alltagskonten decken die Fixkosten bis zum Gehalt nicht.",
     "progress": "Tag {{day}} von {{days}}",
     "fixed_until_payday_one": "Fixkosten bis dahin",
     "fixed_until_payday_other": "Fixkosten bis dahin ({{count}})",
     "everyday": "Alltagskonten",
-    "set_aside": "Für Sparziele zurückgelegt"
+    "set_aside": "Für Sparziele zurückgelegt",
+    "title_month": "Noch frei diesen Monat",
+    "edit_budget": "Monatsbudget ändern",
+    "of_budget": "von {{limit}}",
+    "of_suggested": "von {{limit}} (Gehalt minus Fixkosten)",
+    "over": "{{amount}} über dem Budget.",
+    "set_budget": "Monatsbudget festlegen",
+    "on_accounts": "Frei auf den Konten",
+    "uncovered": "Deine Alltagskonten decken davon nur {{amount}}.",
+    "spent": "{{amount}} ausgegeben · Tag {{day}} von {{days}}",
+    "budget_title": "Monatsbudget",
+    "budget_hint": "Was du pro Gehaltszeitraum zusätzlich zu den Fixkosten ausgeben willst: Einkaufen, Essen gehen, Shopping. Fixkosten zählen nicht dagegen.",
+    "budget_amount": "Budget pro Gehaltszeitraum",
+    "use_suggestion": "Gehalt minus Fixkosten verwenden",
+    "errors": {
+      "5001": "Diesen Bereich gibt es nicht mehr.",
+      "5004": "Gib einen Betrag über null ein."
+    }
   },
   "budgets": {
     "title": "Budgets bis zum Gehalt",

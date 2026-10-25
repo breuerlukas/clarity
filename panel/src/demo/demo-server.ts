@@ -94,6 +94,8 @@ export async function handleDemoRequest(
       return createSpace(String(body.name ?? "").trim(), String(body.icon), String(body.kind) as SpaceKind);
     case "POST /spaces/update/":
       return updateSpace(String(body.id), String(body.name ?? "").trim(), String(body.icon));
+    case "POST /spaces/budget/":
+      return changeMonthlyBudget(String(body.id), String(body.amount ?? ""));
     case "POST /spaces/delete/":
       return deleteSpace(String(body.id));
     case "GET /connections/":
@@ -271,7 +273,7 @@ function createSpace(name: string, icon: string, kind: SpaceKind) {
   if (!name || !["PERSONAL", "BUSINESS"].includes(kind)) {
     throw new ApiError(400, 5000);
   }
-  const space = { id: `space-${Date.now()}`, slug: slugFor(name), name, icon, kind };
+  const space = { id: `space-${Date.now()}`, slug: slugFor(name), name, icon, kind, monthly_budget: null };
   database.spaces.push(space);
   return ok({ space });
 }
@@ -334,6 +336,19 @@ function updateRecurringSetting(body: Record<string, unknown>) {
   const dismissed = payment.dismissed_last_date === payment.last_date;
   payment.status = ended ? "ENDED" : dismissed ? "ACTIVE" : (detectedStatus(payment, new Date()) ?? "ENDED");
   return ok();
+}
+
+/** Checked like the api does: a positive amount with cents at most, or none. */
+function changeMonthlyBudget(id: string, amount: string) {
+  const space = database.spaces.find((entry) => entry.id === id);
+  if (!space) {
+    throw new ApiError(400, 5001);
+  }
+  if (amount && (!/^\d{1,9}(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0)) {
+    throw new ApiError(400, 5004);
+  }
+  space.monthly_budget = amount ? Number(amount) : null;
+  return ok({ space });
 }
 
 function categorize(id: string, category: Category, remember: boolean) {

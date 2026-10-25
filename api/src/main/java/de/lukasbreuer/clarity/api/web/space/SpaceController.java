@@ -60,7 +60,7 @@ public final class SpaceController {
     return spaceRepository.findAll()
       .thenCompose(spaces -> spaceRepository.save(Space.create(
         UUID.randomUUID(), SpaceSlug.of(slugs(spaces, null)).forName(name),
-        name, icon, kind.get(), System.currentTimeMillis())))
+        name, icon, kind.get(), System.currentTimeMillis(), null)))
       .thenApply(space -> ApiResponse.success(Map.of("space",
         space.information())));
   }
