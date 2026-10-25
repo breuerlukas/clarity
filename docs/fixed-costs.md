@@ -28,8 +28,21 @@ Detection runs anew each time, so the owner's decisions live apart in
 | `cancelled_on` | ended once the next booking would fall on or after it |
 | `dismissed_last_date` | "still running": active while the last booking is this one |
 | `notice_days` | `cancel_by` = next booking minus these days |
+| `ignored` | no fixed cost at all: left out of every total, the spending room, reminders and price-change mails; listed apart, to be counted again |
 
 A dismissal only covers the gap it was made for; once the payment books
 again and stops later, it goes missing anew. The overview reminds of every
 running payment whose `cancel_by` lies within the next two weeks, until the
 notifications of #22 take that over.
+
+## The bookings behind it
+
+The fixed cost dialog lists the bookings it was found in. The panel picks
+them from the last 13 months it already holds (`recurringBookings` in
+`lib/overview.ts`), grouping debits the same way the detector does: by
+counterparty, or by purpose without one, ignoring case and spacing.
+
+## Accounts without a currency
+
+Multi-currency accounts such as PayPal report `XXX` (no currency) for the
+account. On sync such an account takes the currency of its balance instead.

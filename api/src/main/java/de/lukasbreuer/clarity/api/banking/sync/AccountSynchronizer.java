@@ -65,15 +65,16 @@ public final class AccountSynchronizer {
   ) {
     return client.get("/accounts/" + account.uid() + "/balances", headers)
       .thenApply(response -> BalanceSelection.of(response
-        .optJSONArray("balances", new JSONArray())).select())
-      .thenApply(balance -> applyBalance(account, balance));
+        .optJSONArray("balances", new JSONArray())))
+      .thenApply(balances -> applyBalance(account, balances));
   }
 
   private Optional<BigDecimal> applyBalance(
-    BankAccount account, Optional<BigDecimal> balance
+    BankAccount account, BalanceSelection balances
   ) {
-    balance.ifPresent(account::updateBalance);
-    return balance;
+    balances.currency().ifPresent(account::adoptBalanceCurrency);
+    balances.select().ifPresent(account::updateBalance);
+    return balances.select();
   }
 
   private BankAccount succeeded(BankAccount account) {

@@ -8,7 +8,10 @@ import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
 import de.lukasbreuer.clarity.api.space.Space;
 import de.lukasbreuer.clarity.api.space.SpaceRepository;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
+import de.lukasbreuer.clarity.api.transaction.recurring.RecurringPayment;
 import de.lukasbreuer.clarity.api.transaction.recurring.RecurringPaymentDetector;
+import de.lukasbreuer.clarity.api.transaction.recurring.RecurringSetting;
+import de.lukasbreuer.clarity.api.transaction.recurring.RecurringSettingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +26,7 @@ import java.util.stream.Stream;
 /**
  * Gathers what NotificationEvents looks at: every bank connection and
  * account, and the fixed costs of every space, found the same way as for
- * the fixed costs page.
+ * the fixed costs page; those the owner said are none stay out.
  */
 @Component
 @RequiredArgsConstructor
@@ -35,6 +38,7 @@ public final class NotificationSources {
   private final SpaceRepository spaceRepository;
   private final AccountScope accountScope;
   private final TransactionRepository transactionRepository;
+  private final RecurringSettingRepository settingRepository;
 
   public CompletableFuture<List<Notification>> collect(
     NotificationEvents events, LocalDate today
@@ -69,8 +73,19 @@ public final class NotificationSources {
     return accountScope.accountIds(spaceId)
       .thenCompose(accountIds -> transactionRepository.findByAccountsBetween(
         accountIds, today.minusDays(HISTORY_DAYS), today))
-      .thenApply(transactions -> events.priceChanges(spaceId,
-        RecurringPaymentDetector.create(today).detect(transactions)));
+      .thenApply(RecurringPaymentDetector.create(today)::detect)
+      .thenCombine(settingRepository.findBySpaceId(spaceId),
+        this::withoutIgnored)
+      .thenApply(payments -> events.priceChanges(spaceId, payments));
+  }
+
+  private List<RecurringPayment> withoutIgnored(
+    List<RecurringPayment> payments, List<RecurringSetting> settings
+  ) {
+    var ignored = settings.stream().filter(RecurringSetting::isIgnored)
+      .map(RecurringSetting::paymentKey).collect(Collectors.toSet());
+    return payments.stream()
+      .filter(payment -> !ignored.contains(payment.key())).toList();
   }
 
   private CompletableFuture<List<Notification>> joined(

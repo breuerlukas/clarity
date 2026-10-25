@@ -397,7 +397,13 @@
     "reminder": "{{counterparty}} bis {{date}} kündigen, sonst verlängert es sich am {{renewal}}.",
     "errors": {
       "3008": "Prüf Enddatum und Kündigungsfrist."
-    }
+    },
+    "ignore": "Keine Fixkosten",
+    "count_again": "Wieder als Fixkosten zählen",
+    "group_ignored": "Keine Fixkosten",
+    "bookings_one": "{{count}} Buchung",
+    "bookings_other": "{{count}} Buchungen",
+    "no_bookings": "Keine Buchung in den letzten 13 Monaten."
   },
   "goals": {
     "title": "Sparziele",

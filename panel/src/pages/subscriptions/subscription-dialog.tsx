@@ -9,15 +9,19 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { AmountBadge } from "@/components/amount-badge";
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
+import { useHistory } from "@/hooks/use-finances";
 import { useSpace } from "@/hooks/use-space";
 import { api, ApiError, type RecurringPayment, type RecurringSettingDraft } from "@/lib/api";
 import { formatDate } from "@/lib/format";
+import { recurringBookings } from "@/lib/overview";
 
 /**
  * What the owner knows better than the bookings: that a fixed cost was
- * cancelled and when it ends, that a missing one still runs, and the notice
+ * cancelled and when it ends, that a missing one still runs, that it is no
+ * fixed cost at all, and the notice
  * period to be reminded of before it renews.
  */
 export function SubscriptionDialog({
@@ -49,6 +53,7 @@ function SubscriptionForm({ payment, onClose }: { payment: RecurringPayment; onC
     cancelled_on: cancelledOn,
     dismissed_last_date: payment.dismissed_last_date ?? "",
     notice_days: noticeDays,
+    ignored: payment.ignored,
   };
   const save = useMutation({
     mutationFn: (changes: Partial<RecurringSettingDraft>) =>
@@ -102,6 +107,7 @@ function SubscriptionForm({ payment, onClose }: { payment: RecurringPayment; onC
           placeholder={t("subscriptions.notice_days_placeholder")}
           hint={t("subscriptions.notice_days_hint")}
         />
+        <Bookings payment={payment} />
         {save.isError && (
           <Notice>
             {save.error instanceof ApiError && save.error.code === 3008
@@ -109,7 +115,16 @@ function SubscriptionForm({ payment, onClose }: { payment: RecurringPayment; onC
               : t("common.error")}
           </Notice>
         )}
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button
+            type="button"
+            variant="link"
+            className="mr-auto px-0 text-muted-foreground"
+            disabled={save.isPending}
+            onClick={() => save.mutate({ ignored: !payment.ignored })}
+          >
+            {t(payment.ignored ? "subscriptions.count_again" : "subscriptions.ignore")}
+          </Button>
           <DialogClose asChild>
             <Button type="button" variant="outline">
               {t("common.cancel")}
@@ -121,5 +136,29 @@ function SubscriptionForm({ payment, onClose }: { payment: RecurringPayment; onC
         </div>
       </form>
     </>
+  );
+}
+
+/** The bookings it was found in, from the last 13 months the panel holds. */
+function Bookings({ payment }: { payment: RecurringPayment }) {
+  const { t } = useTranslation();
+  const history = useHistory();
+  const bookings = recurringBookings(payment, history.data ?? []);
+  return (
+    <section className="grid gap-2">
+      <h3 className="text-sm font-bold text-label">{t("subscriptions.bookings", { count: bookings.length })}</h3>
+      {history.data && bookings.length === 0 && <p className="text-sm text-muted-foreground">{t("subscriptions.no_bookings")}</p>}
+      <ul className="zebra -mx-2 max-h-56 overflow-y-auto">
+        {bookings.map((booking) => (
+          <li key={booking.id} className="zebra-row flex items-center justify-between gap-3 rounded-xl px-2 py-1.5 text-sm">
+            <span className="min-w-0">
+              <span className="block">{formatDate(booking.date)}</span>
+              {booking.description && <span className="block truncate text-xs text-muted-foreground">{booking.description}</span>}
+            </span>
+            <AmountBadge value={booking.amount} currency={booking.currency} />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

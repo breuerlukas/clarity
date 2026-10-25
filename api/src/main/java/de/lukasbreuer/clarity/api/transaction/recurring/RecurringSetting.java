@@ -45,13 +45,25 @@ public final class RecurringSetting {
   private LocalDate dismissedLastDate;
   @Column(name = "notice_days")
   private Integer noticeDays;
+  /**
+   * Not a fixed cost at all, only bookings that happen to look like one.
+   * Null on rows from before the column existed.
+   */
+  @Column(name = "ignored")
+  private Boolean ignored;
 
   public void change(
-    LocalDate cancelledOn, LocalDate dismissedLastDate, Integer noticeDays
+    LocalDate cancelledOn, LocalDate dismissedLastDate, Integer noticeDays,
+    boolean ignored
   ) {
     this.cancelledOn = cancelledOn;
     this.dismissedLastDate = dismissedLastDate;
     this.noticeDays = noticeDays;
+    this.ignored = ignored;
+  }
+
+  public boolean isIgnored() {
+    return Boolean.TRUE.equals(ignored);
   }
 
   public boolean endsBefore(LocalDate nextDate) {

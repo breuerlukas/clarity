@@ -66,6 +66,22 @@ export function cancellationReminders(payments: RecurringPayment[], today: strin
     .sort((first, second) => String(first.cancel_by).localeCompare(String(second.cancel_by)));
 }
 
+/**
+ * The bookings a fixed cost was found in, newest first: debits grouped the
+ * way the api's RecurringPaymentDetector groups them, by counterparty or,
+ * without one, by purpose, ignoring case and spacing.
+ */
+export function recurringBookings(payment: RecurringPayment, transactions: Transaction[]): Transaction[] {
+  const key = (transaction: Transaction) =>
+    (transaction.counterparty.trim() ? transaction.counterparty : transaction.description)
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+  return transactions
+    .filter((transaction) => transaction.amount < 0 && transaction.category !== "TRANSFER" && key(transaction) === payment.key)
+    .sort((first, second) => second.date.localeCompare(first.date));
+}
+
 export function total(amounts: number[]): number {
   return amounts.reduce((sum, amount) => sum + cents(amount), 0) / 100;
 }

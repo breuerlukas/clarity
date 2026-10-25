@@ -81,6 +81,8 @@ public final class RecurringPayment {
     information.put("dismissed_last_date", setting
       .map(RecurringSetting::dismissedLastDate).map(LocalDate::toString)
       .orElse(null));
+    information.put("ignored", setting.filter(RecurringSetting::isIgnored)
+      .isPresent());
     information.put("notice_days", setting.map(RecurringSetting::noticeDays)
       .orElse(null));
     information.put("cancel_by", setting.flatMap(entry ->
