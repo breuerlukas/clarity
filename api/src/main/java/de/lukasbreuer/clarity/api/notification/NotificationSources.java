@@ -1,0 +1,89 @@
+package de.lukasbreuer.clarity.api.notification;
+
+import de.lukasbreuer.clarity.api.banking.account.AccountScope;
+import de.lukasbreuer.clarity.api.banking.account.BankAccount;
+import de.lukasbreuer.clarity.api.banking.account.BankAccountRepository;
+import de.lukasbreuer.clarity.api.banking.connection.BankConnection;
+import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
+import de.lukasbreuer.clarity.api.space.Space;
+import de.lukasbreuer.clarity.api.space.SpaceRepository;
+import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
+import de.lukasbreuer.clarity.api.transaction.recurring.RecurringPaymentDetector;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+/**
+ * Gathers what NotificationEvents looks at: every bank connection and
+ * account, and the fixed costs of every space, found the same way as for
+ * the fixed costs page.
+ */
+@Component
+@RequiredArgsConstructor
+public final class NotificationSources {
+  private static final int HISTORY_DAYS = 400;
+
+  private final BankConnectionRepository connectionRepository;
+  private final BankAccountRepository accountRepository;
+  private final SpaceRepository spaceRepository;
+  private final AccountScope accountScope;
+  private final TransactionRepository transactionRepository;
+
+  public CompletableFuture<List<Notification>> collect(
+    NotificationEvents events, LocalDate today
+  ) {
+    return connectionRepository.findAll()
+      .thenCombine(accountRepository.findAll(), (connections, accounts) ->
+        bankEvents(events, connections, accounts))
+      .thenCombine(priceEvents(events, today), this::joined);
+  }
+
+  private List<Notification> bankEvents(
+    NotificationEvents events, List<BankConnection> connections,
+    List<BankAccount> accounts
+  ) {
+    var byId = connections.stream().collect(Collectors.toMap(
+      BankConnection::id, Function.identity()));
+    return joined(events.consents(connections),
+      events.failingSyncs(accounts, byId));
+  }
+
+  private CompletableFuture<List<Notification>> priceEvents(
+    NotificationEvents events, LocalDate today
+  ) {
+    return spaceRepository.findAll()
+      .thenCompose(spaces -> joined(spaces.stream().map(Space::id)
+        .map(spaceId -> priceEvents(events, spaceId, today)).toList()));
+  }
+
+  private CompletableFuture<List<Notification>> priceEvents(
+    NotificationEvents events, UUID spaceId, LocalDate today
+  ) {
+    return accountScope.accountIds(spaceId)
+      .thenCompose(accountIds -> transactionRepository.findByAccountsBetween(
+        accountIds, today.minusDays(HISTORY_DAYS), today))
+      .thenApply(transactions -> events.priceChanges(spaceId,
+        RecurringPaymentDetector.create(today).detect(transactions)));
+  }
+
+  private CompletableFuture<List<Notification>> joined(
+    List<CompletableFuture<List<Notification>>> futures
+  ) {
+    return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+      .thenApply(_ -> futures.stream()
+        .flatMap(future -> future.join().stream()).toList());
+  }
+
+  private List<Notification> joined(
+    List<Notification> first, List<Notification> second
+  ) {
+    return Stream.concat(first.stream(), second.stream()).toList();
+  }
+}

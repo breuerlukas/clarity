@@ -294,7 +294,35 @@
     "session_close": "Sign out",
     "version": "Version {{version}}",
     "section_categories": "Categories",
-    "description_categories": "Names, icons and keywords"
+    "description_categories": "Names, icons and keywords",
+    "section_notifications": "Notifications",
+    "description_notifications": "Mails about your accounts"
+  },
+  "notifications": {
+    "enabled": "Send notifications",
+    "enabled_hint": "Mails for what happens while Clarity is closed.",
+    "host": "SMTP server",
+    "port": "Port",
+    "security": "Encryption",
+    "username": "User name",
+    "password": "Password",
+    "password_keep": "Leave empty to keep the stored one.",
+    "sender": "From",
+    "recipient": "To",
+    "consent_events": "Bank access",
+    "consent_events_hint": "A week before it expires, and once it has.",
+    "sync_events": "Failing updates",
+    "sync_events_hint": "When an account couldn't be read for a day.",
+    "price_events": "Price changes",
+    "price_events_hint": "When a fixed cost charges a different amount.",
+    "test": "Send test mail",
+    "test_sent": "Test mail sent to {{recipient}}.",
+    "errors": {
+      "1007": "Check the server, addresses and password.",
+      "1008": "The test mail couldn't be sent. Check server, port and login.",
+      "1009": "Save the settings first.",
+      "9000": "The demo sends no mails."
+    }
   },
   "period": {
     "label": "Period",

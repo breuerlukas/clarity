@@ -1,18 +1,20 @@
 import { useTranslation } from "react-i18next";
-import { Settings2, Shapes, ShieldCheck, UserRound, type LucideIcon } from "lucide-react";
+import { Bell, Settings2, Shapes, ShieldCheck, UserRound, type LucideIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { AppearanceSection } from "@/pages/settings/appearance-section";
 import { AccountSection } from "@/pages/settings/account-section";
 import { CategoriesSection } from "@/pages/settings/categories-section";
+import { NotificationsSection } from "@/pages/settings/notifications-section";
 import { SecuritySection } from "@/pages/settings/security-section";
 import packageInformation from "@/../package.json";
 
-export type SettingsSectionId = "appearance" | "categories" | "account" | "security";
+export type SettingsSectionId = "appearance" | "categories" | "notifications" | "account" | "security";
 
 const SECTIONS: { id: SettingsSectionId; icon: LucideIcon; Content: () => React.ReactNode }[] = [
   { id: "appearance", icon: Settings2, Content: AppearanceSection },
   { id: "categories", icon: Shapes, Content: CategoriesSection },
+  { id: "notifications", icon: Bell, Content: NotificationsSection },
   { id: "account", icon: UserRound, Content: AccountSection },
   { id: "security", icon: ShieldCheck, Content: SecuritySection },
 ];
