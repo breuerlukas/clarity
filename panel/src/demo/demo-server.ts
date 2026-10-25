@@ -7,6 +7,7 @@ import {
   type Invoice,
   type InvoiceDraft,
   type MatchReason,
+  type NotificationSettings,
   type OwnerSession,
   type PaymentKind,
   type SpaceKind,
@@ -40,6 +41,9 @@ const sessions: OwnerSession[] = [
   { id: "phone", ip_address: "100.64.0.7", platform: "iOS", browser: "Safari", mobile: true, opened_at: Date.now() - 86_400_000 * 3, last_seen_at: Date.now() - 7_200_000, current: false },
 ];
 
+/** Kept in memory; the demo never sends a mail. */
+let notifications: NotificationSettings | null = null;
+
 const DEMO_ONLY = 9000;
 const ok = (data: object = {}) => ({ success: true, ...data });
 
@@ -69,6 +73,13 @@ export async function handleDemoRequest(
     case "POST /account/name/":
       owner = String(body.name);
       return ok();
+    case "GET /notifications/":
+      return ok({ settings: notifications ?? {} });
+    case "POST /notifications/update/":
+      notifications = { ...(body as unknown as NotificationSettings), has_password: true };
+      return ok({ settings: notifications });
+    case "POST /notifications/test/":
+      throw new ApiError(400, DEMO_ONLY);
     case "GET /sessions/":
       return ok({ sessions });
     case "POST /sessions/close/":
