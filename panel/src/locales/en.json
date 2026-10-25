@@ -403,7 +403,9 @@
     "group_ignored": "Not fixed costs",
     "bookings_one": "{{count}} booking",
     "bookings_other": "{{count}} bookings",
-    "no_bookings": "No booking in the last 13 months."
+    "no_bookings": "No booking in the last 13 months.",
+    "name": "Name",
+    "name_hint": "Leave empty for the name from the bookings."
   },
   "goals": {
     "title": "Savings goals",

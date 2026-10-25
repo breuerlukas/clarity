@@ -50,6 +50,17 @@ final class RecurringStatusTest {
       .get("ignored"));
   }
 
+  @Test
+  void showsTheOwnersNameInsteadOfTheOneFromTheBookings() {
+    var setting = setting(null, null).orElseThrow();
+    var today = LocalDate.parse("2026-09-10");
+    assertEquals(null, netflix().information(today, Optional.of(setting))
+      .get("name"));
+    setting.rename("Netflix Standard");
+    assertEquals("Netflix Standard", netflix().information(today,
+      Optional.of(setting)).get("name"));
+  }
+
   private RecurringStatus status(String today) {
     return netflix().status(LocalDate.parse(today), Optional.empty());
   }
@@ -67,6 +78,6 @@ final class RecurringStatusTest {
       UUID.randomUUID(), "netflix",
       cancelledOn == null ? null : LocalDate.parse(cancelledOn),
       dismissedLastDate == null ? null : LocalDate.parse(dismissedLastDate),
-      null, null));
+      null, null, null));
   }
 }

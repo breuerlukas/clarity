@@ -485,6 +485,7 @@ function recurring(today: Date, transactions: Transaction[]): RecurringPayment[]
       cancelled_on: null,
       dismissed_last_date: null,
       ignored: false,
+      name: null,
       notice_days: cost.noticeDays ?? null,
       cancel_by: cost.noticeDays === undefined ? null : isoDate(cancelBy),
     };

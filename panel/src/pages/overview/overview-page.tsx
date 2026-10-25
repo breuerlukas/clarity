@@ -13,7 +13,7 @@ import { budgetUsage, cashAccount, spendingRoom } from "@/lib/budget";
 import { isoDate } from "@/lib/dates";
 import { formatDate } from "@/lib/format";
 import { setAsideForGoals } from "@/lib/goals";
-import { cancellationReminders } from "@/lib/overview";
+import { cancellationReminders, paymentName } from "@/lib/overview";
 import { SpendingRoomCard } from "@/pages/overview/spending-room-card";
 import { BudgetsCard } from "@/pages/overview/budgets-card";
 import { AccountsCard } from "@/pages/overview/accounts-card";
@@ -58,7 +58,7 @@ export function OverviewPage() {
         <Notice key={payment.key} className="mb-4">
           <Link to={path("/subscriptions")} className="underline-offset-4 hover:underline">
             {t("subscriptions.reminder", {
-              counterparty: payment.counterparty,
+              counterparty: paymentName(payment),
               date: formatDate(payment.cancel_by ?? ""),
               renewal: formatDate(payment.next_date),
             })}
