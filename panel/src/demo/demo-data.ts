@@ -10,6 +10,7 @@ import type {
   Mailbox,
   Receipt,
   RecurringPayment,
+  SavingsGoal,
   Space,
   Transaction,
 } from "@/lib/api";
@@ -203,6 +204,7 @@ export interface DemoDatabase {
   /** Started ones; the cash entries are among the transactions. */
   wallets: CashWallet[];
   receipts: Receipt[];
+  goals: SavingsGoal[];
 }
 
 export function createDemoDatabase(today = TODAY()): DemoDatabase {
@@ -374,6 +376,11 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
     mailboxes: demoMailboxes(today),
     wallets: [demoWallet(PERSONAL_SPACE, today)],
     receipts,
+    goals: [
+      { id: "goal-holiday", space: PERSONAL_SPACE, name: "Sommerurlaub Portugal", icon: "plane", target: 1800, target_date: isoDate(new Date(today.getFullYear() + 1, 5, 1)), account: null, saved: 650, created_at: today.getTime() - 86_400_000 * 90 },
+      { id: "goal-buffer", space: PERSONAL_SPACE, name: "Notgroschen", icon: "shield-check", target: 15000, target_date: null, account: "savings", saved: 0, created_at: today.getTime() - 86_400_000 * 200 },
+      { id: "goal-laptop", space: PERSONAL_SPACE, name: "Neuer Laptop", icon: "smartphone", target: 1400, target_date: null, account: null, saved: 320, created_at: today.getTime() - 86_400_000 * 30 },
+    ],
   };
 }
 

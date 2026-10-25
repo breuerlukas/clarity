@@ -6,8 +6,10 @@ import { PageHeader, PanelSkeleton } from "@/components/panel";
 import { SyncButton } from "@/components/sync-button";
 import { useCashWallet } from "@/hooks/use-cash";
 import { useConnections, useHistory, useRecurringPayments } from "@/hooks/use-finances";
+import { useGoals } from "@/hooks/use-goals";
 import { useSpacePath } from "@/hooks/use-space";
 import { cashAccount, spendingRoom } from "@/lib/budget";
+import { setAsideForGoals } from "@/lib/goals";
 import { SpendingRoomCard } from "@/pages/overview/spending-room-card";
 import { AccountsCard } from "@/pages/overview/accounts-card";
 import { ActivityCard } from "@/pages/overview/activity-card";
@@ -25,21 +27,23 @@ export function OverviewPage() {
   const recurring = useRecurringPayments();
   const history = useHistory();
   const cash = useCashWallet();
+  const goals = useGoals();
   const path = useSpacePath();
   if (connections.data?.length === 0) {
     return <EmptyOverview />;
   }
   const accounts = connections.data?.flatMap((connection) => connection.accounts);
+  const everyday = accounts && cash.data ? [...accounts, cashAccount(cash.data, t("cash.title"))] : null;
   const room =
-    accounts && recurring.data && history.data && cash.data
-      ? spendingRoom([...accounts, cashAccount(cash.data, t("cash.title"))], recurring.data, history.data)
+    everyday && recurring.data && history.data && goals.data
+      ? spendingRoom(everyday, recurring.data, history.data, new Date(), setAsideForGoals(goals.data, everyday))
       : null;
   return (
     <>
       <PageHeader title={t("nav.overview")}>
         <SyncButton connections={connections.data} />
       </PageHeader>
-      {(connections.isError || recurring.isError || history.isError || cash.isError) && (
+      {(connections.isError || recurring.isError || history.isError || cash.isError || goals.isError) && (
         <Notice className="mb-6">{t("common.error")}</Notice>
       )}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">

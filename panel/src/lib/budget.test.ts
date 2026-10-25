@@ -27,6 +27,12 @@ describe("spendingRoom", () => {
     expect(room.perDay).toBe(98);
   });
 
+  it("takes money set aside for goals out of the room", () => {
+    const room = spendingRoom([account(1500, true)], [], [salary("2026-09-27")], today, 400);
+    expect(room.setAside).toBe(400);
+    expect(room.room).toBe(1100);
+  });
+
   it("rolls payday forward and falls back to the end of the month", () => {
     expect(spendingRoom([], [], [salary("2026-08-27")], today).payday).toBe("2026-10-27");
     const fallback = spendingRoom([], [], [], today);
