@@ -40,8 +40,9 @@ export function ConnectionCard({
   const [removing, setRemoving] = useState(false);
   const [now] = useState(Date.now);
   const daysLeft = Math.ceil((connection.valid_until - now) / DAY);
-  // 0 for an account that was never synced.
-  const oldest = Math.min(...connection.accounts.map((account) => account.last_synced_at));
+  // 0 for an account that was never synced, and for a connection the bank
+  // shared no account with (Math.min of nothing is Infinity).
+  const oldest = connection.accounts.length ? Math.min(...connection.accounts.map((account) => account.last_synced_at)) : 0;
   return (
     <Panel title={connection.bank_name} aside={<AccessBadge daysLeft={daysLeft} validUntil={connection.valid_until} />}>
       <ul className="-my-3 divide-y divide-divider">
