@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/components/field";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { Notice } from "@/components/notice";
 import { api, ApiError, receiptFileUrl, type Receipt, type ReceiptDraft } from "@/lib/api";
 
@@ -40,7 +41,6 @@ export function ReceiptReview({
   const [items, setItems] = useState<ItemRow[]>(
     receipt.items.map((item) => ({ name: item.name, amount: decimal(item.amount) })),
   );
-  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const draft = (): ReceiptDraft => ({
     merchant: merchant.trim(),
     date,
@@ -129,15 +129,15 @@ export function ReceiptReview({
           </Notice>
         )}
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant={confirmDiscard ? "destructive" : "link"}
-            className={confirmDiscard ? "mr-auto" : "mr-auto px-0 text-muted-foreground"}
-            disabled={discard.isPending}
-            onClick={() => (confirmDiscard ? discard.mutate() : setConfirmDiscard(true))}
-          >
-            {t(confirmDiscard ? "receipts.discard_confirm" : "receipts.discard")}
-          </Button>
+          <ConfirmDelete
+            label={t("receipts.discard")}
+            name={receipt.merchant}
+            consequence={t("receipts.discard_consequence")}
+            pending={discard.isPending}
+            error={discard.error}
+            errors="receipts"
+            onConfirm={() => discard.mutate()}
+          />
           <Button type="submit" loading={save.isPending}>
             {t("receipts.continue")}
           </Button>

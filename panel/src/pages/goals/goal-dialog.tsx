@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Field } from "@/components/field";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { Notice } from "@/components/notice";
 import { Segmented } from "@/components/segmented";
 import { useSpace } from "@/hooks/use-space";
@@ -133,9 +134,15 @@ function GoalForm({ goal, accounts, onClose }: { goal: SavingsGoal | null; accou
       {error && <Notice>{t(`goals.errors.${error instanceof ApiError ? error.code : ""}`, { defaultValue: t("common.error") })}</Notice>}
       <div className="flex flex-wrap items-center justify-end gap-2">
         {goal && (
-          <Button type="button" variant="link" className="mr-auto px-0 text-muted-foreground" disabled={remove.isPending} onClick={() => remove.mutate()}>
-            {t("goals.delete")}
-          </Button>
+          <ConfirmDelete
+            label={t("goals.delete")}
+            name={goal.name}
+            consequence={t("goals.delete_consequence")}
+            pending={remove.isPending}
+            error={remove.error}
+            errors="goals"
+            onConfirm={() => remove.mutate()}
+          />
         )}
         <Button type="button" variant="outline" onClick={onClose}>
           {t("common.cancel")}

@@ -3,13 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PiggyBank, RefreshCw, Trash2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { Notice } from "@/components/notice";
 import { HideAccount, MoveAccount } from "@/pages/accounts/account-actions";
 import { Panel } from "@/components/panel";
@@ -38,7 +32,11 @@ export function ConnectionCard({
   business?: boolean;
 }) {
   const { t } = useTranslation();
-  const [removing, setRemoving] = useState(false);
+  const queryClient = useQueryClient();
+  const remove = useMutation({
+    mutationFn: () => api.removeConnection(connection.id),
+    onSuccess: () => queryClient.invalidateQueries(),
+  });
   const [now] = useState(Date.now);
   const daysLeft = Math.ceil((connection.valid_until - now) / DAY);
   // 0 for an account that was never synced, and for a connection the bank
@@ -61,21 +59,22 @@ export function ConnectionCard({
             {t("accounts.renew")}
           </Button>
         )}
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-muted-foreground hover:text-destructive"
-          onClick={() => setRemoving(true)}
-        >
-          <Trash2 />
-          {t("accounts.remove")}
-        </Button>
+        <ConfirmDelete
+          label={t("accounts.remove_title", { bank: connection.bank_name })}
+          name={connection.bank_name}
+          consequence={t("accounts.remove_text")}
+          pending={remove.isPending}
+          error={remove.error}
+          errors="accounts"
+          onConfirm={() => remove.mutate()}
+          trigger={(open) => (
+            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={open}>
+              <Trash2 />
+              {t("accounts.remove")}
+            </Button>
+          )}
+        />
       </div>
-      <RemoveDialog
-        connection={connection}
-        open={removing}
-        onOpenChange={setRemoving}
-      />
     </Panel>
   );
 }
@@ -140,50 +139,6 @@ function AccountRow({ account, business }: { account: Account; business: boolean
   );
 }
 
-function RemoveDialog({
-  connection,
-  open,
-  onOpenChange,
-}: {
-  connection: Connection;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const remove = useMutation({
-    mutationFn: () => api.removeConnection(connection.id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries();
-      onOpenChange(false);
-    },
-  });
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent closeLabel={t("common.cancel")}>
-        <div className="grid gap-2">
-          <DialogTitle>
-            {t("accounts.remove_title", { bank: connection.bank_name })}
-          </DialogTitle>
-          <DialogDescription>{t("accounts.remove_text")}</DialogDescription>
-        </div>
-        {remove.isError && <Notice>{t("common.error")}</Notice>}
-        <div className="flex flex-wrap justify-end gap-2">
-          <DialogClose asChild>
-            <Button variant="outline">{t("common.cancel")}</Button>
-          </DialogClose>
-          <Button
-            variant="destructive"
-            disabled={remove.isPending}
-            onClick={() => remove.mutate()}
-          >
-            {t("accounts.remove_confirm")}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 /**
  * Everyday accounts count towards the room until payday, savings don't; the
  * same words the overview shows next to each account. Shows the new choice

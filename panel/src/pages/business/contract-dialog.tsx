@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Field } from "@/components/field";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { Notice } from "@/components/notice";
 import { useSpace } from "@/hooks/use-space";
 import { api, ApiError, type BillingInterval, type Contract, type ContractDraft } from "@/lib/api";
@@ -102,7 +103,6 @@ function ContractForm({
   const customerList = useId();
   const intervalId = useId();
   const [form, setForm] = useState<Form>(() => (contract ? formOf(contract) : emptyForm()));
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const done = async () => {
     await queryClient.invalidateQueries({ queryKey: ["contracts"] });
     await queryClient.invalidateQueries({ queryKey: ["business-transactions"] });
@@ -208,15 +208,15 @@ function ContractForm({
         )}
         <div className="flex flex-wrap items-center justify-end gap-2">
           {contract && (
-            <Button
-              type="button"
-              variant={confirmDelete ? "destructive" : "link"}
-              className={confirmDelete ? "mr-auto" : "mr-auto px-0 text-muted-foreground"}
-              disabled={remove.isPending}
-              onClick={() => (confirmDelete ? remove.mutate() : setConfirmDelete(true))}
-            >
-              {t(confirmDelete ? "business.delete_confirm" : "business.delete")}
-            </Button>
+            <ConfirmDelete
+              label={t("business.delete")}
+              name={contract.customer}
+              consequence={t("business.delete_consequence")}
+              pending={remove.isPending}
+              error={remove.error}
+              errors="business"
+              onConfirm={() => remove.mutate()}
+            />
           )}
           <DialogClose asChild>
             <Button type="button" variant="outline">
