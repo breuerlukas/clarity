@@ -1,7 +1,12 @@
-# TLS for Clarity on a shared server. The edge proxy forwards port 80 (HTTP)
-# and passes port 443 through by SNI, so Caddy gets its certificate itself.
-# HSTS tells the browser to never try Clarity without TLS again.
+# TLS for Clarity. On a shared server the edge proxy forwards port 80 (HTTP)
+# and passes port 443 through by SNI, so Caddy gets its certificate from
+# Let's Encrypt itself. At home, where the domain points at a local address
+# no certificate authority can reach, CLARITY_TLS="tls internal" makes
+# Caddy sign its own; see docs/server.md. The variable is replaced before
+# the file is read, so unset it leaves an empty line. HSTS tells the browser
+# to never try Clarity without TLS again.
 {$CLARITY_DOMAIN} {
+	{$CLARITY_TLS}
 	header Strict-Transport-Security "max-age=31536000"
 	reverse_proxy panel:8080
 }

@@ -29,6 +29,8 @@ services:
     restart: unless-stopped
     environment:
       CLARITY_DOMAIN: ${CLARITY_DOMAIN:?set CLARITY_DOMAIN in .env}
+      # "tls internal" at home, where Let's Encrypt can't reach the server.
+      CLARITY_TLS: ${CLARITY_TLS:-}
     ports:
       - "${CLARITY_HTTP_PORT:-8089}:80"
       - "${CLARITY_HTTPS_PORT:-8444}:443"

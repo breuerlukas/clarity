@@ -129,6 +129,45 @@ hurry: `sudo systemctl stop clarity-update.timer`, then
 `docker tag ghcr.io/breuerlukas/clarity-api:sha-<commit> ghcr.io/breuerlukas/clarity-api:latest`
 and `docker compose up -d`; start the timer again once `main` is fixed.
 
+## Only at home
+
+When the domain points at a local address (an A record with
+`192.168.178.80` at the DNS provider), Clarity is not reachable from the
+internet at all, and Let's Encrypt can't reach it either. Then Caddy signs
+its own certificate, and there is no edge proxy:
+
+```
+CLARITY_DOMAIN=clarity.lukasbreuer.de
+CLARITY_TLS=tls internal
+CLARITY_HTTP_PORT=80
+CLARITY_HTTPS_PORT=443
+```
+
+Steps 2 and 3 above fall away. After the first start, copy Caddy's root
+certificate out and install it once on every device that opens Clarity:
+
+```bash
+docker compose cp caddy:/data/caddy/pki/authorities/local/root.crt ./clarity-root.crt
+```
+
+| Device | Where |
+|---|---|
+| Windows | double-click, *Install Certificate*, *Local Machine*, *Trusted Root Certification Authorities* |
+| macOS | Keychain Access, *System*, import, then *Always Trust* |
+| Linux | `/usr/local/share/ca-certificates/clarity-root.crt`, `sudo update-ca-certificates` |
+| iOS | send the file to the phone, install the profile, then *Settings, General, About, Certificate Trust Settings* |
+| Android | *Settings, Security, Encryption & credentials, Install a certificate, CA certificate* |
+| Firefox | has its own store: *Settings, Privacy & Security, Certificates, Import* |
+
+The root is valid for ten years; Caddy renews the actual certificate on its
+own. The root's key stays in the `caddy-data` volume: whoever has it can
+sign certificates your devices trust, so it never leaves the server.
+
+Routers with DNS rebind protection (a FRITZ!Box among them) refuse public
+names that resolve to a local address. Add `clarity.lukasbreuer.de` to the
+exceptions (FRITZ!Box: *Home Network, Network, Network Settings, DNS Rebind
+Protection*). From outside, reach Clarity through the router's VPN.
+
 ## Security on the open internet
 
 Clarity holds bank data, so a public address deserves more care than other
