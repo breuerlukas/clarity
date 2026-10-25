@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Account, RecurringPayment, Transaction } from "@/lib/api";
-import { spendingRoom } from "@/lib/budget";
+import { budgetUsage, spendingRoom } from "@/lib/budget";
 
 const account = (balance: number, spending: boolean) =>
   ({ id: String(balance), balance, spending }) as Account;
@@ -25,6 +25,7 @@ describe("spendingRoom", () => {
     expect(room.room).toBe(1470);
     expect(room.daysLeft).toBe(15);
     expect(room.perDay).toBe(98);
+    expect(room.cycleStart).toBe("2026-09-27");
   });
 
   it("takes money set aside for goals out of the room", () => {
@@ -38,5 +39,30 @@ describe("spendingRoom", () => {
     const fallback = spendingRoom([], [], [], today);
     expect(fallback.payday).toBe("2026-10-31");
     expect(fallback.basedOnSalary).toBe(false);
+  });
+});
+
+describe("budgetUsage", () => {
+  const booking = (date: string, amount: number, category: string, splits?: Transaction["splits"]) =>
+    ({ date, amount, category, splits }) as Transaction;
+
+  it("counts split parts and cash in their category since the cycle began", () => {
+    const usage = budgetUsage(
+      [{ category: "GROCERIES", limit: 100 }, { category: "DINING", limit: 50 }, { category: "HEALTH", limit: 20 }],
+      [
+        booking("2026-09-26", -500, "GROCERIES"),
+        booking("2026-09-28", -60.1, "GROCERIES"),
+        booking("2026-09-29", -30, "SHOPPING", [{ category: "GROCERIES", amount: -20 }, { category: "HEALTH", amount: -10 }]),
+        booking("2026-10-01", 15, "GROCERIES"),
+        booking("2026-10-02", -55, "DINING"),
+        booking("2026-10-03", -40, "CASH"),
+      ],
+      "2026-09-27",
+    );
+    expect(usage.map((entry) => [entry.category, entry.spent, entry.state])).toEqual([
+      ["DINING", 55, "over"],
+      ["GROCERIES", 80.1, "close"],
+      ["HEALTH", 10, "fine"],
+    ]);
   });
 });

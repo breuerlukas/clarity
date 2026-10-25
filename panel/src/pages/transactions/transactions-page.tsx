@@ -14,6 +14,7 @@ import { usePeriodParam } from "@/hooks/use-period-param";
 import { CashEntryDialog } from "@/pages/transactions/cash-entry-dialog";
 import { CategoryDialog } from "@/pages/transactions/category-dialog";
 import { CategorySelect } from "@/pages/transactions/category-select";
+import { ExportButton } from "@/pages/transactions/export-button";
 import { OpenReceipts } from "@/pages/transactions/open-receipts";
 import { PeriodSummary } from "@/pages/transactions/period-summary";
 import { ReceiptDialog } from "@/pages/transactions/receipt-dialog";
@@ -77,6 +78,7 @@ export function TransactionsPage() {
     <>
       <PageHeader title={t("transactions.title")}>
         <PeriodPicker period={period} kinds={["month", "quarter", "year", "rolling"]} onChange={setPeriod} />
+        <ExportButton transactions={visible} category={category} fileName={`clarity-${from}-${to}.csv`} />
         <Button variant="outline" onClick={() => setCashEntry({ entry: null })}>
           <Plus />
           {t("cash.add_entry")}

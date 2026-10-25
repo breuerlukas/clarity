@@ -1,5 +1,5 @@
 import type { Category, RecurringPayment, Transaction } from "@/lib/api";
-import { monthRange, type MonthKey } from "@/lib/dates";
+import { isoDate, monthRange, type MonthKey } from "@/lib/dates";
 import { categoryParts, isCounted } from "@/lib/statistics";
 
 export interface MonthSummary {
@@ -47,6 +47,23 @@ export function upcomingThisMonth(
   return payments.filter(
     (payment) => payment.next_date >= today && payment.next_date <= to,
   );
+}
+
+/** How long ahead of the last day to cancel the overview reminds of it. */
+const REMINDER_DAYS = 14;
+
+/**
+ * Running fixed costs whose last day to cancel before the next renewal is
+ * today or within the next two weeks, soonest first.
+ */
+export function cancellationReminders(payments: RecurringPayment[], today: string): RecurringPayment[] {
+  const until = new Date(`${today}T12:00:00`);
+  until.setDate(until.getDate() + REMINDER_DAYS);
+  const last = isoDate(until);
+  const dueSoon = (cancelBy: string | null) => cancelBy !== null && cancelBy >= today && cancelBy <= last;
+  return payments
+    .filter((payment) => payment.status !== "ENDED" && !payment.cancelled_on && dueSoon(payment.cancel_by))
+    .sort((first, second) => String(first.cancel_by).localeCompare(String(second.cancel_by)));
 }
 
 export function total(amounts: number[]): number {

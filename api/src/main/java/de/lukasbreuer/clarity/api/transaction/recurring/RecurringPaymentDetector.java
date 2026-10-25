@@ -17,14 +17,13 @@ import java.util.stream.IntStream;
 /**
  * Finds fixed costs in the booking history: debits to the same counterparty
  * whose most recent bookings follow one rhythm, with amounts within 15% of
- * the latest one, and that have not stopped. Groceries at the same
- * supermarket fail the amount check; a cancelled subscription fails the
- * "not stopped" check once its next booking is overdue.
+ * the latest one. Groceries at the same supermarket fail the amount check.
+ * One that stopped stays in the list as missing, then ended, and drops out
+ * a cycle after it ended.
  */
 @RequiredArgsConstructor(staticName = "create")
 public final class RecurringPaymentDetector {
   private static final BigDecimal AMOUNT_TOLERANCE = new BigDecimal("0.15");
-  private static final int GRACE_DAYS = 7;
 
   private final LocalDate today;
 
@@ -33,8 +32,8 @@ public final class RecurringPaymentDetector {
       .filter(Transaction::isExpense)
       .filter(transaction -> !Category.TRANSFER.equals(transaction.category()))
       .collect(Collectors.groupingBy(this::groupKey))
-      .values().stream()
-      .map(this::detectInGroup)
+      .entrySet().stream()
+      .map(group -> detectInGroup(group.getKey(), group.getValue()))
       .flatMap(Optional::stream)
       .sorted(Comparator.comparing(RecurringPayment::monthlyAmount).reversed())
       .toList();
@@ -46,7 +45,9 @@ public final class RecurringPaymentDetector {
     return source.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
   }
 
-  private Optional<RecurringPayment> detectInGroup(List<Transaction> group) {
+  private Optional<RecurringPayment> detectInGroup(
+    String key, List<Transaction> group
+  ) {
     var sorted = group.stream()
       .sorted(Comparator.comparing(Transaction::bookingDate)).toList();
     if (sorted.size() < 2) {
@@ -57,8 +58,8 @@ public final class RecurringPaymentDetector {
       .filter(cycle -> sorted.size() >= cycle.minimumOccurrences())
       .filter(cycle -> isRegular(recent(sorted, cycle), cycle))
       .filter(cycle -> isStable(recent(sorted, cycle), latest.amount()))
-      .filter(cycle -> isActive(latest.bookingDate(), cycle))
-      .map(cycle -> RecurringPayment.create(latest.counterparty(),
+      .filter(cycle -> isRecent(latest.bookingDate(), cycle))
+      .map(cycle -> RecurringPayment.create(key, latest.counterparty(),
         latest.category(), latest.amount().abs(),
         sorted.get(sorted.size() - 2).amount().abs(), latest.currency(), cycle,
         latest.bookingDate()));
@@ -82,8 +83,9 @@ public final class RecurringPaymentDetector {
       .subtract(latestAmount).abs().compareTo(allowed) <= 0);
   }
 
-  private boolean isActive(LocalDate lastDate, RecurringCycle cycle) {
-    return !today.isAfter(lastDate.plusDays(cycle.maximumDays() + GRACE_DAYS));
+  private boolean isRecent(LocalDate lastDate, RecurringCycle cycle) {
+    return !today.isAfter(cycle.overdueAfter(lastDate)
+      .plusDays(2L * cycle.maximumDays()));
   }
 
   private long daysBetween(List<Transaction> sorted, int index) {

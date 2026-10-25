@@ -12,7 +12,9 @@
     "subscriptions": "Fixed costs",
     "contracts": "Contracts",
     "invoices": "Invoices",
-    "goals": "Savings goals"
+    "goals": "Savings goals",
+    "hide_amounts": "Hide amounts",
+    "show_amounts": "Show amounts"
   },
   "common": {
     "cancel": "Cancel",
@@ -80,11 +82,15 @@
     "delete": "Delete",
     "delete_confirm": "Delete for good",
     "delete_target": "Move transactions and rules to",
+    "budget": "Budget per pay cycle",
+    "budget_placeholder": "No budget",
+    "budget_hint": "For this space, from payday to payday. Leave empty for none.",
     "errors": {
       "3002": "This category no longer exists.",
       "3003": "The name, icon or keywords are invalid.",
       "3004": "This category can't be hidden or deleted.",
-      "3005": "Choose another category to move to."
+      "3005": "Choose another category to move to.",
+      "3007": "Enter a budget above zero for a spending category."
     }
   },
   "cycle": {
@@ -163,7 +169,15 @@
     "count_other": "{{count}} transactions",
     "split": "Split",
     "undo_split": "Undo split",
-    "show_receipt": "Show receipt"
+    "show_receipt": "Show receipt",
+    "export": "Export CSV",
+    "export_date": "Date",
+    "export_account": "Account",
+    "export_counterparty": "Counterparty",
+    "export_purpose": "Purpose",
+    "export_amount": "Amount",
+    "export_currency": "Currency",
+    "export_category": "Category"
   },
   "accounts": {
     "title": "Accounts",
@@ -298,7 +312,35 @@
     "session_close": "Sign out",
     "version": "Version {{version}}",
     "section_categories": "Categories",
-    "description_categories": "Names, icons and keywords"
+    "description_categories": "Names, icons and keywords",
+    "section_notifications": "Notifications",
+    "description_notifications": "Mails about your accounts"
+  },
+  "notifications": {
+    "enabled": "Send notifications",
+    "enabled_hint": "Mails for what happens while Clarity is closed.",
+    "host": "SMTP server",
+    "port": "Port",
+    "security": "Encryption",
+    "username": "User name",
+    "password": "Password",
+    "password_keep": "Leave empty to keep the stored one.",
+    "sender": "From",
+    "recipient": "To",
+    "consent_events": "Bank access",
+    "consent_events_hint": "A week before it expires, and once it has.",
+    "sync_events": "Failing updates",
+    "sync_events_hint": "When an account couldn't be read for a day.",
+    "price_events": "Price changes",
+    "price_events_hint": "When a fixed cost charges a different amount.",
+    "test": "Send test mail",
+    "test_sent": "Test mail sent to {{recipient}}.",
+    "errors": {
+      "1007": "Check the server, addresses and password.",
+      "1008": "The test mail couldn't be sent. Check server, port and login.",
+      "1009": "Save the settings first.",
+      "9000": "The demo sends no mails."
+    }
   },
   "period": {
     "label": "Period",
@@ -321,6 +363,13 @@
     "everyday": "Everyday accounts",
     "set_aside": "Set aside for goals"
   },
+  "budgets": {
+    "title": "Budgets until payday",
+    "manage": "Change",
+    "of_limit": "{{spent}} of {{limit}}",
+    "left": "{{amount}} left",
+    "over": "{{amount}} over budget"
+  },
   "subscriptions": {
     "filter": "Filter",
     "per_month": "{{amount}} a month",
@@ -328,7 +377,27 @@
     "group_subscriptions": "Subscriptions",
     "group_insurance": "Insurance",
     "group_other": "Other contracts",
-    "group_savings": "Savings plans"
+    "group_savings": "Savings plans",
+    "group_ended": "Ended",
+    "status_MISSING": "Payment missing",
+    "status_ENDED": "Ended",
+    "status_hint_MISSING": "No payment since {{date}}, longer than usual. Did you cancel it?",
+    "status_hint_ENDED": "No payment since {{date}}. If it still runs, keep it.",
+    "edit_hint": "Cancelled it? Set the end date. With a notice period, Clarity reminds you before it renews.",
+    "not_ended": "Still running",
+    "cancelled": "Cancelled",
+    "ends_on": "Ends {{date}}",
+    "cancel_by": "Cancel by {{date}}",
+    "last_paid": "last paid {{date}}",
+    "cancelled_on": "Ends on",
+    "cancelled_on_hint": "Leave empty while it runs.",
+    "notice_days": "Notice period in days",
+    "notice_days_placeholder": "None",
+    "notice_days_hint": "How many days before renewal it has to be cancelled.",
+    "reminder": "Cancel {{counterparty}} by {{date}}, or it renews on {{renewal}}.",
+    "errors": {
+      "3008": "Check the end date and notice period."
+    }
   },
   "goals": {
     "title": "Savings goals",

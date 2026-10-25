@@ -1,6 +1,7 @@
-import type { Account, CashWallet, RecurringPayment, Transaction } from "@/lib/api";
+import type { Account, CashWallet, Category, CategoryBudget, RecurringPayment, Transaction } from "@/lib/api";
 import { isoDate } from "@/lib/dates";
 import { total } from "@/lib/overview";
+import { categoryParts, isCounted } from "@/lib/statistics";
 
 export interface SpendingRoom {
   /** The next payday, or the end of the month when no salary is known. */
@@ -21,6 +22,8 @@ export interface SpendingRoom {
   progress: number;
   /** Length of the current pay cycle in days. */
   cycleDays: number;
+  /** The day the current pay cycle began. */
+  cycleStart: string;
 }
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -96,5 +99,45 @@ export function spendingRoom(
     perDay: Math.max(0, Math.floor((room / daysLeft) * 100) / 100),
     progress: Math.min(1, Math.max(0, 1 - daysLeft / cycleDays)),
     cycleDays,
+    cycleStart: isoDate(cycleStart),
   };
+}
+
+export interface BudgetUsage {
+  category: Category;
+  limit: number;
+  spent: number;
+  /** Spent as a share of the limit; above 1 when it ran over. */
+  share: number;
+  state: "fine" | "close" | "over";
+}
+
+/** From this share of a limit on, a budget shows a warning. */
+const CLOSE_TO_LIMIT = 0.8;
+
+/**
+ * What went out of each budgeted category since the pay cycle began, the
+ * same period the spending room uses. Split parts and cash entries count in
+ * the category they are assigned to; refunds don't lower the figure, as in
+ * the statistics. Fullest budgets first.
+ */
+export function budgetUsage(
+  budgets: CategoryBudget[],
+  transactions: Transaction[],
+  cycleStart: string,
+): BudgetUsage[] {
+  const spent = new Map<Category, number>();
+  for (const part of categoryParts(transactions).filter(isCounted)) {
+    if (part.amount < 0 && part.date >= cycleStart) {
+      spent.set(part.category, (spent.get(part.category) ?? 0) - Math.round(part.amount * 100));
+    }
+  }
+  return budgets
+    .map((budget) => {
+      const amount = (spent.get(budget.category) ?? 0) / 100;
+      const share = amount / budget.limit;
+      const state = share > 1 ? "over" : share >= CLOSE_TO_LIMIT ? "close" : "fine";
+      return { category: budget.category, limit: budget.limit, spent: amount, share, state } as const;
+    })
+    .sort((first, second) => second.share - first.share);
 }

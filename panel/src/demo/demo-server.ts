@@ -7,13 +7,14 @@ import {
   type Invoice,
   type InvoiceDraft,
   type MatchReason,
+  type NotificationSettings,
   type OwnerSession,
   type PaymentKind,
   type SpaceKind,
   type Transaction,
 } from "@/lib/api";
-import { createCategory, deleteCategory, resetCategory, updateCategory } from "@/demo/demo-categories";
-import { createDemoDatabase, PERSONAL_SPACE } from "@/demo/demo-data";
+import { createCategory, deleteCategory, resetCategory, updateBudget, updateCategory } from "@/demo/demo-categories";
+import { createDemoDatabase, detectedStatus, PERSONAL_SPACE } from "@/demo/demo-data";
 import { createGoal, deleteGoal, depositToGoal, updateGoal } from "@/demo/demo-goals";
 import { countCash, createCashEntry, deleteCashEntry, splitTransaction, updateCashEntry, wallet, walletId } from "@/demo/demo-cash";
 import {
@@ -29,7 +30,8 @@ import { isoDate } from "@/lib/dates";
 
 /**
  * Answers the panel's api calls in the browser for the public demo. Changes
- * (categories, savings goals, a new name, removed banks, cash entries, receipts) live in
+ * (categories, budgets, savings goals, a new name, removed banks, cash
+ * entries, receipts) live in
  * memory until reload; bank logins and password changes are refused with
  * code 9000.
  */
@@ -40,6 +42,9 @@ const sessions: OwnerSession[] = [
   { id: "this", ip_address: "127.0.0.1", platform: "", browser: "", mobile: false, opened_at: Date.now() - 3_600_000, last_seen_at: Date.now(), current: true },
   { id: "phone", ip_address: "100.64.0.7", platform: "iOS", browser: "Safari", mobile: true, opened_at: Date.now() - 86_400_000 * 3, last_seen_at: Date.now() - 7_200_000, current: false },
 ];
+
+/** Kept in memory; the demo never sends a mail. */
+let notifications: NotificationSettings | null = null;
 
 const DEMO_ONLY = 9000;
 const ok = (data: object = {}) => ({ success: true, ...data });
@@ -70,6 +75,13 @@ export async function handleDemoRequest(
     case "POST /account/name/":
       owner = String(body.name);
       return ok();
+    case "GET /notifications/":
+      return ok({ settings: notifications ?? {} });
+    case "POST /notifications/update/":
+      notifications = { ...(body as unknown as NotificationSettings), has_password: true };
+      return ok({ settings: notifications });
+    case "POST /notifications/test/":
+      throw new ApiError(400, DEMO_ONLY);
     case "GET /sessions/":
       return ok({ sessions });
     case "POST /sessions/close/":
@@ -141,11 +153,21 @@ export async function handleDemoRequest(
     case "POST /categories/reset/":
       return resetCategory(database.categories, body.key);
     case "POST /categories/delete/":
-      return deleteCategory(database.categories, database.transactions, body.key, body.target);
+      return deleteCategory(database.categories, database.budgets, database.transactions, body.key, body.target);
+    case "GET /budgets/":
+      return ok({
+        budgets: database.budgets
+          .filter((budget) => budget.space === url.searchParams.get("space"))
+          .map(({ category, limit }) => ({ category, limit })),
+      });
+    case "POST /budgets/update/":
+      return updateBudget(database.budgets, database.categories, body);
     case "POST /transactions/category/":
       return categorize(String(body.id), body.category as Category, Boolean(body.remember));
     case "GET /recurring/":
       return ok({ payments: url.searchParams.get("space") === PERSONAL_SPACE ? database.recurring : [] });
+    case "POST /recurring/settings/":
+      return updateRecurringSetting(body);
     case "GET /business/transactions/":
       return ok({
         transactions: inSpace(database.businessTransactions, url.searchParams)
@@ -287,6 +309,29 @@ function deleteSpace(id: string) {
     throw new ApiError(400, 5002);
   }
   database.spaces.splice(database.spaces.indexOf(space), 1);
+  return ok();
+}
+
+/** Applies the owner's decisions the way the api's RecurringPayment does. */
+function updateRecurringSetting(body: Record<string, unknown>) {
+  const payment = database.recurring.find((entry) => entry.key === body.key);
+  const date = (value: unknown) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? String(value) : null);
+  const notice = String(body.notice_days ?? "");
+  const validNotice = notice === "" || (/^\d{1,3}$/.test(notice) && Number(notice) <= 366);
+  if (!payment || !validNotice || (body.cancelled_on && !date(body.cancelled_on))) {
+    throw new ApiError(400, 3008);
+  }
+  const cancelBy = new Date(`${payment.next_date}T12:00:00`);
+  cancelBy.setDate(cancelBy.getDate() - Number(notice));
+  Object.assign(payment, {
+    cancelled_on: date(body.cancelled_on),
+    dismissed_last_date: date(body.dismissed_last_date),
+    notice_days: notice === "" ? null : Number(notice),
+    cancel_by: notice === "" ? null : isoDate(cancelBy),
+  });
+  const ended = payment.cancelled_on !== null && payment.next_date >= payment.cancelled_on;
+  const dismissed = payment.dismissed_last_date === payment.last_date;
+  payment.status = ended ? "ENDED" : dismissed ? "ACTIVE" : (detectedStatus(payment, new Date()) ?? "ENDED");
   return ok();
 }
 

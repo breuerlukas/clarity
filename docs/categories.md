@@ -50,3 +50,21 @@ Hibernate guarded both category columns (`transactions.category`,
 keys are the old enum names, so stored transactions and rules stay valid as
 they are; `CategorySetup` drops the two checks on start so own categories fit
 in.
+
+## Budgets
+
+A spending category can get a budget: the most the owner wants to spend on
+it per pay cycle. Categories are shared by every space, budgets are not
+(`category_budget`, one row per space and category), so a household plans
+its groceries apart from the personal ones. Removing the limit deletes the
+row; deleting an own category deletes its budgets, since the target category
+may have one of its own.
+
+The api only stores the limits (`/budgets/`, `/budgets/update/`, error
+`3007` for an invalid limit or a category that isn't a spending one). The
+panel works out what was spent (`budgetUsage` in `budget.ts`) over the same
+period as the room until payday: from the last salary to the next one, or
+the calendar month without a known salary. Split parts and cash entries
+count in the category they are assigned to; refunds don't lower the figure,
+as in the statistics. `CASH` and `TRANSFER` get no budget, since they are
+never counted as spending. The panel offers budgets in personal spaces only.
