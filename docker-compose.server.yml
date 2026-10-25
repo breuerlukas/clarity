@@ -1,0 +1,55 @@
+# Production on a server Clarity shares with other services. Clarity
+# terminates its own TLS with Caddy on its own ports and never touches ports
+# 80 and 443 of the host. Hard limits keep it from starving its neighbours.
+# The api and the panel come as images CI published from main; a timer on the
+# server pulls them (deploy/clarity-update.*). See docs/server.md.
+#
+#   In .env: COMPOSE_FILE=docker-compose.yml:docker-compose.server.yml
+services:
+  postgres:
+    mem_limit: 256m
+    cpus: 0.5
+  api:
+    build: !reset null
+    image: ghcr.io/breuerlukas/clarity-api:latest
+    environment:
+      # A heap of 60 % leaves room for Tesseract, which runs as its own
+      # process inside the same limit.
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60
+    mem_limit: 768m
+    cpus: 1.0
+  panel:
+    build: !reset null
+    image: ghcr.io/breuerlukas/clarity-panel:latest
+    ports: !reset []
+    mem_limit: 64m
+    cpus: 0.25
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      CLARITY_DOMAIN: ${CLARITY_DOMAIN:?set CLARITY_DOMAIN in .env}
+    ports:
+      - "${CLARITY_HTTP_PORT:-8089}:80"
+      - "${CLARITY_HTTPS_PORT:-8444}:443"
+    volumes:
+      # The folder, not the file: git replaces a pulled file, and a file mount
+      # would keep showing the old one.
+      - ./deploy:/etc/caddy:ro
+      - caddy-data:/data
+    # Caddy's admin API, inside the container only. Its public site only
+    # answers for the domain over TLS, so asking it here would test nothing.
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    mem_limit: 128m
+    cpus: 0.25
+    depends_on:
+      - panel
+    networks:
+      - web
+
+volumes:
+  caddy-data:

@@ -1,0 +1,25 @@
+# Pulls the latest compose files and images and restarts what changed. The
+# Caddy reload picks up a changed Caddyfile, which does not recreate the
+# container; a broken one is refused and the old config keeps serving.
+# Postgres is never pulled: its major version only changes by hand.
+# Copy to /etc/systemd/system/ together with clarity-update.timer
+# (docs/server.md). WorkingDirectory is the server's checkout.
+[Unit]
+Description=Update Clarity from GHCR
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# As the folder's owner: git refuses a repo owned by another user (dubious
+# ownership). The user must be in the docker group.
+User=clarity
+WorkingDirectory=/home/clarity
+Environment=COMPOSE_FILE=docker-compose.yml:docker-compose.server.yml
+ExecStart=git pull --ff-only
+ExecStart=docker compose pull api panel caddy
+# Waits until every container reports healthy, so a broken image shows up as
+# a failed run in the journal (and skips the reload and prune).
+ExecStart=docker compose up -d --wait --wait-timeout 180
+ExecStart=docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile
+ExecStart=docker image prune -f

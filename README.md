@@ -96,7 +96,8 @@ first bank under **Accounts**.
 The panel only listens on `127.0.0.1`, so it is not reachable from other
 devices by default. Don't forward the port on your router. Reach it through a
 VPN into your home network, or put a reverse proxy with HTTPS in front of it
-that only you can get to.
+that only you can get to. [docs/server.md](docs/server.md) describes a
+server setup with its own TLS and automatic updates from `main`.
 
 Enable Banking needs an `https` address to send you back to after the bank
 login. Set `PUBLIC_URL` to the address you open Clarity at, register
@@ -108,7 +109,7 @@ restart with `docker compose up -d`. On the phone, open the address and choose
 
 | Task | Command |
 |---|---|
-| Update | `git pull && docker compose up -d --build` |
+| Update | `git pull && docker compose up -d --build` (on a server set up per [docs/server.md](docs/server.md): automatic) |
 | Back up | `docker compose exec postgres pg_dump -U clarity clarity > clarity.sql` |
 | Restore | `docker compose exec -T postgres psql -U clarity clarity < clarity.sql` |
 | Logs | `docker compose logs -f api` |

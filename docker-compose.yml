@@ -1,3 +1,6 @@
+# Pinned, so the volumes keep their names (clarity_postgres,
+# clarity_api-data) whatever the folder is called.
+name: clarity
 services:
   postgres:
     image: postgres:18
