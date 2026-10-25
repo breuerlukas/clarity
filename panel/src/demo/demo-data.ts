@@ -10,6 +10,7 @@ import type {
   Mailbox,
   Receipt,
   RecurringPayment,
+  RecurringStatus,
   Space,
   Transaction,
 } from "@/lib/api";
@@ -56,18 +57,22 @@ interface FixedCost {
   months?: number[];
   /** The price since the current month, to show a price increase. */
   raisedTo?: number;
+  /** Months without a booking up to now, for one that stopped. */
+  stoppedFor?: number;
+  /** Days of notice before it renews, to show the reminder. */
+  noticeDays?: number;
 }
 
 const FIXED_COSTS: FixedCost[] = [
   { counterparty: "Hausverwaltung Schmidt GmbH", category: "HOUSING", amount: 1050, day: 1, description: "Miete Whg. 3. OG links" },
   { counterparty: "MVG Deutschlandticket", category: "MOBILITY", amount: 63, day: 1, description: "Deutschlandticket Abo" },
   { counterparty: "Trade Republic", category: "SAVINGS", amount: 250, day: 2, description: "Sparplan MSCI World" },
-  { counterparty: "Netflix International B.V.", category: "SUBSCRIPTIONS", amount: 13.99, day: 3, description: "Netflix Standard", raisedTo: 15.99 },
+  { counterparty: "Netflix International B.V.", category: "SUBSCRIPTIONS", amount: 13.99, day: 3, description: "Netflix Standard", raisedTo: 15.99, noticeDays: 14 },
   { counterparty: "Spotify AB", category: "SUBSCRIPTIONS", amount: 10.99, day: 5, description: "Spotify Premium" },
   { counterparty: "Telekom Deutschland GmbH", category: "UTILITIES", amount: 39.95, day: 7, description: "MagentaZuhause M" },
   { counterparty: "Stadtwerke München", category: "UTILITIES", amount: 74, day: 10, description: "Abschlag Strom" },
-  { counterparty: "McFit GmbH", category: "LEISURE", amount: 29.9, day: 15, description: "Mitgliedsbeitrag" },
-  { counterparty: "Apple Services", category: "SUBSCRIPTIONS", amount: 2.99, day: 22, description: "iCloud+ 50 GB" },
+  { counterparty: "McFit GmbH", category: "LEISURE", amount: 29.9, day: 15, description: "Mitgliedsbeitrag", stoppedFor: 2 },
+  { counterparty: "Apple Services", category: "SUBSCRIPTIONS", amount: 2.99, day: 22, description: "iCloud+ 50 GB", stoppedFor: 3 },
   { counterparty: "ARD ZDF Deutschlandradio Beitragsservice", category: "UTILITIES", amount: 55.08, day: 15, months: [1, 4, 7, 10], description: "Rundfunkbeitrag" },
   { counterparty: "HUK-Coburg", category: "INSURANCE", amount: 289.4, day: 12, months: [1], description: "Hausrat- und Haftpflichtversicherung" },
   { counterparty: "Amazon Digital Germany", category: "SUBSCRIPTIONS", amount: 89.9, day: 18, months: [3], description: "Prime Jahresmitgliedschaft" },
@@ -270,7 +275,7 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
     const calendarMonth = month.getMonth() + 1;
     const thisMonth = offset === 0;
     for (const cost of FIXED_COSTS) {
-      if (bookedMonths(cost).includes(calendarMonth)) {
+      if (bookedMonths(cost).includes(calendarMonth) && offset >= (cost.stoppedFor ?? 0)) {
         const amount = thisMonth && cost.raisedTo ? cost.raisedTo : cost.amount;
         add("giro", nextBankDay(day(month, cost.day)), -amount, cost.counterparty, cost.category, cost.description);
       }
@@ -414,9 +419,25 @@ function connections(today: Date): Connection[] {
 
 const CYCLES: Record<number, RecurringPayment["cycle"]> = { 1: "YEARLY", 4: "QUARTERLY", 12: "MONTHLY" };
 
+/** The longest gap each rhythm allows, as in the api's RecurringCycle. */
+const MAXIMUM_DAYS: Record<RecurringPayment["cycle"], number> = { WEEKLY: 8, MONTHLY: 35, QUARTERLY: 98, YEARLY: 380 };
+
+/**
+ * Missing a week after the longest gap, ended a cycle later, gone after
+ * one more; null once gone. Like the api's RecurringPayment.
+ */
+export function detectedStatus(payment: Pick<RecurringPayment, "cycle" | "last_date">, today: Date): RecurringStatus | null {
+  const maximum = MAXIMUM_DAYS[payment.cycle];
+  const overdue = (today.getTime() - new Date(`${payment.last_date}T12:00:00`).getTime()) / 86_400_000 - maximum - 7;
+  if (overdue <= 0) {
+    return "ACTIVE";
+  }
+  return overdue <= maximum ? "MISSING" : overdue <= 2 * maximum ? "ENDED" : null;
+}
+
 /** The fixed costs as the api would detect them from the bookings above. */
 function recurring(today: Date, transactions: Transaction[]): RecurringPayment[] {
-  return FIXED_COSTS.map((cost) => {
+  return FIXED_COSTS.flatMap((cost) => {
     const booked = bookedMonths(cost);
     const [latest, previous] = transactions.filter(
       (entry) => entry.counterparty === cost.counterparty && entry.description === cost.description,
@@ -427,16 +448,30 @@ function recurring(today: Date, transactions: Transaction[]): RecurringPayment[]
       due = new Date(due.getFullYear(), due.getMonth() + 1, 1);
     }
     const amount = latest ? -latest.amount : cost.amount;
+    const cycle = CYCLES[booked.length];
+    const nextDate = isoDate(nextBankDay(day(due, cost.day)));
+    const status = detectedStatus({ cycle, last_date: isoDate(last) }, today);
+    if (!status) {
+      return [];
+    }
+    const cancelBy = new Date(`${nextDate}T12:00:00`);
+    cancelBy.setDate(cancelBy.getDate() - (cost.noticeDays ?? 0));
     return {
+      key: cost.counterparty.toLowerCase(),
       counterparty: cost.counterparty,
       category: cost.category,
       amount,
       previous_amount: previous ? -previous.amount : amount,
       currency: "EUR",
-      cycle: CYCLES[booked.length],
+      cycle,
       last_date: isoDate(last),
-      next_date: isoDate(nextBankDay(day(due, cost.day))),
+      next_date: nextDate,
       monthly_amount: Math.round((amount * booked.length) / 12 * 100) / 100,
+      status,
+      cancelled_on: null,
+      dismissed_last_date: null,
+      notice_days: cost.noticeDays ?? null,
+      cancel_by: cost.noticeDays === undefined ? null : isoDate(cancelBy),
     };
   }).sort((first, second) => second.monthly_amount - first.monthly_amount);
 }

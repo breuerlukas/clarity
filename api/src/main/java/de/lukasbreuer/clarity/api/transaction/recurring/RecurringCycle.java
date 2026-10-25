@@ -4,13 +4,15 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Optional;
 
 /**
  * The rhythms a fixed cost can have, with how far a booking may drift
  * (weekends and bank holidays shift debits by a few days) and how many
- * bookings it takes before a rhythm counts as recurring.
+ * bookings it takes before a rhythm counts as recurring. A booking is
+ * overdue a week after the longest gap the rhythm allows.
  */
 @Getter
 @Accessors(fluent = true)
@@ -21,6 +23,8 @@ public enum RecurringCycle {
   QUARTERLY(84, 98, 91, 2, 1.0 / 3),
   YEARLY(350, 380, 365, 2, 1.0 / 12);
 
+  private static final int GRACE_DAYS = 7;
+
   private final int minimumDays;
   private final int maximumDays;
   private final int typicalDays;
@@ -29,6 +33,10 @@ public enum RecurringCycle {
 
   public boolean fits(long days) {
     return days >= minimumDays && days <= maximumDays;
+  }
+
+  public LocalDate overdueAfter(LocalDate lastDate) {
+    return lastDate.plusDays(maximumDays + GRACE_DAYS);
   }
 
   public static Optional<RecurringCycle> find(long days) {

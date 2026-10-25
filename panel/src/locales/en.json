@@ -326,7 +326,27 @@
     "group_subscriptions": "Subscriptions",
     "group_insurance": "Insurance",
     "group_other": "Other contracts",
-    "group_savings": "Savings plans"
+    "group_savings": "Savings plans",
+    "group_ended": "Ended",
+    "status_MISSING": "Payment missing",
+    "status_ENDED": "Ended",
+    "status_hint_MISSING": "No payment since {{date}}, longer than usual. Did you cancel it?",
+    "status_hint_ENDED": "No payment since {{date}}. If it still runs, keep it.",
+    "edit_hint": "Cancelled it? Set the end date. With a notice period, Clarity reminds you before it renews.",
+    "not_ended": "Still running",
+    "cancelled": "Cancelled",
+    "ends_on": "Ends {{date}}",
+    "cancel_by": "Cancel by {{date}}",
+    "last_paid": "last paid {{date}}",
+    "cancelled_on": "Ends on",
+    "cancelled_on_hint": "Leave empty while it runs.",
+    "notice_days": "Notice period in days",
+    "notice_days_placeholder": "None",
+    "notice_days_hint": "How many days before renewal it has to be cancelled.",
+    "reminder": "Cancel {{counterparty}} by {{date}}, or it renews on {{renewal}}.",
+    "errors": {
+      "3008": "Check the end date and notice period."
+    }
   },
   "interval": {
     "MONTHLY": "monthly",

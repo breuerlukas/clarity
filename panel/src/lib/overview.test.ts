@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RecurringPayment, Transaction } from "@/lib/api";
-import { summarizeMonth, total, upcomingThisMonth, yearly } from "@/lib/overview";
+import { cancellationReminders, summarizeMonth, total, upcomingThisMonth, yearly } from "@/lib/overview";
 import { monthRange, shiftMonth } from "@/lib/dates";
 
 const transaction = (
@@ -68,5 +68,26 @@ describe("yearly", () => {
     expect(yearly(payment(289.4, "YEARLY"))).toBe(289.4);
     expect(yearly(payment(55.08, "QUARTERLY"))).toBeCloseTo(220.32);
     expect(yearly(payment(10.99, "MONTHLY"))).toBeCloseTo(131.88);
+  });
+});
+
+describe("cancellationReminders", () => {
+  const payment = (key: string, cancel_by: string | null, extra: Partial<RecurringPayment> = {}) =>
+    ({ key, cancel_by, status: "ACTIVE", cancelled_on: null, ...extra }) as RecurringPayment;
+
+  it("reminds of running ones whose last day to cancel is within two weeks", () => {
+    const reminders = cancellationReminders(
+      [
+        payment("late", "2026-10-26"),
+        payment("soon", "2026-10-13"),
+        payment("past", "2026-10-11"),
+        payment("far", "2026-10-27"),
+        payment("none", null),
+        payment("cancelled", "2026-10-14", { cancelled_on: "2026-11-01" }),
+        payment("ended", "2026-10-14", { status: "ENDED" }),
+      ],
+      "2026-10-12",
+    );
+    expect(reminders.map((entry) => entry.key)).toEqual(["soon", "late"]);
   });
 });
