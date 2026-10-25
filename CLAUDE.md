@@ -19,7 +19,7 @@ incoming payments.
 |---|---|---|
 | `api/` | Build + test (what CI runs) | `./gradlew build` |
 | `api/` | Tests only | `./gradlew test` |
-| `api/` | Run locally (reads `api/config.ini`) | `./gradlew bootRun` |
+| `api/` | Run locally (reads `api/config.ini`, copied from `config.example.ini`; ignored by git) | `./gradlew bootRun` |
 | `panel/` | Dev server (proxies `/v1` to `localhost:8080`) | `npm run dev` |
 | `panel/` | Demo without backend (in-browser fake api) | `npm run demo` |
 | `panel/` | What CI runs | `npm run lint && npm test && npm run build` |

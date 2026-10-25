@@ -1,10 +1,14 @@
 /*
  * The Spring Boot plugin brings Jackson 3.1.5 into the build itself; see the
- * Jackson platform in the dependencies below for why it is lifted.
+ * Jackson platform in the dependencies below for why it is lifted. Its
+ * buildpack support pulls an old commons-lang3 (CVE-2025-48924) in as well.
  */
 buildscript {
   dependencies {
     classpath(platform("tools.jackson:jackson-bom:3.2.3"))
+    constraints {
+      classpath("org.apache.commons:commons-lang3:3.20.0")
+    }
   }
 }
 
