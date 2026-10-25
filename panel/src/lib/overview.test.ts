@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RecurringPayment, Transaction } from "@/lib/api";
-import { cancellationReminders, recurringBookings, summarizeMonth, total, upcomingThisMonth, yearly } from "@/lib/overview";
+import { bookingKey, cancellationReminders, recurringBookings, summarizeMonth, total, upcomingThisMonth, yearly } from "@/lib/overview";
 import { monthRange, shiftMonth } from "@/lib/dates";
 
 const transaction = (
@@ -110,5 +110,19 @@ describe("recurringBookings", () => {
   it("falls back to the purpose without a counterparty", () => {
     const bookings = recurringBookings({ key: "miete whg. 3" } as RecurringPayment, [booking("2026-10-01", -1050, " ", "Miete Whg. 3")]);
     expect(bookings).toHaveLength(1);
+  });
+});
+
+describe("bookingKey", () => {
+  const key = (counterparty: string) => bookingKey({ counterparty, description: "" } as Transaction);
+
+  it("drops payment references that change every month", () => {
+    expect(["SPOTIFY*P47BDD5092", "Spotify P445538918", "SPOTIFY", "Spotify P4232B8F92"].map(key)).toEqual(["spotify", "spotify", "spotify", "spotify"]);
+  });
+
+  it("keeps names and short numbers that belong to the merchant", () => {
+    expect(key("PayPal *Netflix")).toBe("paypal *netflix");
+    expect(key("O2 Germany")).toBe("o2 germany");
+    expect(key("1&1 Telecom GmbH")).toBe("1&1 telecom gmbh");
   });
 });

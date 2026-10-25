@@ -66,12 +66,24 @@ export function cancellationReminders(payments: RecurringPayment[], today: strin
     .sort((first, second) => String(first.cancel_by).localeCompare(String(second.cancel_by)));
 }
 
-/** Who a booking is with, as the api groups fixed costs: case and spacing don't count. */
+/**
+ * A payment reference after the merchant's name that changes every month
+ * ("SPOTIFY*P47BDD5092"): letters and digits, at least five, with a digit,
+ * after a star or a space. Same pattern as the api's RecurringPaymentDetector.
+ */
+const REFERENCE = /[*\s]+(?=[a-z]*\d)[a-z0-9]{5,}\b/g;
+
+/**
+ * Who a booking is with, as the api groups fixed costs: case, spacing and
+ * payment references don't count.
+ */
 export function bookingKey(transaction: Transaction): string {
   return (transaction.counterparty?.trim() ? transaction.counterparty : (transaction.description ?? ""))
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, " ");
+    .replace(REFERENCE, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /**

@@ -2,7 +2,10 @@
 
 Fixed costs are not stored: `RecurringPaymentDetector` finds them in the
 last 800 days of bookings on every request. Debits to the same counterparty
-(grouped by its lowercased name, the payment's `key`) count when their most
+(grouped by its lowercased name without payment references, the payment's
+`key`; card payments often append one that changes every month, as in
+`SPOTIFY*P47BDD5092` or `Spotify P445538918`: a word of at least five
+letters and digits with a digit in it, after a star or a space) count when their most
 recent gaps fit one `RecurringCycle` and their amounts stay within 15 % of
 the latest one.
 
