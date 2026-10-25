@@ -14,7 +14,7 @@ import {
   type Transaction,
 } from "@/lib/api";
 import { createCategory, deleteCategory, resetCategory, updateBudget, updateCategory } from "@/demo/demo-categories";
-import { createDemoDatabase, PERSONAL_SPACE } from "@/demo/demo-data";
+import { createDemoDatabase, detectedStatus, PERSONAL_SPACE } from "@/demo/demo-data";
 import { countCash, createCashEntry, deleteCashEntry, splitTransaction, updateCashEntry, wallet, walletId } from "@/demo/demo-cash";
 import {
   attachReceipt,
@@ -154,6 +154,8 @@ export async function handleDemoRequest(
       return categorize(String(body.id), body.category as Category, Boolean(body.remember));
     case "GET /recurring/":
       return ok({ payments: url.searchParams.get("space") === PERSONAL_SPACE ? database.recurring : [] });
+    case "POST /recurring/settings/":
+      return updateRecurringSetting(body);
     case "GET /business/transactions/":
       return ok({
         transactions: inSpace(database.businessTransactions, url.searchParams)
@@ -294,6 +296,29 @@ function deleteSpace(id: string) {
     throw new ApiError(400, 5002);
   }
   database.spaces.splice(database.spaces.indexOf(space), 1);
+  return ok();
+}
+
+/** Applies the owner's decisions the way the api's RecurringPayment does. */
+function updateRecurringSetting(body: Record<string, unknown>) {
+  const payment = database.recurring.find((entry) => entry.key === body.key);
+  const date = (value: unknown) => (/^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? String(value) : null);
+  const notice = String(body.notice_days ?? "");
+  const validNotice = notice === "" || (/^\d{1,3}$/.test(notice) && Number(notice) <= 366);
+  if (!payment || !validNotice || (body.cancelled_on && !date(body.cancelled_on))) {
+    throw new ApiError(400, 3008);
+  }
+  const cancelBy = new Date(`${payment.next_date}T12:00:00`);
+  cancelBy.setDate(cancelBy.getDate() - Number(notice));
+  Object.assign(payment, {
+    cancelled_on: date(body.cancelled_on),
+    dismissed_last_date: date(body.dismissed_last_date),
+    notice_days: notice === "" ? null : Number(notice),
+    cancel_by: notice === "" ? null : isoDate(cancelBy),
+  });
+  const ended = payment.cancelled_on !== null && payment.next_date >= payment.cancelled_on;
+  const dismissed = payment.dismissed_last_date === payment.last_date;
+  payment.status = ended ? "ENDED" : dismissed ? "ACTIVE" : (detectedStatus(payment, new Date()) ?? "ENDED");
   return ok();
 }
 

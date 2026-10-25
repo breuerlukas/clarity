@@ -173,7 +173,12 @@ export interface Connection {
   accounts: Account[];
 }
 
+/** Missing: the booking is overdue; ended: a cycle later, or cancelled. */
+export type RecurringStatus = "ACTIVE" | "MISSING" | "ENDED";
+
 export interface RecurringPayment {
+  /** What its bookings are grouped by; its settings are stored under it. */
+  key: string;
   counterparty: string;
   category: Category;
   amount: number;
@@ -183,6 +188,21 @@ export interface RecurringPayment {
   last_date: string;
   next_date: string;
   monthly_amount: number;
+  status: RecurringStatus;
+  /** The day a cancelled one ends. */
+  cancelled_on: string | null;
+  /** Set while the owner keeps a missing one running. */
+  dismissed_last_date: string | null;
+  notice_days: number | null;
+  /** The last day to cancel before the next renewal, with a notice period. */
+  cancel_by: string | null;
+}
+
+export interface RecurringSettingDraft {
+  cancelled_on: string;
+  /** The last booking the owner said "not ended" for; empty for none. */
+  dismissed_last_date: string;
+  notice_days: string;
 }
 
 export type BillingInterval = "MONTHLY" | "QUARTERLY" | "HALF_YEARLY" | "YEARLY";
@@ -471,6 +491,8 @@ export const api = {
     post("/budgets/update/", { space, category, limit: limit === null ? "" : String(limit) }),
   recurring: (space: string) =>
     get<{ payments: RecurringPayment[] }>(`/recurring/?space=${space}`),
+  updateRecurringSetting: (space: string, key: string, draft: RecurringSettingDraft) =>
+    post("/recurring/settings/", { space, key, ...draft }),
   connections: () => get<{ connections: Connection[] }>("/connections/"),
   markSpending: (id: string, spending: boolean) =>
     post("/accounts/spending/", { id, spending }),

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,7 +40,18 @@ final class RecurringPaymentDetectorTest {
   }
 
   @Test
-  void dropsCancelledSubscription() {
+  void keepsAStoppedSubscriptionAsMissing() {
+    var payments = RecurringPaymentDetector.create(TODAY).detect(List.of(
+      debit("Spotify", "-10.99", "2026-06-15"),
+      debit("Spotify", "-10.99", "2026-07-15"),
+      debit("Spotify", "-10.99", "2026-08-15")));
+    assertEquals(RecurringStatus.MISSING,
+      payments.getFirst().status(TODAY, Optional.empty()));
+    assertEquals("spotify", payments.getFirst().key());
+  }
+
+  @Test
+  void dropsSubscriptionACycleAfterItEnded() {
     var payments = RecurringPaymentDetector.create(TODAY).detect(List.of(
       debit("Spotify", "-10.99", "2026-04-15"),
       debit("Spotify", "-10.99", "2026-05-15"),

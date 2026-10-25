@@ -9,6 +9,9 @@ import { useBudgets } from "@/hooks/use-categories";
 import { useConnections, useHistory, useRecurringPayments } from "@/hooks/use-finances";
 import { useSpacePath } from "@/hooks/use-space";
 import { budgetUsage, cashAccount, spendingRoom } from "@/lib/budget";
+import { isoDate } from "@/lib/dates";
+import { formatDate } from "@/lib/format";
+import { cancellationReminders } from "@/lib/overview";
 import { SpendingRoomCard } from "@/pages/overview/spending-room-card";
 import { BudgetsCard } from "@/pages/overview/budgets-card";
 import { AccountsCard } from "@/pages/overview/accounts-card";
@@ -20,6 +23,7 @@ import { RecentTransactions } from "@/pages/overview/recent-transactions";
 /**
  * Left: what is free until payday, how the budgets fare, how the balance
  * moved, what just happened. Right: the accounts and what is due next.
+ * Above all, the fixed costs to cancel soon, before they renew.
  */
 export function OverviewPage() {
   const { t } = useTranslation();
@@ -46,6 +50,17 @@ export function OverviewPage() {
       {(connections.isError || recurring.isError || history.isError || cash.isError) && (
         <Notice className="mb-6">{t("common.error")}</Notice>
       )}
+      {cancellationReminders(recurring.data ?? [], isoDate(new Date())).map((payment) => (
+        <Notice key={payment.key} className="mb-4">
+          <Link to={path("/subscriptions")} className="underline-offset-4 hover:underline">
+            {t("subscriptions.reminder", {
+              counterparty: payment.counterparty,
+              date: formatDate(payment.cancel_by ?? ""),
+              renewal: formatDate(payment.next_date),
+            })}
+          </Link>
+        </Notice>
+      ))}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-6">
           {room ? <SpendingRoomCard room={room} /> : <PanelSkeleton className="h-72" />}

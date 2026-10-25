@@ -375,7 +375,27 @@
     "group_subscriptions": "Abos",
     "group_insurance": "Versicherungen",
     "group_other": "Weitere Verträge",
-    "group_savings": "Sparpläne"
+    "group_savings": "Sparpläne",
+    "group_ended": "Beendet",
+    "status_MISSING": "Zahlung fehlt",
+    "status_ENDED": "Beendet",
+    "status_hint_MISSING": "Seit {{date}} keine Zahlung, länger als üblich. Hast du gekündigt?",
+    "status_hint_ENDED": "Seit {{date}} keine Zahlung. Läuft es noch, behalte es.",
+    "edit_hint": "Gekündigt? Trag das Enddatum ein. Mit Kündigungsfrist erinnert Clarity dich vor der Verlängerung.",
+    "not_ended": "Läuft noch",
+    "cancelled": "Gekündigt",
+    "ends_on": "Endet {{date}}",
+    "cancel_by": "Kündigen bis {{date}}",
+    "last_paid": "zuletzt bezahlt {{date}}",
+    "cancelled_on": "Endet am",
+    "cancelled_on_hint": "Leer lassen, solange es läuft.",
+    "notice_days": "Kündigungsfrist in Tagen",
+    "notice_days_placeholder": "Keine",
+    "notice_days_hint": "Wie viele Tage vor der Verlängerung gekündigt sein muss.",
+    "reminder": "{{counterparty}} bis {{date}} kündigen, sonst verlängert es sich am {{renewal}}.",
+    "errors": {
+      "3008": "Prüf Enddatum und Kündigungsfrist."
+    }
   },
   "interval": {
     "MONTHLY": "monatlich",

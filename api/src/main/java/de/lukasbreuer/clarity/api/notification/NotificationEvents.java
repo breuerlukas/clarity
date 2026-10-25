@@ -10,7 +10,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -94,8 +93,7 @@ public final class NotificationEvents {
 
   private Notification priceChange(UUID spaceId, RecurringPayment payment) {
     return Notification.create(NotificationKind.PRICE_CHANGED,
-      "PRICE_CHANGED:" + spaceId + ":" +
-        payment.counterparty().toLowerCase(Locale.ROOT) + ":" +
+      "PRICE_CHANGED:" + spaceId + ":" + payment.key() + ":" +
         payment.lastDate(),
       Map.of("counterparty", payment.counterparty(),
         "previous", payment.previousAmount(), "amount", payment.amount(),

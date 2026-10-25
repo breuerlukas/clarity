@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -85,8 +86,8 @@ final class NotificationEventsTest {
   private RecurringPayment payment(
     String counterparty, String amount, String previous, LocalDate lastDate
   ) {
-    return RecurringPayment.create(counterparty, "SUBSCRIPTIONS",
-      new BigDecimal(amount), new BigDecimal(previous), "EUR",
-      RecurringCycle.MONTHLY, lastDate);
+    return RecurringPayment.create(counterparty.toLowerCase(Locale.ROOT),
+      counterparty, "SUBSCRIPTIONS", new BigDecimal(amount),
+      new BigDecimal(previous), "EUR", RecurringCycle.MONTHLY, lastDate);
   }
 }

@@ -32,7 +32,18 @@ export function useTransactionsBetween(from: string, to: string) {
   });
 }
 
+/** The fixed costs that still run; ended ones neither cost nor come up. */
 export function useRecurringPayments() {
+  const space = useSpace();
+  return useQuery({
+    queryKey: ["recurring", space.id],
+    queryFn: () => api.recurring(space.id),
+    select: (data) => data.payments.filter((payment) => payment.status !== "ENDED"),
+  });
+}
+
+/** Every fixed cost, ended ones included, for the fixed costs page. */
+export function useAllRecurringPayments() {
   const space = useSpace();
   return useQuery({
     queryKey: ["recurring", space.id],
