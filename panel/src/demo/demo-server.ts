@@ -327,6 +327,7 @@ function updateRecurringSetting(body: Record<string, unknown>) {
     cancelled_on: date(body.cancelled_on),
     dismissed_last_date: date(body.dismissed_last_date),
     ignored: Boolean(body.ignored),
+    name: String(body.name ?? "").trim().slice(0, 120) || null,
     notice_days: notice === "" ? null : Number(notice),
     cancel_by: notice === "" ? null : isoDate(cancelBy),
   });

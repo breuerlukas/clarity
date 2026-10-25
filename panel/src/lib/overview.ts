@@ -82,6 +82,11 @@ export function recurringBookings(payment: RecurringPayment, transactions: Trans
     .sort((first, second) => second.date.localeCompare(first.date));
 }
 
+/** The owner's name for a fixed cost, else who it goes to. */
+export function paymentName(payment: RecurringPayment): string {
+  return payment.name || payment.counterparty;
+}
+
 export function total(amounts: number[]): number {
   return amounts.reduce((sum, amount) => sum + cents(amount), 0) / 100;
 }

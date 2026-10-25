@@ -51,6 +51,12 @@ public final class RecurringSetting {
    */
   @Column(name = "ignored")
   private Boolean ignored;
+  /**
+   * What the owner calls it ("Spotify Premium" for "SPOTIFY*P47BDD5092");
+   * null shows the name from the bookings.
+   */
+  @Column(name = "display_name", length = 120)
+  private String displayName;
 
   public void change(
     LocalDate cancelledOn, LocalDate dismissedLastDate, Integer noticeDays,
@@ -60,6 +66,10 @@ public final class RecurringSetting {
     this.dismissedLastDate = dismissedLastDate;
     this.noticeDays = noticeDays;
     this.ignored = ignored;
+  }
+
+  public void rename(String displayName) {
+    this.displayName = displayName;
   }
 
   public boolean isIgnored() {

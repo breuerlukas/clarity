@@ -10,12 +10,14 @@ import java.util.UUID;
 /**
  * The owner's decisions about a fixed cost as the panel sends them, checked.
  * An empty value clears it: no end date, no dismissal, no notice period.
- * Ignored marks bookings that only look like a fixed cost.
+ * Ignored marks bookings that only look like a fixed cost; an empty name
+ * shows the one from the bookings again.
  */
 record RecurringSettingDraft(
   LocalDate cancelledOn, LocalDate dismissedLastDate, Integer noticeDays,
-  boolean ignored
+  boolean ignored, String name
 ) {
+  private static final int MAXIMUM_NAME_LENGTH = 120;
   private static final int MAXIMUM_NOTICE_DAYS = 366;
 
   static Optional<RecurringSettingDraft> parse(ApiRequestBody body) {
@@ -27,7 +29,8 @@ record RecurringSettingDraft(
         cancelledOn.isEmpty() ? null : LocalDate.parse(cancelledOn),
         dismissed.isEmpty() ? null : LocalDate.parse(dismissed),
         noticeDays.isEmpty() ? null : Integer.valueOf(noticeDays),
-        body.getBoolean("ignored"));
+        body.getBoolean("ignored"),
+        body.getString("name", MAXIMUM_NAME_LENGTH).trim());
       return Optional.of(draft).filter(RecurringSettingDraft::isValid);
     } catch (Exception exception) {
       return Optional.empty();
@@ -41,11 +44,12 @@ record RecurringSettingDraft(
 
   RecurringSetting applyTo(RecurringSetting setting) {
     setting.change(cancelledOn, dismissedLastDate, noticeDays, ignored);
+    setting.rename(name.isEmpty() ? null : name);
     return setting;
   }
 
   RecurringSetting create(UUID spaceId, String key) {
     return applyTo(RecurringSetting.create(UUID.randomUUID(), spaceId, key,
-      null, null, null, null));
+      null, null, null, null, null));
   }
 }

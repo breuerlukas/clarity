@@ -5,7 +5,7 @@ import { AmountBadge } from "@/components/amount-badge";
 import { CategoryIcon } from "@/components/category-icon";
 import type { RecurringPayment } from "@/lib/api";
 import { formatDate, formatMoney } from "@/lib/format";
-import { total, yearly } from "@/lib/overview";
+import { paymentName, total, yearly } from "@/lib/overview";
 
 /**
  * Yearly and monthly totals, subscriptions alone, and price changes. Savings
@@ -68,7 +68,7 @@ export function FixedCostsList({
               <CategoryIcon category={payment.category} />
               <span className="grid min-w-0 gap-1">
                 <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className="max-w-full truncate font-medium">{payment.counterparty}</span>
+                  <span className="max-w-full truncate font-medium">{paymentName(payment)}</span>
                   <PriceChange payment={payment} />
                   <StatusBadge payment={payment} />
                 </span>

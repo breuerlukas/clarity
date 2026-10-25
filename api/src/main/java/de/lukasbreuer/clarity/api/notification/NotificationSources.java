@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -75,8 +76,15 @@ public final class NotificationSources {
         accountIds, today.minusDays(HISTORY_DAYS), today))
       .thenApply(RecurringPaymentDetector.create(today)::detect)
       .thenCombine(settingRepository.findBySpaceId(spaceId),
-        this::withoutIgnored)
-      .thenApply(payments -> events.priceChanges(spaceId, payments));
+        (payments, settings) -> events.priceChanges(spaceId,
+          withoutIgnored(payments, settings), names(settings)));
+  }
+
+  private Map<String, String> names(List<RecurringSetting> settings) {
+    return settings.stream()
+      .filter(setting -> setting.displayName() != null)
+      .collect(Collectors.toMap(RecurringSetting::paymentKey,
+        RecurringSetting::displayName));
   }
 
   private List<RecurringPayment> withoutIgnored(

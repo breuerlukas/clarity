@@ -79,23 +79,29 @@ public final class NotificationEvents {
       Map.of("account", name, "bank", connection.bankName()));
   }
 
+  /**
+   * @param names What the owner calls a fixed cost, by its key
+   */
   public List<Notification> priceChanges(
-    UUID spaceId, List<RecurringPayment> payments
+    UUID spaceId, List<RecurringPayment> payments, Map<String, String> names
   ) {
     var since = date(now.minus(WINDOW));
     return payments.stream()
       .filter(payment -> payment.amount().compareTo(
         payment.previousAmount()) != 0)
       .filter(payment -> !payment.lastDate().isBefore(since))
-      .map(payment -> priceChange(spaceId, payment))
+      .map(payment -> priceChange(spaceId, payment,
+        names.getOrDefault(payment.key(), payment.counterparty())))
       .toList();
   }
 
-  private Notification priceChange(UUID spaceId, RecurringPayment payment) {
+  private Notification priceChange(
+    UUID spaceId, RecurringPayment payment, String name
+  ) {
     return Notification.create(NotificationKind.PRICE_CHANGED,
       "PRICE_CHANGED:" + spaceId + ":" + payment.key() + ":" +
         payment.lastDate(),
-      Map.of("counterparty", payment.counterparty(),
+      Map.of("counterparty", name,
         "previous", payment.previousAmount(), "amount", payment.amount(),
         "currency", payment.currency()));
   }

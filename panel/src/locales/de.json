@@ -403,7 +403,9 @@
     "group_ignored": "Keine Fixkosten",
     "bookings_one": "{{count}} Buchung",
     "bookings_other": "{{count}} Buchungen",
-    "no_bookings": "Keine Buchung in den letzten 13 Monaten."
+    "no_bookings": "Keine Buchung in den letzten 13 Monaten.",
+    "name": "Name",
+    "name_hint": "Leer lassen für den Namen aus den Buchungen."
   },
   "goals": {
     "title": "Sparziele",

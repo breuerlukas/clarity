@@ -64,9 +64,10 @@ final class NotificationEventsTest {
     var notifications = events.priceChanges(UUID.randomUUID(), List.of(
       payment("Netflix", "15.99", "13.99", today.minusDays(2)),
       payment("Spotify", "12.99", "10.99", today.minusDays(20)),
-      payment("Telekom", "39.95", "39.95", today.minusDays(1))));
+      payment("Telekom", "39.95", "39.95", today.minusDays(1))),
+      Map.of("netflix", "Netflix Standard"));
     assertEquals(1, notifications.size());
-    assertEquals("Netflix",
+    assertEquals("Netflix Standard",
       notifications.getFirst().values().get("counterparty"));
   }
 
