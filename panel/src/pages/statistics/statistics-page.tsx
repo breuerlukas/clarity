@@ -29,8 +29,9 @@ export function StatisticsPage() {
   const fromStartToToday = useTransactionsBetween(range.from, isoDate(new Date()));
   const connections = useConnections();
   const recurring = useRecurringPayments();
-  const months = periodMonths(period);
   const inPeriod = (fromStartToToday.data ?? []).filter((transaction) => transaction.date <= range.to);
+  const oldest = inPeriod.reduce<string | undefined>((min, transaction) => (!min || transaction.date < min ? transaction.date : min), undefined);
+  const months = periodMonths(period, new Date(), oldest);
   const setTab = (next: string) =>
     setParams(
       (previous) => {
@@ -55,7 +56,7 @@ export function StatisticsPage() {
             <TabsTrigger value="categories"><Shapes />{t("statistics.tab_categories")}</TabsTrigger>
             <TabsTrigger value="counterparties"><Store />{t("statistics.tab_counterparties")}</TabsTrigger>
           </TabsList>
-          <PeriodPicker period={period} kinds={["quarter", "year", "rolling"]} onChange={setPeriod} />
+          <PeriodPicker period={period} kinds={["quarter", "year", "rolling", "custom", "all"]} onChange={setPeriod} />
         </div>
         {fromStartToToday.data ? (
           <>
@@ -67,6 +68,7 @@ export function StatisticsPage() {
                 connections={connections.data}
                 payments={recurring.data}
                 from={range.from}
+                to={range.to}
               />
             </TabsContent>
             <TabsContent value="categories">

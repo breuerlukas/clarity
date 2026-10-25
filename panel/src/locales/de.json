@@ -355,7 +355,11 @@
     "year": "Jahr",
     "rolling": "12 Monate",
     "previous": "Vorheriger Zeitraum",
-    "next": "Nächster Zeitraum"
+    "next": "Nächster Zeitraum",
+    "custom": "Frei",
+    "all": "Alle",
+    "from": "Von",
+    "to": "Bis"
   },
   "room": {
     "title_salary": "Noch frei bis zum Gehalt am {{date}}",
@@ -421,7 +425,6 @@
     },
     "ignore": "Keine Fixkosten",
     "count_again": "Wieder als Fixkosten zählen",
-    "group_ignored": "Keine Fixkosten",
     "bookings_one": "{{count}} Buchung",
     "bookings_other": "{{count}} Buchungen",
     "no_bookings": "Keine Buchung in den letzten 13 Monaten.",

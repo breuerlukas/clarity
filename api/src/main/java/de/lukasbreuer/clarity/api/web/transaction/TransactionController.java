@@ -31,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequiredArgsConstructor
 public final class TransactionController {
-  private static final long MAXIMUM_RANGE_DAYS = 800;
+  private static final long MAXIMUM_RANGE_DAYS = 3660;
 
   private final TransactionRepository transactionRepository;
   private final CategoryRepository categoryRepository;
