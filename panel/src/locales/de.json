@@ -79,11 +79,15 @@
     "delete": "Löschen",
     "delete_confirm": "Endgültig löschen",
     "delete_target": "Transaktionen und Regeln verschieben nach",
+    "budget": "Budget pro Gehaltszeitraum",
+    "budget_placeholder": "Kein Budget",
+    "budget_hint": "Für diesen Bereich, von Gehalt zu Gehalt. Leer lassen für keins.",
     "errors": {
       "3002": "Diese Kategorie gibt es nicht mehr.",
       "3003": "Name, Symbol oder Stichwörter sind ungültig.",
       "3004": "Diese Kategorie lässt sich nicht ausblenden oder löschen.",
-      "3005": "Wähle eine andere Kategorie als Ziel."
+      "3005": "Wähle eine andere Kategorie als Ziel.",
+      "3007": "Gib für eine Ausgabenkategorie ein Budget über null ein."
     }
   },
   "cycle": {
@@ -318,6 +322,13 @@
     "fixed_until_payday_one": "Fixkosten bis dahin",
     "fixed_until_payday_other": "Fixkosten bis dahin ({{count}})",
     "everyday": "Alltagskonten"
+  },
+  "budgets": {
+    "title": "Budgets bis zum Gehalt",
+    "manage": "Ändern",
+    "of_limit": "{{spent}} von {{limit}}",
+    "left": "noch {{amount}}",
+    "over": "{{amount}} über dem Budget"
   },
   "subscriptions": {
     "filter": "Filter",

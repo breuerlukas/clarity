@@ -79,11 +79,15 @@
     "delete": "Delete",
     "delete_confirm": "Delete for good",
     "delete_target": "Move transactions and rules to",
+    "budget": "Budget per pay cycle",
+    "budget_placeholder": "No budget",
+    "budget_hint": "For this space, from payday to payday. Leave empty for none.",
     "errors": {
       "3002": "This category no longer exists.",
       "3003": "The name, icon or keywords are invalid.",
       "3004": "This category can't be hidden or deleted.",
-      "3005": "Choose another category to move to."
+      "3005": "Choose another category to move to.",
+      "3007": "Enter a budget above zero for a spending category."
     }
   },
   "cycle": {
@@ -318,6 +322,13 @@
     "fixed_until_payday_one": "Fixed costs until then",
     "fixed_until_payday_other": "Fixed costs until then ({{count}})",
     "everyday": "Everyday accounts"
+  },
+  "budgets": {
+    "title": "Budgets until payday",
+    "manage": "Change",
+    "of_limit": "{{spent}} of {{limit}}",
+    "left": "{{amount}} left",
+    "over": "{{amount}} over budget"
   },
   "subscriptions": {
     "filter": "Filter",

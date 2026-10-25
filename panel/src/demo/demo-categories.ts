@@ -1,4 +1,4 @@
-import { ApiError, type CategoryDetails, type CategoryKind, type Transaction } from "@/lib/api";
+import { ApiError, type CategoryBudget, type CategoryDetails, type CategoryKind, type Transaction } from "@/lib/api";
 
 /**
  * The built-in categories as the api seeds them, in the same order, with a
@@ -94,8 +94,8 @@ export function resetCategory(categories: CategoryDetails[], key: unknown) {
   return ok({ category });
 }
 
-/** Moves the transactions; the demo keeps no remembered rules. */
-export function deleteCategory(categories: CategoryDetails[], transactions: Transaction[], key: unknown, target: unknown) {
+/** Moves the transactions and drops its budgets; the demo keeps no remembered rules. */
+export function deleteCategory(categories: CategoryDetails[], budgets: DemoBudget[], transactions: Transaction[], key: unknown, target: unknown) {
   const category = find(categories, key);
   if (category.built_in) {
     throw new ApiError(400, 3004);
@@ -113,5 +113,26 @@ export function deleteCategory(categories: CategoryDetails[], transactions: Tran
     }
   });
   categories.splice(categories.indexOf(category), 1);
+  budgets.splice(0, budgets.length, ...budgets.filter((budget) => budget.category !== key));
   return ok({ moved: moved.length });
+}
+
+export type DemoBudget = CategoryBudget & { space: string };
+
+/** Checked like the api does: a positive limit in cents at most, on spending. */
+export function updateBudget(budgets: DemoBudget[], categories: CategoryDetails[], body: Record<string, unknown>) {
+  const category = find(categories, body.category);
+  const limit = String(body.limit ?? "");
+  const valid = limit === "" || (/^\d{1,9}(\.\d{1,2})?$/.test(limit) && Number(limit) > 0);
+  if (category.kind !== "SPENDING" || !valid) {
+    throw new ApiError(400, 3007);
+  }
+  const kept = budgets.filter((budget) => budget.space !== body.space || budget.category !== category.key);
+  budgets.splice(0, budgets.length, ...kept);
+  if (limit === "") {
+    return ok();
+  }
+  const budget = { category: category.key, limit: Number(limit) };
+  budgets.push({ space: String(body.space), ...budget });
+  return ok({ budget });
 }

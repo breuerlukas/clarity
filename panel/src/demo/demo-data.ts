@@ -13,7 +13,7 @@ import type {
   Space,
   Transaction,
 } from "@/lib/api";
-import { demoCategories } from "@/demo/demo-categories";
+import { demoCategories, type DemoBudget } from "@/demo/demo-categories";
 import { isoDate } from "@/lib/dates";
 import {
   BUSINESS_SPACE,
@@ -203,6 +203,7 @@ export interface DemoDatabase {
   /** Started ones; the cash entries are among the transactions. */
   wallets: CashWallet[];
   receipts: Receipt[];
+  budgets: DemoBudget[];
 }
 
 export function createDemoDatabase(today = TODAY()): DemoDatabase {
@@ -374,6 +375,12 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
     mailboxes: demoMailboxes(today),
     wallets: [demoWallet(PERSONAL_SPACE, today)],
     receipts,
+    budgets: [
+      { space: PERSONAL_SPACE, category: "GROCERIES", limit: 450 },
+      { space: PERSONAL_SPACE, category: "DINING", limit: 120 },
+      { space: PERSONAL_SPACE, category: "LEISURE", limit: 80 },
+      { space: PERSONAL_SPACE, category: "SHOPPING", limit: 150 },
+    ],
   };
 }
 

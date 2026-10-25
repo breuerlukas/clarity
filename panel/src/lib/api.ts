@@ -67,6 +67,12 @@ export interface CategoryDetails {
   system: boolean;
 }
 
+/** The most the owner wants to spend on a category per pay cycle in a space. */
+export interface CategoryBudget {
+  category: Category;
+  limit: number;
+}
+
 export type CategoryDraft = Pick<CategoryDetails, "name" | "icon" | "color" | "kind" | "keywords">;
 
 export interface Transaction {
@@ -432,6 +438,10 @@ export const api = {
     post<{ category: CategoryDetails }>("/categories/reset/", { key }),
   deleteCategory: (key: Category, target: Category) =>
     post<{ moved: number }>("/categories/delete/", { key, target }),
+  budgets: (space: string) => get<{ budgets: CategoryBudget[] }>(`/budgets/?space=${space}`),
+  /** Without a limit the category's budget is removed. */
+  updateBudget: (space: string, category: Category, limit: number | null) =>
+    post("/budgets/update/", { space, category, limit: limit === null ? "" : String(limit) }),
   recurring: (space: string) =>
     get<{ payments: RecurringPayment[] }>(`/recurring/?space=${space}`),
   connections: () => get<{ connections: Connection[] }>("/connections/"),

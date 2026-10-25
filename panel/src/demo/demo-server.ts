@@ -12,7 +12,7 @@ import {
   type SpaceKind,
   type Transaction,
 } from "@/lib/api";
-import { createCategory, deleteCategory, resetCategory, updateCategory } from "@/demo/demo-categories";
+import { createCategory, deleteCategory, resetCategory, updateBudget, updateCategory } from "@/demo/demo-categories";
 import { createDemoDatabase, PERSONAL_SPACE } from "@/demo/demo-data";
 import { countCash, createCashEntry, deleteCashEntry, splitTransaction, updateCashEntry, wallet, walletId } from "@/demo/demo-cash";
 import {
@@ -28,7 +28,7 @@ import { isoDate } from "@/lib/dates";
 
 /**
  * Answers the panel's api calls in the browser for the public demo. Changes
- * (categories, a new name, removed banks, cash entries, receipts) live in
+ * (categories, budgets, a new name, removed banks, cash entries, receipts) live in
  * memory until reload; bank logins and password changes are refused with
  * code 9000.
  */
@@ -130,7 +130,15 @@ export async function handleDemoRequest(
     case "POST /categories/reset/":
       return resetCategory(database.categories, body.key);
     case "POST /categories/delete/":
-      return deleteCategory(database.categories, database.transactions, body.key, body.target);
+      return deleteCategory(database.categories, database.budgets, database.transactions, body.key, body.target);
+    case "GET /budgets/":
+      return ok({
+        budgets: database.budgets
+          .filter((budget) => budget.space === url.searchParams.get("space"))
+          .map(({ category, limit }) => ({ category, limit })),
+      });
+    case "POST /budgets/update/":
+      return updateBudget(database.budgets, database.categories, body);
     case "POST /transactions/category/":
       return categorize(String(body.id), body.category as Category, Boolean(body.remember));
     case "GET /recurring/":

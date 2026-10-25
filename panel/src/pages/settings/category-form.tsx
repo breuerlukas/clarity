@@ -8,22 +8,30 @@ import { CategoryBadge } from "@/components/category-icon";
 import { Field } from "@/components/field";
 import { Notice } from "@/components/notice";
 import { Segmented } from "@/components/segmented";
-import { useCategories, useCategoryLook } from "@/hooks/use-categories";
-import { api, ApiError, type CategoryDetails, type CategoryKind } from "@/lib/api";
+import { useBudgets, useCategories, useCategoryLook } from "@/hooks/use-categories";
+import { useSpace } from "@/hooks/use-space";
+import { api, ApiError, type Category, type CategoryDetails, type CategoryKind } from "@/lib/api";
 import { CATEGORY_COLORS, CATEGORY_ICONS, categoryColorStyle } from "@/lib/category-icons";
 import { cn } from "@/lib/utils";
+
+/** Never counted as spending, so a budget on them would stay empty. */
+const UNBUDGETED = new Set(["CASH", "TRANSFER"]);
 
 /**
  * Creates a category or changes one. A built-in one keeps its translated
  * label while the name stays empty and can go back to how it shipped; an own
  * one can be deleted once the owner chose where its transactions move. It
- * opens at its top, wherever the list was scrolled to.
+ * opens at its top, wherever the list was scrolled to. The budget belongs
+ * to the open space and is saved while the category is a spending one: before
+ * it turns into income, after it turns into spending.
  */
 export function CategoryForm({ category, onDone }: { category: CategoryDetails | null; onDone: () => void }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const categories = useCategories();
   const look = useCategoryLook();
+  const space = useSpace();
+  const budgets = useBudgets();
   const [name, setName] = useState(category?.name ?? "");
   const [kind, setKind] = useState<CategoryKind>(category?.kind ?? "SPENDING");
   const [icon, setIcon] = useState(category?.icon ?? "circle-dashed");
@@ -31,6 +39,7 @@ export function CategoryForm({ category, onDone }: { category: CategoryDetails |
   const [keywords, setKeywords] = useState(category?.keywords.join("\n") ?? "");
   const [hidden, setHidden] = useState(category?.hidden ?? false);
   const [target, setTarget] = useState<string | null>(null);
+  const [limit, setLimit] = useState<string | null>(null);
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => {
     form.current?.scrollIntoView({ block: "start" });
@@ -38,13 +47,28 @@ export function CategoryForm({ category, onDone }: { category: CategoryDetails |
   const finish = async (moved: boolean) => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["categories"] }),
+      queryClient.invalidateQueries({ queryKey: ["budgets"] }),
       ...(moved ? [queryClient.invalidateQueries({ queryKey: ["transactions"] }), queryClient.invalidateQueries({ queryKey: ["recurring"] })] : []),
     ]);
     onDone();
   };
   const draft = { name: name.trim() || null, icon, color, kind, keywords: keywords.split("\n").filter((line) => line.trim()) };
+  const budgetable = space.kind === "PERSONAL" && kind === "SPENDING" && !UNBUDGETED.has(category?.key ?? "");
+  const currentLimit = budgets.data?.find((budget) => budget.category === category?.key)?.limit ?? null;
+  const wantedLimit = kind === "INCOME" ? null : limit === null ? currentLimit : limit.trim() ? Number(limit) : null;
+  const saveBudget = (key: Category) =>
+    wantedLimit === currentLimit ? Promise.resolve() : api.updateBudget(space.id, key, wantedLimit);
   const save = useMutation({
-    mutationFn: () => (category ? api.updateCategory(category.key, draft, hidden) : api.createCategory(draft)),
+    mutationFn: async () => {
+      if (!category) {
+        return saveBudget((await api.createCategory(draft)).category.key);
+      }
+      if (category.kind === "SPENDING") {
+        await saveBudget(category.key);
+      }
+      await api.updateCategory(category.key, draft, hidden);
+      return category.kind === "SPENDING" ? undefined : saveBudget(category.key);
+    },
     onSuccess: () => finish(false),
   });
   const reset = useMutation({ mutationFn: () => api.resetCategory(category!.key), onSuccess: () => finish(false) });
@@ -90,6 +114,19 @@ export function CategoryForm({ category, onDone }: { category: CategoryDetails |
             onChange={setKind}
           />
         </div>
+      )}
+      {budgetable && (
+        <Field
+          label={t("categories.budget")}
+          type="number"
+          inputMode="decimal"
+          min="0.01"
+          step="0.01"
+          value={limit ?? currentLimit ?? ""}
+          onChange={(event) => setLimit(event.target.value)}
+          placeholder={t("categories.budget_placeholder")}
+          hint={t("categories.budget_hint")}
+        />
       )}
       <fieldset className="grid gap-2">
         <legend className="mb-2 text-sm font-bold text-label">{t("categories.icon")}</legend>
