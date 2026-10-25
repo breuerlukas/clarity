@@ -6,6 +6,7 @@ import { LedgerSkeleton } from "@/components/ledger";
 import { useSpacePath } from "@/hooks/use-space";
 import type { RecurringPayment } from "@/lib/api";
 import { formatDay } from "@/lib/format";
+import { paymentName } from "@/lib/overview";
 import { cn } from "@/lib/utils";
 
 const VISIBLE = 6;
@@ -37,7 +38,7 @@ export function UpcomingPayments({
           >
             <CategoryIcon category={payment.category} />
             <span className="grid min-w-0 gap-0.5">
-              <span className="truncate font-medium">{payment.counterparty}</span>
+              <span className="truncate font-medium">{paymentName(payment)}</span>
               <span className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
                 <span
                   className={cn(

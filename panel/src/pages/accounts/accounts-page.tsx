@@ -12,7 +12,7 @@ import { CashCard } from "@/pages/accounts/cash-card";
 
 export function AccountsPage() {
   const { t } = useTranslation();
-  const connections = useConnections();
+  const connections = useConnections({ withHidden: true });
   const [connecting, setConnecting] = useState(false);
   return (
     <>
@@ -27,7 +27,7 @@ export function AccountsPage() {
       {Boolean(connections.data?.length) && (
         <p className="mb-6 max-w-2xl text-muted-foreground">{t("accounts.spending_hint")}</p>
       )}
-      <div className="grid items-start gap-6 xl:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         {connections.isPending && (
           <>
             <PanelSkeleton className="h-64" />

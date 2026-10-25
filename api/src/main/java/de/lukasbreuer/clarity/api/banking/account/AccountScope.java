@@ -16,13 +16,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Predicate;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * Keeps the spaces apart: every view asks for the accounts of one space, or
- * of every space of one kind. The cash wallet counts as one of them, so
- * cash entries show up wherever bank transactions do.
+ * of every space of one kind. An account can be moved away from the space
+ * of its connection, and hidden accounts belong to none for the time being.
+ * The cash wallet counts as one of them, so cash entries show up wherever
+ * bank transactions do.
  */
 @Component
 @RequiredArgsConstructor
@@ -44,8 +46,29 @@ public final class AccountScope {
   }
 
   private CompletableFuture<Set<UUID>> accountIds(Set<UUID> spaceIds) {
-    return accountIds(connection -> spaceIds.contains(connection.spaceId()))
+    return connectionRepository.findAll()
+      .thenCombine(accountRepository.findAll(), (connections, accounts) ->
+        accountsIn(spaceIds, connections, accounts))
       .thenCombine(walletIds(spaceIds), this::union);
+  }
+
+  /**
+   * An account belongs to the space it was moved to, else to the space of
+   * its connection.
+   */
+  private Set<UUID> accountsIn(
+    Set<UUID> spaceIds, List<BankConnection> connections,
+    List<BankAccount> accounts
+  ) {
+    var byId = connections.stream().collect(Collectors.toMap(
+      BankConnection::id, Function.identity()));
+    return accounts.stream()
+      .filter(account -> !account.isHidden())
+      .filter(account -> byId.containsKey(account.connectionId()))
+      .filter(account -> spaceIds.contains(
+        account.spaceIn(byId.get(account.connectionId()))))
+      .map(BankAccount::id)
+      .collect(Collectors.toSet());
   }
 
   private CompletableFuture<Set<UUID>> walletIds(Set<UUID> spaceIds) {
@@ -60,24 +83,5 @@ public final class AccountScope {
     var accountIds = new HashSet<>(bankAccountIds);
     accountIds.addAll(walletIds);
     return accountIds;
-  }
-
-  private CompletableFuture<Set<UUID>> accountIds(
-    Predicate<BankConnection> filter
-  ) {
-    return connectionRepository.findAll()
-      .thenApply(connections -> connectionIds(connections, filter))
-      .thenCompose(connectionIds -> accountRepository.findAll()
-        .thenApply(accounts -> accounts.stream()
-          .filter(account -> connectionIds.contains(account.connectionId()))
-          .map(BankAccount::id)
-          .collect(Collectors.toSet())));
-  }
-
-  private Set<UUID> connectionIds(
-    List<BankConnection> connections, Predicate<BankConnection> filter
-  ) {
-    return connections.stream().filter(filter)
-      .map(BankConnection::id).collect(Collectors.toSet());
   }
 }

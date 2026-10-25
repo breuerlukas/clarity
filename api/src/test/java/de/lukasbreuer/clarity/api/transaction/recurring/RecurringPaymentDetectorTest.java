@@ -31,6 +31,31 @@ final class RecurringPaymentDetectorTest {
   }
 
   @Test
+  void groupsCardPaymentsWhoseReferenceChangesEveryMonth() {
+    var payments = RecurringPaymentDetector.create(TODAY).detect(List.of(
+      debit("Spotify P43438219D", "-6.99", "2026-05-11"),
+      debit("SPOTIFY", "-6.99", "2026-06-09"),
+      debit("Spotify P445538918", "-6.99", "2026-07-09"),
+      debit("SPOTIFY", "-6.99", "2026-08-11"),
+      debit("SPOTIFY*P47BDD5092", "-6.99", "2026-09-09")));
+    assertEquals(1, payments.size());
+    assertEquals("spotify", payments.getFirst().key());
+    assertEquals(RecurringCycle.MONTHLY, payments.getFirst().cycle());
+  }
+
+  @Test
+  void keepsNamesWithoutReferencesApart() {
+    var payments = RecurringPaymentDetector.create(TODAY).detect(List.of(
+      debit("PayPal *Netflix", "-13.99", "2026-08-01"),
+      debit("PayPal *Netflix", "-13.99", "2026-09-01"),
+      debit("PayPal *Netflix", "-13.99", "2026-10-01"),
+      debit("PayPal *Disney", "-9.99", "2026-08-05"),
+      debit("PayPal *Disney", "-9.99", "2026-09-05"),
+      debit("PayPal *Disney", "-9.99", "2026-10-05")));
+    assertEquals(2, payments.size());
+  }
+
+  @Test
   void ignoresSupermarketWithChangingAmounts() {
     var payments = RecurringPaymentDetector.create(TODAY).detect(List.of(
       debit("REWE", "-23.10", "2026-08-01"),

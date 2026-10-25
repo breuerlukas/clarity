@@ -169,6 +169,10 @@ export interface ReceiptUpload {
 
 export interface Account {
   id: string;
+  /** The space it shows in: where it was moved to, else its connection's. */
+  space: string;
+  /** Left out of every view but the accounts page for now. */
+  hidden: boolean;
   name: string;
   iban: string | null;
   currency: string;
@@ -211,6 +215,8 @@ export interface RecurringPayment {
   dismissed_last_date: string | null;
   /** The owner said it is no fixed cost; left out everywhere but its list. */
   ignored: boolean;
+  /** What the owner calls it; null shows the counterparty. */
+  name: string | null;
   notice_days: number | null;
   /** The last day to cancel before the next renewal, with a notice period. */
   cancel_by: string | null;
@@ -222,6 +228,8 @@ export interface RecurringSettingDraft {
   dismissed_last_date: string;
   notice_days: string;
   ignored: boolean;
+  /** Empty shows the counterparty again. */
+  name: string;
 }
 
 export type BillingInterval = "MONTHLY" | "QUARTERLY" | "HALF_YEARLY" | "YEARLY";
@@ -258,6 +266,8 @@ export interface Space {
   name: string;
   icon: string;
   kind: SpaceKind;
+  /** What to spend per pay cycle beyond fixed costs; null for the suggestion. */
+  monthly_budget: number | null;
 }
 
 /**
@@ -463,6 +473,9 @@ export const api = {
     post<{ space: Space }>("/spaces/create/", { name, icon, kind }),
   updateSpace: (id: string, name: string, icon: string) =>
     post<{ space: Space }>("/spaces/update/", { id, name, icon }),
+  /** Without an amount the panel suggests one again. */
+  changeMonthlyBudget: (id: string, amount: number | null) =>
+    post<{ space: Space }>("/spaces/budget/", { id, amount: amount === null ? "" : String(amount) }),
   deleteSpace: (id: string) => post("/spaces/delete/", { id }),
   transactions: (space: string, from: string, to: string) =>
     get<{ transactions: Transaction[] }>(
@@ -529,6 +542,8 @@ export const api = {
   updateRecurringSetting: (space: string, key: string, draft: RecurringSettingDraft) =>
     post("/recurring/settings/", { space, key, ...draft }),
   connections: () => get<{ connections: Connection[] }>("/connections/"),
+  moveAccount: (id: string, space: string) => post("/accounts/space/", { id, space }),
+  hideAccount: (id: string, hidden: boolean) => post("/accounts/hidden/", { id, hidden }),
   markSpending: (id: string, spending: boolean) =>
     post("/accounts/spending/", { id, spending }),
   synchronize: () => post<{ started: boolean }>("/connections/sync/"),

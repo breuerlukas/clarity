@@ -202,7 +202,13 @@
     "empty_text": "Connect your bank to see accounts and transactions. Clarity only gets read access.",
     "not_configured": "Enable Banking isn't set up yet (see docs/enable-banking.md).",
     "spending": "Account type",
-    "spending_hint": "Everyday accounts count towards the money left until your next salary. Savings accounts stay out of it."
+    "spending_hint": "Everyday accounts count towards the money left until your next salary. Savings accounts stay out of it.",
+    "move": "Move",
+    "move_title": "Move {{account}}",
+    "move_hint": "Its transactions, fixed costs and statistics move along. The bank connection stays where it is.",
+    "hide": "Hide",
+    "show": "Show",
+    "hidden": "Hidden"
   },
   "connect": {
     "title": "Connect a bank",
@@ -356,16 +362,31 @@
     "to": "To"
   },
   "room": {
-    "title_salary": "Available until payday on {{date}}",
-    "title_month_end": "Available until the end of the month",
+    "title_salary": "Left until payday on {{date}}",
     "per_day_one": "<strong>{{amount}}</strong> for today",
     "per_day_other": "About <strong>{{amount}} a day</strong> for {{days}} days",
-    "short": "Your everyday accounts don't cover the fixed costs until payday.",
     "progress": "Day {{day}} of {{days}}",
     "fixed_until_payday_one": "Fixed costs until then",
     "fixed_until_payday_other": "Fixed costs until then ({{count}})",
     "everyday": "Everyday accounts",
-    "set_aside": "Set aside for goals"
+    "set_aside": "Set aside for goals",
+    "title_month": "Left this month",
+    "edit_budget": "Change monthly budget",
+    "of_budget": "of {{limit}}",
+    "of_suggested": "of {{limit}} (salary minus fixed costs)",
+    "over": "{{amount}} over budget.",
+    "set_budget": "Set a monthly budget",
+    "on_accounts": "Free on the accounts",
+    "uncovered": "Your everyday accounts only cover {{amount}} of it.",
+    "spent": "{{amount}} spent · day {{day}} of {{days}}",
+    "budget_title": "Monthly budget",
+    "budget_hint": "What you want to spend per pay cycle on top of your fixed costs: groceries, going out, shopping. Fixed costs don't count against it.",
+    "budget_amount": "Budget per pay cycle",
+    "use_suggestion": "Use salary minus fixed costs",
+    "errors": {
+      "5001": "This space no longer exists.",
+      "5004": "Enter an amount above zero."
+    }
   },
   "budgets": {
     "title": "Budgets until payday",
@@ -406,7 +427,9 @@
     "count_again": "Count as fixed cost again",
     "bookings_one": "{{count}} booking",
     "bookings_other": "{{count}} bookings",
-    "no_bookings": "No booking in the last 13 months."
+    "no_bookings": "No booking in the last 13 months.",
+    "name": "Name",
+    "name_hint": "Leave empty for the name from the bookings."
   },
   "goals": {
     "title": "Savings goals",

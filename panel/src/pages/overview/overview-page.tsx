@@ -8,12 +8,12 @@ import { useCashWallet } from "@/hooks/use-cash";
 import { useBudgets } from "@/hooks/use-categories";
 import { useConnections, useHistory, useRecurringPayments } from "@/hooks/use-finances";
 import { useGoals } from "@/hooks/use-goals";
-import { useSpacePath } from "@/hooks/use-space";
-import { budgetUsage, cashAccount, spendingRoom } from "@/lib/budget";
+import { useSpace, useSpacePath } from "@/hooks/use-space";
+import { budgetUsage, cashAccount, monthlyBudget, spendingRoom } from "@/lib/budget";
 import { isoDate } from "@/lib/dates";
 import { formatDate } from "@/lib/format";
 import { setAsideForGoals } from "@/lib/goals";
-import { cancellationReminders } from "@/lib/overview";
+import { cancellationReminders, paymentName } from "@/lib/overview";
 import { SpendingRoomCard } from "@/pages/overview/spending-room-card";
 import { BudgetsCard } from "@/pages/overview/budgets-card";
 import { AccountsCard } from "@/pages/overview/accounts-card";
@@ -36,6 +36,7 @@ export function OverviewPage() {
   const budgets = useBudgets();
   const goals = useGoals();
   const path = useSpacePath();
+  const space = useSpace();
   if (connections.data?.length === 0) {
     return <EmptyOverview />;
   }
@@ -58,7 +59,7 @@ export function OverviewPage() {
         <Notice key={payment.key} className="mb-4">
           <Link to={path("/subscriptions")} className="underline-offset-4 hover:underline">
             {t("subscriptions.reminder", {
-              counterparty: payment.counterparty,
+              counterparty: paymentName(payment),
               date: formatDate(payment.cancel_by ?? ""),
               renewal: formatDate(payment.next_date),
             })}
@@ -67,7 +68,11 @@ export function OverviewPage() {
       ))}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex min-w-0 flex-col gap-6">
-          {room ? <SpendingRoomCard room={room} /> : <PanelSkeleton className="h-72" />}
+          {room && recurring.data && history.data ? (
+            <SpendingRoomCard room={room} budget={monthlyBudget(space.monthly_budget, room, recurring.data, history.data)} />
+          ) : (
+            <PanelSkeleton className="h-72" />
+          )}
           {usage && <BudgetsCard usage={usage} />}
           {accounts && history.data ? (
             <BalanceCard accounts={accounts} history={history.data} />

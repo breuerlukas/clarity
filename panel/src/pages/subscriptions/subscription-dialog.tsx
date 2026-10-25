@@ -16,7 +16,7 @@ import { useHistory } from "@/hooks/use-finances";
 import { useSpace } from "@/hooks/use-space";
 import { api, ApiError, type RecurringPayment, type RecurringSettingDraft } from "@/lib/api";
 import { formatDate } from "@/lib/format";
-import { recurringBookings } from "@/lib/overview";
+import { paymentName, recurringBookings } from "@/lib/overview";
 
 /**
  * What the owner knows better than the bookings: that a fixed cost was
@@ -49,11 +49,13 @@ function SubscriptionForm({ payment, onClose }: { payment: RecurringPayment; onC
   const queryClient = useQueryClient();
   const [cancelledOn, setCancelledOn] = useState(payment.cancelled_on ?? "");
   const [noticeDays, setNoticeDays] = useState(payment.notice_days?.toString() ?? "");
+  const [name, setName] = useState(payment.name ?? "");
   const draft: RecurringSettingDraft = {
     cancelled_on: cancelledOn,
     dismissed_last_date: payment.dismissed_last_date ?? "",
     notice_days: noticeDays,
     ignored: payment.ignored,
+    name: name.trim(),
   };
   const save = useMutation({
     mutationFn: (changes: Partial<RecurringSettingDraft>) =>
@@ -71,7 +73,7 @@ function SubscriptionForm({ payment, onClose }: { payment: RecurringPayment; onC
   return (
     <>
       <div className="grid gap-2">
-        <DialogTitle>{payment.counterparty}</DialogTitle>
+        <DialogTitle>{paymentName(payment)}</DialogTitle>
         <DialogDescription>
           {stopped
             ? t(`subscriptions.status_hint_${payment.status}`, { date: formatDate(payment.last_date) })
@@ -89,6 +91,15 @@ function SubscriptionForm({ payment, onClose }: { payment: RecurringPayment; onC
             {t("subscriptions.not_ended")}
           </Button>
         )}
+        <Field
+          label={t("subscriptions.name")}
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          maxLength={120}
+          placeholder={payment.counterparty}
+          hint={t("subscriptions.name_hint")}
+          autoComplete="off"
+        />
         <Field
           label={t("subscriptions.cancelled_on")}
           type="date"

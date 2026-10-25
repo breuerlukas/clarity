@@ -2,7 +2,10 @@
 
 Fixed costs are not stored: `RecurringPaymentDetector` finds them in the
 last 800 days of bookings on every request. Debits to the same counterparty
-(grouped by its lowercased name, the payment's `key`) count when their most
+(grouped by its lowercased name without payment references, the payment's
+`key`; card payments often append one that changes every month, as in
+`SPOTIFY*P47BDD5092` or `Spotify P445538918`: a word of at least five
+letters and digits with a digit in it, after a star or a space) count when their most
 recent gaps fit one `RecurringCycle` and their amounts stay within 15 % of
 the latest one.
 
@@ -29,6 +32,7 @@ Detection runs anew each time, so the owner's decisions live apart in
 | `dismissed_last_date` | "still running": active while the last booking is this one |
 | `notice_days` | `cancel_by` = next booking minus these days |
 | `ignored` | no fixed cost at all: left out of every list and total, the spending room, reminders and price-change mails |
+| `display_name` | the owner's name for it, shown everywhere and in price-change mails; empty shows the counterparty |
 
 A dismissal only covers the gap it was made for; once the payment books
 again and stops later, it goes missing anew. The overview reminds of every

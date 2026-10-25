@@ -369,8 +369,8 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
   const businessTransactions = demoBusinessTransactions(today, contracts);
   return {
     spaces: [
-      { id: PERSONAL_SPACE, slug: "home", name: "", icon: "wallet", kind: "PERSONAL" },
-      { id: BUSINESS_SPACE, slug: "agentur", name: "Agentur", icon: "palette", kind: "BUSINESS" },
+      { id: PERSONAL_SPACE, slug: "home", name: "", icon: "wallet", kind: "PERSONAL", monthly_budget: null },
+      { id: BUSINESS_SPACE, slug: "agentur", name: "Agentur", icon: "palette", kind: "BUSINESS", monthly_budget: null },
     ],
     categories: demoCategories(),
     connections: [...connections(today), ...demoBusinessConnections(today)],
@@ -400,6 +400,8 @@ function connections(today: Date): Connection[] {
   const synced = today.getTime() - 1000 * 60 * 47;
   const account = (id: string, name: string, iban: string | null, balance: number, spending = true): Account => ({
     id,
+    space: PERSONAL_SPACE,
+    hidden: false,
     name,
     iban,
     currency: "EUR",
@@ -485,6 +487,7 @@ function recurring(today: Date, transactions: Transaction[]): RecurringPayment[]
       cancelled_on: null,
       dismissed_last_date: null,
       ignored: false,
+      name: null,
       notice_days: cost.noticeDays ?? null,
       cancel_by: cost.noticeDays === undefined ? null : isoDate(cancelBy),
     };

@@ -47,7 +47,7 @@ public final class SpaceSetup {
   private CompletableFuture<Space> createDefault() {
     log.info("Creating the default space");
     return spaceRepository.save(Space.create(UUID.randomUUID(), DEFAULT_SLUG,
-      "", DEFAULT_ICON, SpaceKind.PERSONAL, System.currentTimeMillis()));
+      "", DEFAULT_ICON, SpaceKind.PERSONAL, System.currentTimeMillis(), null));
   }
 
   private CompletableFuture<Void> adopt(

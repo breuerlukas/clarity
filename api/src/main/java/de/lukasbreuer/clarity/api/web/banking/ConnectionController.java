@@ -68,14 +68,18 @@ public final class ConnectionController {
     information.put("valid_until", connection.validUntil());
     information.put("accounts", accounts.stream()
       .filter(account -> account.connectionId().equals(connection.id()))
-      .map(this::information)
+      .map(account -> information(account, connection))
       .toList());
     return information;
   }
 
-  private Map<String, Object> information(BankAccount account) {
+  private Map<String, Object> information(
+    BankAccount account, BankConnection connection
+  ) {
     var information = new HashMap<String, Object>();
     information.put("id", account.id());
+    information.put("space", account.spaceIn(connection));
+    information.put("hidden", account.isHidden());
     information.put("name", account.name());
     information.put("iban", account.iban());
     information.put("currency", account.currency());

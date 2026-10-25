@@ -1,4 +1,5 @@
 import {
+  type Account,
   ApiError,
   type BusinessTransaction,
   type Category,
@@ -94,10 +95,23 @@ export async function handleDemoRequest(
       return createSpace(String(body.name ?? "").trim(), String(body.icon), String(body.kind) as SpaceKind);
     case "POST /spaces/update/":
       return updateSpace(String(body.id), String(body.name ?? "").trim(), String(body.icon));
+    case "POST /spaces/budget/":
+      return changeMonthlyBudget(String(body.id), String(body.amount ?? ""));
     case "POST /spaces/delete/":
       return deleteSpace(String(body.id));
     case "GET /connections/":
       return ok({ connections: database.connections });
+    case "POST /accounts/space/":
+      return changeAccount(String(body.id), (account) => {
+        if (!database.spaces.some((space) => space.id === body.space)) {
+          throw new ApiError(400, 5001);
+        }
+        account.space = String(body.space);
+      });
+    case "POST /accounts/hidden/":
+      return changeAccount(String(body.id), (account) => {
+        account.hidden = Boolean(body.hidden);
+      });
     case "POST /accounts/spending/":
       return markSpending(String(body.id), Boolean(body.spending));
     case "POST /connections/sync/":
@@ -235,12 +249,13 @@ function between(params: URLSearchParams) {
   return (transaction: { date: string }) => (!from || transaction.date >= from) && (!to || transaction.date <= to);
 }
 
-/** The transactions of the accounts and the cash wallet of the space the request names. */
+/** The transactions of the visible accounts and the cash wallet of the space the request names. */
 function inSpace<T extends { account: string }>(transactions: T[], params: URLSearchParams): T[] {
   const accounts = new Set([
     ...database.connections
-      .filter((connection) => connection.space === params.get("space"))
-      .flatMap((connection) => connection.accounts.map((account) => account.id)),
+      .flatMap((connection) => connection.accounts)
+      .filter((account) => account.space === params.get("space") && !account.hidden)
+      .map((account) => account.id),
     walletId(String(params.get("space"))),
   ]);
   return transactions.filter((transaction) => accounts.has(transaction.account));
@@ -271,7 +286,7 @@ function createSpace(name: string, icon: string, kind: SpaceKind) {
   if (!name || !["PERSONAL", "BUSINESS"].includes(kind)) {
     throw new ApiError(400, 5000);
   }
-  const space = { id: `space-${Date.now()}`, slug: slugFor(name), name, icon, kind };
+  const space = { id: `space-${Date.now()}`, slug: slugFor(name), name, icon, kind, monthly_budget: null };
   database.spaces.push(space);
   return ok({ space });
 }
@@ -300,7 +315,7 @@ function deleteSpace(id: string) {
     throw new ApiError(400, 5003);
   }
   if (
-    database.connections.some((connection) => connection.space === id) ||
+    database.connections.some((connection) => connection.space === id || connection.accounts.some((account) => account.space === id)) ||
     database.contracts.some((contract) => contract.space === id) ||
     database.receipts.some((receipt) => receipt.space === id) ||
     database.goals.some((goal) => goal.space === id) ||
@@ -327,6 +342,7 @@ function updateRecurringSetting(body: Record<string, unknown>) {
     cancelled_on: date(body.cancelled_on),
     dismissed_last_date: date(body.dismissed_last_date),
     ignored: Boolean(body.ignored),
+    name: String(body.name ?? "").trim().slice(0, 120) || null,
     notice_days: notice === "" ? null : Number(notice),
     cancel_by: notice === "" ? null : isoDate(cancelBy),
   });
@@ -334,6 +350,19 @@ function updateRecurringSetting(body: Record<string, unknown>) {
   const dismissed = payment.dismissed_last_date === payment.last_date;
   payment.status = ended ? "ENDED" : dismissed ? "ACTIVE" : (detectedStatus(payment, new Date()) ?? "ENDED");
   return ok();
+}
+
+/** Checked like the api does: a positive amount with cents at most, or none. */
+function changeMonthlyBudget(id: string, amount: string) {
+  const space = database.spaces.find((entry) => entry.id === id);
+  if (!space) {
+    throw new ApiError(400, 5001);
+  }
+  if (amount && (!/^\d{1,9}(\.\d{1,2})?$/.test(amount) || Number(amount) <= 0)) {
+    throw new ApiError(400, 5004);
+  }
+  space.monthly_budget = amount ? Number(amount) : null;
+  return ok({ space });
 }
 
 function categorize(id: string, category: Category, remember: boolean) {
@@ -450,6 +479,15 @@ function deleteContract(contract: Contract) {
       transaction.assignment = null;
     }
   });
+  return ok();
+}
+
+function changeAccount(id: string, change: (account: Account) => void) {
+  const account = database.connections.flatMap((connection) => connection.accounts).find((entry) => entry.id === id);
+  if (!account) {
+    throw new ApiError(400, 2004);
+  }
+  change(account);
   return ok();
 }
 

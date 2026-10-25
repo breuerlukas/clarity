@@ -43,7 +43,7 @@ public final class EnableBankingSession {
     var name = accountName(account);
     return BankAccount.create(UUID.randomUUID(), connectionId,
       account.getString("uid"), accountId.optString("iban", null), name,
-      account.optString("currency", "EUR"), null, 0, 0, null, null);
+      account.optString("currency", "EUR"), null, 0, 0, null, null, null, null);
   }
 
   /**

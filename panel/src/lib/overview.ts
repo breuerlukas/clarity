@@ -67,19 +67,39 @@ export function cancellationReminders(payments: RecurringPayment[], today: strin
 }
 
 /**
+ * A payment reference after the merchant's name that changes every month
+ * ("SPOTIFY*P47BDD5092"): letters and digits, at least five, with a digit,
+ * after a star or a space. Same pattern as the api's RecurringPaymentDetector.
+ */
+const REFERENCE = /[*\s]+(?=[a-z]*\d)[a-z0-9]{5,}\b/g;
+
+/**
+ * Who a booking is with, as the api groups fixed costs: case, spacing and
+ * payment references don't count.
+ */
+export function bookingKey(transaction: Transaction): string {
+  return (transaction.counterparty?.trim() ? transaction.counterparty : (transaction.description ?? ""))
+    .trim()
+    .toLowerCase()
+    .replace(REFERENCE, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
  * The bookings a fixed cost was found in, newest first: debits grouped the
  * way the api's RecurringPaymentDetector groups them, by counterparty or,
  * without one, by purpose, ignoring case and spacing.
  */
 export function recurringBookings(payment: RecurringPayment, transactions: Transaction[]): Transaction[] {
-  const key = (transaction: Transaction) =>
-    (transaction.counterparty.trim() ? transaction.counterparty : transaction.description)
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, " ");
   return transactions
-    .filter((transaction) => transaction.amount < 0 && transaction.category !== "TRANSFER" && key(transaction) === payment.key)
+    .filter((transaction) => transaction.amount < 0 && transaction.category !== "TRANSFER" && bookingKey(transaction) === payment.key)
     .sort((first, second) => second.date.localeCompare(first.date));
+}
+
+/** The owner's name for a fixed cost, else who it goes to. */
+export function paymentName(payment: RecurringPayment): string {
+  return payment.name || payment.counterparty;
 }
 
 export function total(amounts: number[]): number {
