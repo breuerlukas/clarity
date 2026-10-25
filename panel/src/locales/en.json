@@ -11,7 +11,9 @@
     "toggle_sidebar": "Toggle sidebar",
     "subscriptions": "Fixed costs",
     "contracts": "Contracts",
-    "invoices": "Invoices"
+    "invoices": "Invoices",
+    "hide_amounts": "Hide amounts",
+    "show_amounts": "Show amounts"
   },
   "common": {
     "cancel": "Cancel",

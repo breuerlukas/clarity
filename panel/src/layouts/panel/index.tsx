@@ -3,12 +3,16 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/layouts/panel/app-sidebar";
 import { AppHeader } from "@/layouts/panel/header";
 import { SettingsDialogProvider } from "@/layouts/settings/settings-dialog-provider";
+import { useAmountsHidden } from "@/lib/privacy";
 
 /**
  * Sidebar, topbar and the page. Content grows with the screen up to 1760 px
- * (the 1920 px reference minus gutters), then centers.
+ * (the 1920 px reference minus gutters), then centers. The page mounts
+ * anew when amounts are hidden or shown, so every formatted amount follows;
+ * the data comes from the query cache, nothing loads again.
  */
 export function PanelLayout() {
+  const [hidden] = useAmountsHidden();
   return (
     <SidebarProvider>
       <SettingsDialogProvider>
@@ -16,7 +20,7 @@ export function PanelLayout() {
         <SidebarInset className="min-w-0">
           <AppHeader />
           <div className="mx-auto flex w-full max-w-[1840px] min-w-0 flex-1 flex-col px-4 py-7 sm:px-10 sm:pt-9 sm:pb-10">
-            <Outlet />
+            <Outlet key={String(hidden)} />
           </div>
         </SidebarInset>
       </SettingsDialogProvider>

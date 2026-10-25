@@ -11,7 +11,9 @@
     "toggle_sidebar": "Seitenleiste ein- oder ausblenden",
     "subscriptions": "Fixkosten",
     "contracts": "Verträge",
-    "invoices": "Rechnungen"
+    "invoices": "Rechnungen",
+    "hide_amounts": "Beträge ausblenden",
+    "show_amounts": "Beträge anzeigen"
   },
   "common": {
     "cancel": "Abbrechen",
