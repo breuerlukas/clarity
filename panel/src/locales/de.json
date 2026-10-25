@@ -162,7 +162,15 @@
     "count_other": "{{count}} Transaktionen",
     "split": "Aufgeteilt",
     "undo_split": "Aufteilung aufheben",
-    "show_receipt": "Beleg ansehen"
+    "show_receipt": "Beleg ansehen",
+    "export": "CSV exportieren",
+    "export_date": "Datum",
+    "export_account": "Konto",
+    "export_counterparty": "Gegenpartei",
+    "export_purpose": "Verwendungszweck",
+    "export_amount": "Betrag",
+    "export_currency": "Währung",
+    "export_category": "Kategorie"
   },
   "accounts": {
     "title": "Konten",

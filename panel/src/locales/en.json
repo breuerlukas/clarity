@@ -162,7 +162,15 @@
     "count_other": "{{count}} transactions",
     "split": "Split",
     "undo_split": "Undo split",
-    "show_receipt": "Show receipt"
+    "show_receipt": "Show receipt",
+    "export": "Export CSV",
+    "export_date": "Date",
+    "export_account": "Account",
+    "export_counterparty": "Counterparty",
+    "export_purpose": "Purpose",
+    "export_amount": "Amount",
+    "export_currency": "Currency",
+    "export_category": "Category"
   },
   "accounts": {
     "title": "Accounts",
