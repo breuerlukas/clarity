@@ -78,8 +78,9 @@ export function wallet(database: DemoDatabase, space: string): CashWallet {
 function balance(database: DemoDatabase, cash: CashWallet) {
   const bankAccounts = new Set(
     database.connections
-      .filter((connection) => connection.space === cash.space)
-      .flatMap((connection) => connection.accounts.map((account) => account.id)),
+      .flatMap((connection) => connection.accounts)
+      .filter((account) => account.space === cash.space && !account.hidden)
+      .map((account) => account.id),
   );
   const cents = database.transactions.reduce((sum, transaction) => {
     if (transaction.account === cash.id) {

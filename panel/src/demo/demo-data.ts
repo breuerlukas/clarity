@@ -400,6 +400,8 @@ function connections(today: Date): Connection[] {
   const synced = today.getTime() - 1000 * 60 * 47;
   const account = (id: string, name: string, iban: string | null, balance: number, spending = true): Account => ({
     id,
+    space: PERSONAL_SPACE,
+    hidden: false,
     name,
     iban,
     currency: "EUR",

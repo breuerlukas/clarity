@@ -36,6 +36,6 @@ final class BalanceSelectionTest {
 
   private BankAccount account(String currency) {
     return BankAccount.create(UUID.randomUUID(), UUID.randomUUID(), "uid",
-      null, "PayPal", currency, null, 0, 0, null, null);
+      null, "PayPal", currency, null, 0, 0, null, null, null, null);
   }
 }

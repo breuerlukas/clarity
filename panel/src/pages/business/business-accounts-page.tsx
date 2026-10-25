@@ -27,7 +27,7 @@ const RECENT_DAYS = 90;
  */
 export function BusinessAccountsPage() {
   const { t } = useTranslation();
-  const connections = useConnections();
+  const connections = useConnections({ withHidden: true });
   const spaces = useSpaces();
   const allConnections = useAllConnections();
   const contracts = useContracts();

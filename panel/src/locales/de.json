@@ -202,7 +202,13 @@
     "empty_text": "Verbinde deine Bank, um Konten und Transaktionen zu sehen. Clarity bekommt nur Lesezugriff.",
     "not_configured": "Enable Banking ist noch nicht eingerichtet (siehe docs/enable-banking.md).",
     "spending": "Kontoart",
-    "spending_hint": "Alltagskonten zählen zum Geld, das bis zum nächsten Gehalt übrig ist. Spar- und Tagesgeldkonten bleiben außen vor."
+    "spending_hint": "Alltagskonten zählen zum Geld, das bis zum nächsten Gehalt übrig ist. Spar- und Tagesgeldkonten bleiben außen vor.",
+    "move": "Verschieben",
+    "move_title": "{{account}} verschieben",
+    "move_hint": "Buchungen, Fixkosten und Statistiken ziehen mit um. Die Bankverbindung bleibt, wo sie ist.",
+    "hide": "Ausblenden",
+    "show": "Einblenden",
+    "hidden": "Ausgeblendet"
   },
   "connect": {
     "title": "Bank verbinden",

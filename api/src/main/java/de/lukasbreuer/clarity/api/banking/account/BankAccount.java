@@ -1,5 +1,6 @@
 package de.lukasbreuer.clarity.api.banking.account;
 
+import de.lukasbreuer.clarity.api.banking.connection.BankConnection;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -54,6 +55,19 @@ public final class BankAccount {
   private String syncFailure;
   @Column(name = "spending")
   private Boolean spending;
+  /**
+   * The space the owner moved the account to; null keeps it in the space of
+   * its connection, where every account starts.
+   */
+  @Column(name = "space_id")
+  private UUID spaceId;
+  /**
+   * Left out of every view but the accounts page for a while; still
+   * synced, so nothing is missing once it shows again. Null on rows from
+   * before the column existed.
+   */
+  @Column(name = "hidden")
+  private Boolean hidden;
 
   /**
    * Whether the money on this account is meant for everyday spending and so
@@ -66,6 +80,26 @@ public final class BankAccount {
     }
     var lowerName = name == null ? "" : name.toLowerCase(Locale.ROOT);
     return SAVINGS_NAMES.stream().noneMatch(lowerName::contains);
+  }
+
+  public UUID spaceIn(BankConnection connection) {
+    return spaceId != null ? spaceId : connection.spaceId();
+  }
+
+  /**
+   * Back in the space of its connection the account follows that again.
+   */
+  public void moveTo(UUID targetSpaceId, BankConnection connection) {
+    this.spaceId = targetSpaceId.equals(connection.spaceId()) ? null :
+      targetSpaceId;
+  }
+
+  public boolean isHidden() {
+    return Boolean.TRUE.equals(hidden);
+  }
+
+  public void hide(boolean hidden) {
+    this.hidden = hidden;
   }
 
   public void markSpending(boolean spending) {

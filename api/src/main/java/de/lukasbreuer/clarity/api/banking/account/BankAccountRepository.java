@@ -13,4 +13,7 @@ public interface BankAccountRepository
   extends DatabaseRepository<BankAccount, UUID> {
   @Async
   CompletableFuture<List<BankAccount>> findByConnectionId(UUID connectionId);
+
+  @Async
+  CompletableFuture<Boolean> existsBySpaceId(UUID spaceId);
 }

@@ -169,6 +169,10 @@ export interface ReceiptUpload {
 
 export interface Account {
   id: string;
+  /** The space it shows in: where it was moved to, else its connection's. */
+  space: string;
+  /** Left out of every view but the accounts page for now. */
+  hidden: boolean;
   name: string;
   iban: string | null;
   currency: string;
@@ -533,6 +537,8 @@ export const api = {
   updateRecurringSetting: (space: string, key: string, draft: RecurringSettingDraft) =>
     post("/recurring/settings/", { space, key, ...draft }),
   connections: () => get<{ connections: Connection[] }>("/connections/"),
+  moveAccount: (id: string, space: string) => post("/accounts/space/", { id, space }),
+  hideAccount: (id: string, hidden: boolean) => post("/accounts/hidden/", { id, hidden }),
   markSpending: (id: string, spending: boolean) =>
     post("/accounts/spending/", { id, spending }),
   synchronize: () => post<{ started: boolean }>("/connections/sync/"),

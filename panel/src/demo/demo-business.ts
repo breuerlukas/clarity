@@ -81,6 +81,8 @@ export function demoBusinessConnections(today: Date): Connection[] {
       accounts: [
         {
           id: "business",
+          space: BUSINESS_SPACE,
+          hidden: false,
           name: "Geschäftskonto",
           iban: "DE44100110012620044218",
           currency: "EUR",
