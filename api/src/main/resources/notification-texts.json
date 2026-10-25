@@ -1,0 +1,46 @@
+{
+  "de": {
+    "CONSENT_EXPIRING": {
+      "subject": "Bankzugang zu {bank} läuft ab",
+      "text": "Der Zugriff von Clarity auf {bank} endet am {date}. Erneuere die Verbindung auf der Kontenseite, damit die Zahlen aktuell bleiben."
+    },
+    "CONSENT_EXPIRED": {
+      "subject": "Bankzugang zu {bank} abgelaufen",
+      "text": "Der Zugriff von Clarity auf {bank} ist am {date} abgelaufen. Bis du die Verbindung auf der Kontenseite erneuerst, kommen keine neuen Buchungen."
+    },
+    "SYNC_FAILING": {
+      "subject": "{account} wird nicht mehr aktualisiert",
+      "text": "Clarity kann {account} bei {bank} seit über einem Tag nicht abrufen. Auf der Kontenseite siehst du den Grund."
+    },
+    "PRICE_CHANGED": {
+      "subject": "{counterparty} kostet jetzt {amount}",
+      "text": "{counterparty} hat zuletzt {amount} abgebucht, vorher {previous}."
+    },
+    "TEST": {
+      "subject": "Clarity: Testnachricht",
+      "text": "Benachrichtigungen kommen an."
+    }
+  },
+  "en": {
+    "CONSENT_EXPIRING": {
+      "subject": "Bank access to {bank} is expiring",
+      "text": "Clarity's access to {bank} ends on {date}. Renew the connection on the accounts page to keep the numbers current."
+    },
+    "CONSENT_EXPIRED": {
+      "subject": "Bank access to {bank} expired",
+      "text": "Clarity's access to {bank} expired on {date}. No new bookings arrive until you renew the connection on the accounts page."
+    },
+    "SYNC_FAILING": {
+      "subject": "{account} is no longer updated",
+      "text": "Clarity hasn't been able to read {account} at {bank} for more than a day. The accounts page shows why."
+    },
+    "PRICE_CHANGED": {
+      "subject": "{counterparty} now costs {amount}",
+      "text": "{counterparty} last charged {amount}, {previous} before."
+    },
+    "TEST": {
+      "subject": "Clarity: test message",
+      "text": "Notifications arrive."
+    }
+  }
+}

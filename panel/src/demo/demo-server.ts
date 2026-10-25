@@ -7,12 +7,13 @@ import {
   type Invoice,
   type InvoiceDraft,
   type MatchReason,
+  type NotificationSettings,
   type OwnerSession,
   type PaymentKind,
   type SpaceKind,
   type Transaction,
 } from "@/lib/api";
-import { createCategory, deleteCategory, resetCategory, updateCategory } from "@/demo/demo-categories";
+import { createCategory, deleteCategory, resetCategory, updateBudget, updateCategory } from "@/demo/demo-categories";
 import { createDemoDatabase, detectedStatus, PERSONAL_SPACE } from "@/demo/demo-data";
 import { countCash, createCashEntry, deleteCashEntry, splitTransaction, updateCashEntry, wallet, walletId } from "@/demo/demo-cash";
 import {
@@ -28,7 +29,7 @@ import { isoDate } from "@/lib/dates";
 
 /**
  * Answers the panel's api calls in the browser for the public demo. Changes
- * (categories, a new name, removed banks, cash entries, receipts) live in
+ * (categories, budgets, a new name, removed banks, cash entries, receipts) live in
  * memory until reload; bank logins and password changes are refused with
  * code 9000.
  */
@@ -39,6 +40,9 @@ const sessions: OwnerSession[] = [
   { id: "this", ip_address: "127.0.0.1", platform: "", browser: "", mobile: false, opened_at: Date.now() - 3_600_000, last_seen_at: Date.now(), current: true },
   { id: "phone", ip_address: "100.64.0.7", platform: "iOS", browser: "Safari", mobile: true, opened_at: Date.now() - 86_400_000 * 3, last_seen_at: Date.now() - 7_200_000, current: false },
 ];
+
+/** Kept in memory; the demo never sends a mail. */
+let notifications: NotificationSettings | null = null;
 
 const DEMO_ONLY = 9000;
 const ok = (data: object = {}) => ({ success: true, ...data });
@@ -69,6 +73,13 @@ export async function handleDemoRequest(
     case "POST /account/name/":
       owner = String(body.name);
       return ok();
+    case "GET /notifications/":
+      return ok({ settings: notifications ?? {} });
+    case "POST /notifications/update/":
+      notifications = { ...(body as unknown as NotificationSettings), has_password: true };
+      return ok({ settings: notifications });
+    case "POST /notifications/test/":
+      throw new ApiError(400, DEMO_ONLY);
     case "GET /sessions/":
       return ok({ sessions });
     case "POST /sessions/close/":
@@ -130,7 +141,15 @@ export async function handleDemoRequest(
     case "POST /categories/reset/":
       return resetCategory(database.categories, body.key);
     case "POST /categories/delete/":
-      return deleteCategory(database.categories, database.transactions, body.key, body.target);
+      return deleteCategory(database.categories, database.budgets, database.transactions, body.key, body.target);
+    case "GET /budgets/":
+      return ok({
+        budgets: database.budgets
+          .filter((budget) => budget.space === url.searchParams.get("space"))
+          .map(({ category, limit }) => ({ category, limit })),
+      });
+    case "POST /budgets/update/":
+      return updateBudget(database.budgets, database.categories, body);
     case "POST /transactions/category/":
       return categorize(String(body.id), body.category as Category, Boolean(body.remember));
     case "GET /recurring/":

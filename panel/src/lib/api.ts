@@ -67,6 +67,12 @@ export interface CategoryDetails {
   system: boolean;
 }
 
+/** The most the owner wants to spend on a category per pay cycle in a space. */
+export interface CategoryBudget {
+  category: Category;
+  limit: number;
+}
+
 export type CategoryDraft = Pick<CategoryDetails, "name" | "icon" | "color" | "kind" | "keywords">;
 
 export interface Transaction {
@@ -356,6 +362,28 @@ export interface PaymentSuggestion {
   reasons: MatchReason[];
 }
 
+/** Where notifications are mailed and which ones; the password stays on the server. */
+export interface NotificationSettings {
+  enabled: boolean;
+  host: string;
+  port: number;
+  security: MailSecurity;
+  username: string;
+  has_password: boolean;
+  sender: string;
+  recipient: string;
+  /** The language of the mails. */
+  language: string;
+  consent_events: boolean;
+  sync_events: boolean;
+  price_events: boolean;
+}
+
+export type NotificationDraft = Omit<NotificationSettings, "has_password"> & {
+  /** Empty keeps the stored one. */
+  password: string;
+};
+
 export interface Bank {
   name: string;
   country: string;
@@ -395,6 +423,11 @@ export const api = {
       current_password: currentPassword,
       new_password: newPassword,
     }),
+  notifications: () =>
+    get<{ settings: NotificationSettings | Record<string, never> }>("/notifications/"),
+  updateNotifications: (draft: NotificationDraft) =>
+    post<{ settings: NotificationSettings }>("/notifications/update/", { ...draft }),
+  testNotification: () => post("/notifications/test/"),
   sessions: () => get<{ sessions: OwnerSession[] }>("/sessions/"),
   closeSession: (id: string) => post("/sessions/close/", { id }),
   closeOtherSessions: () => post<{ closed: number }>("/sessions/close-others/"),
@@ -452,6 +485,10 @@ export const api = {
     post<{ category: CategoryDetails }>("/categories/reset/", { key }),
   deleteCategory: (key: Category, target: Category) =>
     post<{ moved: number }>("/categories/delete/", { key, target }),
+  budgets: (space: string) => get<{ budgets: CategoryBudget[] }>(`/budgets/?space=${space}`),
+  /** Without a limit the category's budget is removed. */
+  updateBudget: (space: string, category: Category, limit: number | null) =>
+    post("/budgets/update/", { space, category, limit: limit === null ? "" : String(limit) }),
   recurring: (space: string) =>
     get<{ payments: RecurringPayment[] }>(`/recurring/?space=${space}`),
   updateRecurringSetting: (space: string, key: string, draft: RecurringSettingDraft) =>

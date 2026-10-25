@@ -1,13 +1,15 @@
 import i18n from "@/locales/i18n";
+import { amountsHidden, maskAmount } from "@/lib/privacy";
 
 const locale = () => i18n.resolvedLanguage ?? "de";
 
+/** Every amount goes through here, so hiding them needs no other place. */
 export function formatMoney(
   amount: number,
   currency = "EUR",
   options: { signed?: boolean; compact?: boolean } = {},
 ): string {
-  return new Intl.NumberFormat(locale(), {
+  const format = new Intl.NumberFormat(locale(), {
     style: "currency",
     currency,
     signDisplay: options.signed ? "exceptZero" : "auto",
@@ -15,7 +17,8 @@ export function formatMoney(
     ...(options.compact
       ? { notation: "compact", maximumFractionDigits: Math.abs(amount) < 1000 ? 1 : 0 }
       : {}),
-  }).format(amount);
+  });
+  return amountsHidden() ? maskAmount(format.formatToParts(amount)) : format.format(amount);
 }
 
 export function formatPercent(share: number): string {

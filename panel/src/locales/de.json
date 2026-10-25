@@ -11,7 +11,9 @@
     "toggle_sidebar": "Seitenleiste ein- oder ausblenden",
     "subscriptions": "Fixkosten",
     "contracts": "Verträge",
-    "invoices": "Rechnungen"
+    "invoices": "Rechnungen",
+    "hide_amounts": "Beträge ausblenden",
+    "show_amounts": "Beträge anzeigen"
   },
   "common": {
     "cancel": "Abbrechen",
@@ -79,11 +81,15 @@
     "delete": "Löschen",
     "delete_confirm": "Endgültig löschen",
     "delete_target": "Transaktionen und Regeln verschieben nach",
+    "budget": "Budget pro Gehaltszeitraum",
+    "budget_placeholder": "Kein Budget",
+    "budget_hint": "Für diesen Bereich, von Gehalt zu Gehalt. Leer lassen für keins.",
     "errors": {
       "3002": "Diese Kategorie gibt es nicht mehr.",
       "3003": "Name, Symbol oder Stichwörter sind ungültig.",
       "3004": "Diese Kategorie lässt sich nicht ausblenden oder löschen.",
-      "3005": "Wähle eine andere Kategorie als Ziel."
+      "3005": "Wähle eine andere Kategorie als Ziel.",
+      "3007": "Gib für eine Ausgabenkategorie ein Budget über null ein."
     }
   },
   "cycle": {
@@ -162,7 +168,15 @@
     "count_other": "{{count}} Transaktionen",
     "split": "Aufgeteilt",
     "undo_split": "Aufteilung aufheben",
-    "show_receipt": "Beleg ansehen"
+    "show_receipt": "Beleg ansehen",
+    "export": "CSV exportieren",
+    "export_date": "Datum",
+    "export_account": "Konto",
+    "export_counterparty": "Gegenpartei",
+    "export_purpose": "Verwendungszweck",
+    "export_amount": "Betrag",
+    "export_currency": "Währung",
+    "export_category": "Kategorie"
   },
   "accounts": {
     "title": "Konten",
@@ -297,7 +311,35 @@
     "session_close": "Abmelden",
     "version": "Version {{version}}",
     "section_categories": "Kategorien",
-    "description_categories": "Namen, Symbole und Stichwörter"
+    "description_categories": "Namen, Symbole und Stichwörter",
+    "section_notifications": "Benachrichtigungen",
+    "description_notifications": "Mails zu deinen Konten"
+  },
+  "notifications": {
+    "enabled": "Benachrichtigungen senden",
+    "enabled_hint": "Mails für das, was passiert, während Clarity zu ist.",
+    "host": "SMTP-Server",
+    "port": "Port",
+    "security": "Verschlüsselung",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "password_keep": "Leer lassen, um das gespeicherte zu behalten.",
+    "sender": "Absender",
+    "recipient": "Empfänger",
+    "consent_events": "Bankzugang",
+    "consent_events_hint": "Eine Woche vor Ablauf und wenn er abgelaufen ist.",
+    "sync_events": "Fehlgeschlagene Aktualisierung",
+    "sync_events_hint": "Wenn ein Konto einen Tag lang nicht abgerufen werden konnte.",
+    "price_events": "Preisänderungen",
+    "price_events_hint": "Wenn Fixkosten einen anderen Betrag abbuchen.",
+    "test": "Testmail senden",
+    "test_sent": "Testmail an {{recipient}} gesendet.",
+    "errors": {
+      "1007": "Prüf Server, Adressen und Passwort.",
+      "1008": "Die Testmail ließ sich nicht senden. Prüf Server, Port und Login.",
+      "1009": "Speichere die Einstellungen zuerst.",
+      "9000": "Die Demo verschickt keine Mails."
+    }
   },
   "period": {
     "label": "Zeitraum",
@@ -318,6 +360,13 @@
     "fixed_until_payday_one": "Fixkosten bis dahin",
     "fixed_until_payday_other": "Fixkosten bis dahin ({{count}})",
     "everyday": "Alltagskonten"
+  },
+  "budgets": {
+    "title": "Budgets bis zum Gehalt",
+    "manage": "Ändern",
+    "of_limit": "{{spent}} von {{limit}}",
+    "left": "noch {{amount}}",
+    "over": "{{amount}} über dem Budget"
   },
   "subscriptions": {
     "filter": "Filter",

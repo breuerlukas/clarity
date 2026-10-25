@@ -5,6 +5,7 @@ import type { TFunction } from "i18next";
 import { PanelLeft } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { spacePath, useSpace, useSpaceName } from "@/hooks/use-space";
+import { HideAmountsButton } from "@/layouts/panel/hide-amounts-button";
 import type { Space } from "@/lib/api";
 import {
   Breadcrumb,
@@ -29,7 +30,7 @@ function crumbsFor(pathname: string, space: Space, spaceName: string, t: TFuncti
   ];
 }
 
-/** The 64 px topbar: the sidebar toggle and where you are. */
+/** The 64 px topbar: the sidebar toggle, where you are and the amounts eye. */
 export function AppHeader() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -68,7 +69,10 @@ export function AppHeader() {
           ))}
         </BreadcrumbList>
       </Breadcrumb>
-      {import.meta.env.VITE_DEMO === "true" && <DemoBadge />}
+      <span className="ml-auto flex items-center gap-3">
+        {import.meta.env.VITE_DEMO === "true" && <DemoBadge />}
+        <HideAmountsButton />
+      </span>
     </header>
   );
 }
@@ -78,7 +82,7 @@ function DemoBadge() {
   const { t } = useTranslation();
   const source = import.meta.env.VITE_REPOSITORY_URL;
   return (
-    <span className="ml-auto flex items-center gap-3 text-sm">
+    <span className="flex items-center gap-3 text-sm">
       <span className="rounded-full bg-brand/12 px-3 py-1 font-bold text-brand-text">
         {t("common.demo")}
       </span>
