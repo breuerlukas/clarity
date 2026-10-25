@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/components/field";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { Notice } from "@/components/notice";
 import { Segmented } from "@/components/segmented";
 import { useRefreshCash } from "@/hooks/use-cash";
@@ -71,7 +72,6 @@ function CashEntryForm({ entry, onDone }: { entry: Transaction | null; onDone: (
   const refresh = useRefreshCash();
   const space = useSpace();
   const [form, setForm] = useState<Form>(() => formOf(entry));
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const done = async () => {
     await refresh();
     onDone();
@@ -144,15 +144,15 @@ function CashEntryForm({ entry, onDone }: { entry: Transaction | null; onDone: (
         )}
         <div className="flex flex-wrap items-center justify-end gap-2">
           {entry && (
-            <Button
-              type="button"
-              variant={confirmDelete ? "destructive" : "link"}
-              className={confirmDelete ? "mr-auto" : "mr-auto px-0 text-muted-foreground"}
-              disabled={remove.isPending}
-              onClick={() => (confirmDelete ? remove.mutate() : setConfirmDelete(true))}
-            >
-              {t(confirmDelete ? "cash.delete_confirm" : "cash.delete")}
-            </Button>
+            <ConfirmDelete
+              label={t("cash.delete")}
+              name={entry.counterparty}
+              consequence={t("cash.delete_consequence")}
+              pending={remove.isPending}
+              error={remove.error}
+              errors="cash"
+              onConfirm={() => remove.mutate()}
+            />
           )}
           <DialogClose asChild>
             <Button type="button" variant="outline">

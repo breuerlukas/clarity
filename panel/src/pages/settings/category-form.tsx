@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { CategoryBadge } from "@/components/category-icon";
 import { Field } from "@/components/field";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { Notice } from "@/components/notice";
 import { Segmented } from "@/components/segmented";
 import { useBudgets, useCategories, useCategoryLook } from "@/hooks/use-categories";
@@ -209,16 +210,21 @@ export function CategoryForm({ category, onDone }: { category: CategoryDetails |
             {t("categories.reset")}
           </Button>
         )}
-        {category && !category.built_in && (
-          <Button
-            type="button"
-            variant={target !== null ? "destructive" : "link"}
-            className={target !== null ? "mr-auto" : "mr-auto px-0 text-muted-foreground"}
-            disabled={remove.isPending}
-            onClick={() => (target !== null ? remove.mutate() : setTarget("OTHER"))}
-          >
-            {t(target !== null ? "categories.delete_confirm" : "categories.delete")}
+        {category && !category.built_in && target === null && (
+          <Button type="button" variant="link" className="mr-auto px-0 text-muted-foreground" onClick={() => setTarget("OTHER")}>
+            {t("categories.delete")}
           </Button>
+        )}
+        {category && !category.built_in && target !== null && (
+          <ConfirmDelete
+            label={t("categories.delete_confirm")}
+            name={name.trim() || look(category.key).label}
+            consequence={t("categories.delete_consequence", { target: look(target).label })}
+            pending={remove.isPending}
+            error={remove.error}
+            errors="categories"
+            onConfirm={() => remove.mutate()}
+          />
         )}
         <Button type="button" variant="outline" onClick={onDone}>
           {t("common.cancel")}

@@ -80,7 +80,7 @@
     "hide": "Hide from pickers",
     "reset": "Reset",
     "delete": "Delete",
-    "delete_confirm": "Delete for good",
+    "delete_confirm": "Delete category",
     "delete_target": "Move transactions and rules to",
     "budget": "Budget per pay cycle",
     "budget_placeholder": "No budget",
@@ -91,7 +91,8 @@
       "3004": "This category can't be hidden or deleted.",
       "3005": "Choose another category to move to.",
       "3007": "Enter a budget above zero for a spending category."
-    }
+    },
+    "delete_consequence": "Its transactions and rules move to \"{{target}}\"."
   },
   "cycle": {
     "WEEKLY": "weekly",
@@ -197,7 +198,6 @@
     "renew": "Renew access",
     "remove_title": "Remove {{bank}}?",
     "remove_text": "Access is revoked and all transactions of these accounts are deleted.",
-    "remove_confirm": "Remove bank",
     "empty_title": "No bank connected yet",
     "empty_text": "Connect your bank to see accounts and transactions. Clarity only gets read access.",
     "not_configured": "Enable Banking isn't set up yet (see docs/enable-banking.md).",
@@ -431,14 +431,15 @@
     "source_manual": "By hand",
     "source_account": "On an account",
     "account": "Account",
-    "delete": "Delete",
+    "delete": "Delete goal",
     "errors": {
       "5001": "This space no longer exists.",
       "8200": "This goal no longer exists.",
       "8201": "Check the name and target.",
       "8202": "Choose an account of this space.",
       "8203": "You can't take out more than was set aside."
-    }
+    },
+    "delete_consequence": "The savings goal is deleted. Money set aside counts as free again."
   },
   "interval": {
     "MONTHLY": "monthly",
@@ -478,8 +479,7 @@
     "in_months": "In months",
     "months_one": "{{count}} month",
     "months_other": "{{count}} months",
-    "delete": "Delete",
-    "delete_confirm": "Delete for good",
+    "delete": "Delete contract",
     "errors": {
       "4000": "Please check the details. The notice period can't be longer than the term.",
       "4002": "The end is before the start."
@@ -517,7 +517,8 @@
     "accounts_empty_text": "Connect your business account to see its balance and bookings. Clarity matches incoming payments to your contracts, and transfers to and from your personal accounts as private withdrawals or deposits.",
     "balance": "Total balance",
     "bookings": "Bookings",
-    "bookings_note": "Last {{days}} days"
+    "bookings_note": "Last {{days}} days",
+    "delete_consequence": "The contract and its links to payments are deleted."
   },
   "invoices": {
     "subtitle": "Read from your mailboxes and matched with your bookings",
@@ -598,7 +599,6 @@
     "settle": "Mark as paid",
     "unsettle": "Reopen",
     "delete": "Not an invoice",
-    "delete_confirm": "Remove for good",
     "pays": "Invoice {{number}}",
     "mailboxes": "Mailboxes",
     "mailboxes_hint": "Clarity reads new mail every 15 minutes, read-only: nothing is moved, flagged or deleted.",
@@ -622,7 +622,6 @@
     "connect": "Connect",
     "connecting": "Connecting …",
     "remove_mailbox": "Remove mailbox",
-    "remove_mailbox_confirm": "Remove for good",
     "last_checked": "Last checked {{time}}",
     "never_checked": "Not checked yet",
     "mailbox_failed": "Check failed: {{error}}",
@@ -644,7 +643,9 @@
       "7001": "This invoice no longer exists.",
       "7002": "This booking no longer exists.",
       "7003": "This link no longer exists."
-    }
+    },
+    "remove_mailbox_consequence": "Clarity stops reading this mailbox. Invoices already read stay.",
+    "delete_consequence": "The invoice and its links to payments are deleted."
   },
   "spaces": {
     "default_name": "Personal",
@@ -665,13 +666,13 @@
     "name_placeholder_business": "e.g. Agency",
     "icon": "Icon",
     "delete": "Delete space",
-    "delete_confirm": "Delete for good",
     "errors": {
       "5000": "Please enter a name.",
       "5002": "Remove every bank and mailbox and delete every contract, invoice, cash entry and receipt in this space first.",
       "5003": "The last space can't be deleted."
     },
-    "settings": "Settings for {{name}}"
+    "settings": "Settings for {{name}}",
+    "delete_consequence": "The space is removed. It has to be empty for that."
   },
   "cash": {
     "title": "Cash",
@@ -689,7 +690,6 @@
     "category": "Category",
     "note": "Note",
     "delete": "Delete entry",
-    "delete_confirm": "Really delete",
     "correction": "Cash counted",
     "count": "Count cash",
     "counted": "Cash on hand",
@@ -700,7 +700,8 @@
       "8000": "Please check the amount and the date.",
       "8001": "This entry no longer exists.",
       "8002": "Please enter an amount of zero or more."
-    }
+    },
+    "delete_consequence": "The cash entry is deleted; a receipt that belongs to it stays unassigned."
   },
   "receipts": {
     "title": "Receipt",
@@ -721,7 +722,6 @@
     "remove_item": "Remove item",
     "add_item": "Add item",
     "discard": "Discard receipt",
-    "discard_confirm": "Really discard",
     "continue": "Continue",
     "back": "Back",
     "save": "Save",
@@ -748,6 +748,13 @@
       "8102": "Please check the total and the items.",
       "8103": "This payment no longer exists.",
       "8104": "The receipt needs a date and a total."
-    }
+    },
+    "discard_consequence": "The receipt and its photo are deleted."
+  },
+  "delete": {
+    "word": "DELETE",
+    "irreversible": "This can't be undone.",
+    "type": "Type <strong>{{name}}</strong> to confirm",
+    "confirm": "Delete for good"
   }
 }

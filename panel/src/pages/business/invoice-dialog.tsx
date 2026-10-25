@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Field } from "@/components/field";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { Notice } from "@/components/notice";
 import { usePaymentSuggestions } from "@/hooks/use-business";
 import {
@@ -76,7 +77,6 @@ function InvoiceDetails({ invoice, onClose }: { invoice: Invoice; onClose: () =>
     mutationFn: () => api.settleInvoice(invoice.id, !invoice.settled),
     onSuccess: refresh,
   });
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const remove = useMutation({
     mutationFn: () => api.deleteInvoice(invoice.id),
     onSuccess: async () => {
@@ -108,15 +108,15 @@ function InvoiceDetails({ invoice, onClose }: { invoice: Invoice; onClose: () =>
       <InvoiceForm invoice={invoice} onSaved={refresh} />
       {error && <Notice>{invoiceError(t, error)}</Notice>}
       <div className="flex flex-wrap items-center gap-2 border-t pt-5">
-        <Button
-          type="button"
-          variant={confirmDelete ? "destructive" : "link"}
-          className={confirmDelete ? "mr-auto" : "mr-auto px-0 text-muted-foreground"}
-          disabled={remove.isPending}
-          onClick={() => (confirmDelete ? remove.mutate() : setConfirmDelete(true))}
-        >
-          {t(confirmDelete ? "invoices.delete_confirm" : "invoices.delete")}
-        </Button>
+        <ConfirmDelete
+          label={t("invoices.delete")}
+          name={invoice.number}
+          consequence={t("invoices.delete_consequence")}
+          pending={remove.isPending}
+          error={remove.error}
+          errors="invoices"
+          onConfirm={() => remove.mutate()}
+        />
         {(invoice.settled || isOpen(invoice)) && (
           <Button variant="outline" disabled={settle.isPending} onClick={() => settle.mutate()}>
             {t(invoice.settled ? "invoices.unsettle" : "invoices.settle")}

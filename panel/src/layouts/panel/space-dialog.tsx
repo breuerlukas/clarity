@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Field } from "@/components/field";
+import { ConfirmDelete } from "@/components/confirm-delete";
 import { Notice } from "@/components/notice";
 import { Segmented } from "@/components/segmented";
 import { spacePath, useSpace, useSpaceName } from "@/hooks/use-space";
@@ -61,7 +62,6 @@ function SpaceForm({ space, onDone }: { space: Space | null; onDone: () => void 
   const [kind, setKind] = useState<SpaceKind>(space?.kind ?? "PERSONAL");
   const [name, setName] = useState(space ? nameOf(space) : "");
   const [icon, setIcon] = useState(space?.icon ?? DEFAULT_ICON.PERSONAL);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const isCurrent = space?.id === current.id;
   const save = useMutation({
     mutationFn: () => (space ? api.updateSpace(space.id, name.trim(), icon) : api.createSpace(name.trim(), icon, kind)),
@@ -157,15 +157,15 @@ function SpaceForm({ space, onDone }: { space: Space | null; onDone: () => void 
         )}
         <div className="flex flex-wrap items-center justify-end gap-2">
           {space && (
-            <Button
-              type="button"
-              variant={confirmDelete ? "destructive" : "link"}
-              className={confirmDelete ? "mr-auto" : "mr-auto px-0 text-muted-foreground"}
-              disabled={remove.isPending}
-              onClick={() => (confirmDelete ? remove.mutate() : setConfirmDelete(true))}
-            >
-              {t(confirmDelete ? "spaces.delete_confirm" : "spaces.delete")}
-            </Button>
+            <ConfirmDelete
+              label={t("spaces.delete")}
+              name={nameOf(space)}
+              consequence={t("spaces.delete_consequence")}
+              pending={remove.isPending}
+              error={remove.error}
+              errors="spaces"
+              onConfirm={() => remove.mutate()}
+            />
           )}
           <DialogClose asChild>
             <Button type="button" variant="outline">

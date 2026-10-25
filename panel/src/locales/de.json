@@ -80,7 +80,7 @@
     "hide": "In Auswahllisten ausblenden",
     "reset": "Zurücksetzen",
     "delete": "Löschen",
-    "delete_confirm": "Endgültig löschen",
+    "delete_confirm": "Kategorie löschen",
     "delete_target": "Transaktionen und Regeln verschieben nach",
     "budget": "Budget pro Gehaltszeitraum",
     "budget_placeholder": "Kein Budget",
@@ -91,7 +91,8 @@
       "3004": "Diese Kategorie lässt sich nicht ausblenden oder löschen.",
       "3005": "Wähle eine andere Kategorie als Ziel.",
       "3007": "Gib für eine Ausgabenkategorie ein Budget über null ein."
-    }
+    },
+    "delete_consequence": "Ihre Buchungen und Regeln wandern nach „{{target}}“."
   },
   "cycle": {
     "WEEKLY": "wöchentlich",
@@ -197,7 +198,6 @@
     "renew": "Zugriff erneuern",
     "remove_title": "{{bank}} entfernen?",
     "remove_text": "Der Zugriff wird widerrufen und alle Transaktionen dieser Konten werden gelöscht.",
-    "remove_confirm": "Bank entfernen",
     "empty_title": "Noch keine Bank verbunden",
     "empty_text": "Verbinde deine Bank, um Konten und Transaktionen zu sehen. Clarity bekommt nur Lesezugriff.",
     "not_configured": "Enable Banking ist noch nicht eingerichtet (siehe docs/enable-banking.md).",
@@ -431,14 +431,15 @@
     "source_manual": "Von Hand",
     "source_account": "Auf einem Konto",
     "account": "Konto",
-    "delete": "Löschen",
+    "delete": "Ziel löschen",
     "errors": {
       "5001": "Diesen Bereich gibt es nicht mehr.",
       "8200": "Dieses Ziel gibt es nicht mehr.",
       "8201": "Prüf Name und Zielbetrag.",
       "8202": "Wähl ein Konto dieses Bereichs.",
       "8203": "Du kannst nicht mehr entnehmen, als zurückgelegt ist."
-    }
+    },
+    "delete_consequence": "Das Sparziel wird gelöscht. Zurückgelegtes Geld zählt wieder als frei."
   },
   "interval": {
     "MONTHLY": "monatlich",
@@ -478,8 +479,7 @@
     "in_months": "In Monaten",
     "months_one": "{{count}} Monat",
     "months_other": "{{count}} Monate",
-    "delete": "Löschen",
-    "delete_confirm": "Endgültig löschen",
+    "delete": "Vertrag löschen",
     "errors": {
       "4000": "Bitte prüf die Angaben. Die Kündigungsfrist darf nicht länger als die Laufzeit sein.",
       "4002": "Das Ende liegt vor dem Beginn."
@@ -517,7 +517,8 @@
     "accounts_empty_text": "Verbinde dein Geschäftskonto, um Kontostand und Buchungen zu sehen. Zahlungseingänge ordnet Clarity deinen Verträgen zu, Überweisungen von und zu deinen privaten Konten als Privatentnahme oder Einlage.",
     "balance": "Kontostand gesamt",
     "bookings": "Buchungen",
-    "bookings_note": "Letzte {{days}} Tage"
+    "bookings_note": "Letzte {{days}} Tage",
+    "delete_consequence": "Der Vertrag und seine Zuordnungen zu Zahlungen werden gelöscht."
   },
   "invoices": {
     "subtitle": "Aus deinen Postfächern gelesen und mit den Buchungen abgeglichen",
@@ -598,7 +599,6 @@
     "settle": "Als bezahlt markieren",
     "unsettle": "Wieder öffnen",
     "delete": "Keine Rechnung",
-    "delete_confirm": "Endgültig entfernen",
     "pays": "Rechnung {{number}}",
     "mailboxes": "Postfächer",
     "mailboxes_hint": "Clarity liest neue Mails alle 15 Minuten, nur lesend: nichts wird verschoben, markiert oder gelöscht.",
@@ -622,7 +622,6 @@
     "connect": "Verbinden",
     "connecting": "Verbinde …",
     "remove_mailbox": "Postfach entfernen",
-    "remove_mailbox_confirm": "Endgültig entfernen",
     "last_checked": "Zuletzt abgerufen {{time}}",
     "never_checked": "Noch nicht abgerufen",
     "mailbox_failed": "Abruf fehlgeschlagen: {{error}}",
@@ -644,7 +643,9 @@
       "7001": "Diese Rechnung gibt es nicht mehr.",
       "7002": "Diese Buchung gibt es nicht mehr.",
       "7003": "Diese Zuordnung gibt es nicht mehr."
-    }
+    },
+    "remove_mailbox_consequence": "Clarity liest dieses Postfach nicht mehr. Bereits gelesene Rechnungen bleiben.",
+    "delete_consequence": "Die Rechnung und ihre Zuordnungen zu Zahlungen werden gelöscht."
   },
   "spaces": {
     "default_name": "Privat",
@@ -665,13 +666,13 @@
     "name_placeholder_business": "z. B. Agentur",
     "icon": "Icon",
     "delete": "Space löschen",
-    "delete_confirm": "Endgültig löschen",
     "errors": {
       "5000": "Bitte gib einen Namen ein.",
       "5002": "Entferne zuerst alle Banken und Postfächer und lösche alle Verträge, Rechnungen, Barbuchungen und Belege in diesem Space.",
       "5003": "Der letzte Space kann nicht gelöscht werden."
     },
-    "settings": "Einstellungen für {{name}}"
+    "settings": "Einstellungen für {{name}}",
+    "delete_consequence": "Der Space wird entfernt. Er muss dafür leer sein."
   },
   "cash": {
     "title": "Bargeld",
@@ -689,7 +690,6 @@
     "category": "Kategorie",
     "note": "Notiz",
     "delete": "Buchung löschen",
-    "delete_confirm": "Wirklich löschen",
     "correction": "Kassensturz",
     "count": "Bargeld zählen",
     "counted": "Bargeld in der Hand",
@@ -700,7 +700,8 @@
       "8000": "Bitte prüf Betrag und Datum.",
       "8001": "Diese Buchung gibt es nicht mehr.",
       "8002": "Bitte gib einen Betrag von null oder mehr ein."
-    }
+    },
+    "delete_consequence": "Die Bargeld-Buchung wird gelöscht, ein zugehöriger Beleg bleibt ohne Zuordnung."
   },
   "receipts": {
     "title": "Beleg",
@@ -721,7 +722,6 @@
     "remove_item": "Position entfernen",
     "add_item": "Position hinzufügen",
     "discard": "Beleg verwerfen",
-    "discard_confirm": "Wirklich verwerfen",
     "continue": "Weiter",
     "back": "Zurück",
     "save": "Speichern",
@@ -748,6 +748,13 @@
       "8102": "Bitte prüf Summe und Positionen.",
       "8103": "Diese Zahlung gibt es nicht mehr.",
       "8104": "Der Beleg braucht ein Datum und eine Summe."
-    }
+    },
+    "discard_consequence": "Der Beleg und sein Foto werden gelöscht."
+  },
+  "delete": {
+    "word": "LÖSCHEN",
+    "irreversible": "Das lässt sich nicht rückgängig machen.",
+    "type": "Tippe <strong>{{name}}</strong> zur Bestätigung",
+    "confirm": "Endgültig löschen"
   }
 }
