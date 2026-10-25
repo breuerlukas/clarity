@@ -16,8 +16,9 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Stores what the owner decided about a fixed cost: cancelled with an end
- * date, "not ended" for a payment wrongly taken as stopped, and the notice
- * period to be reminded of. Error codes: 3008 invalid values, 5001 unknown
+ * date, "not ended" for a payment wrongly taken as stopped, the notice
+ * period to be reminded of, and "not a fixed cost" for bookings wrongly
+ * taken as one. Error codes: 3008 invalid values, 5001 unknown
  * space.
  */
 @RestController

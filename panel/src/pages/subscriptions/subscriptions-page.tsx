@@ -26,14 +26,17 @@ const NAMED = new Set(GROUPS.flatMap((group) => group.categories ?? []));
 /**
  * Subscriptions and other fixed costs, grouped, with what they cost a year.
  * Ended ones leave the totals and wait in their own list until they drop
- * out of the history.
+ * out of the history; ones the owner said are none wait in another, to be
+ * counted again.
  */
 export function SubscriptionsPage() {
   const { t } = useTranslation();
   const recurring = useAllRecurringPayments();
   const [selected, setSelected] = useState<RecurringPayment | null>(null);
-  const running = recurring.data?.filter((payment) => payment.status !== "ENDED") ?? [];
-  const ended = recurring.data?.filter((payment) => payment.status === "ENDED") ?? [];
+  const counted = recurring.data?.filter((payment) => !payment.ignored) ?? [];
+  const running = counted.filter((payment) => payment.status !== "ENDED");
+  const ended = counted.filter((payment) => payment.status === "ENDED");
+  const ignored = recurring.data?.filter((payment) => payment.ignored) ?? [];
   const groups = GROUPS.map((group) => ({
     key: group.key,
     payments: running.filter((payment) =>
@@ -63,6 +66,9 @@ export function SubscriptionsPage() {
             ))}
             {ended.length > 0 && (
               <FixedCostsList payments={ended} title={t("subscriptions.group_ended")} onSelect={setSelected} />
+            )}
+            {ignored.length > 0 && (
+              <FixedCostsList payments={ignored} title={t("subscriptions.group_ignored")} onSelect={setSelected} />
             )}
           </div>
         </div>

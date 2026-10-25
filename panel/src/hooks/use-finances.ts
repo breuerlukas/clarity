@@ -32,13 +32,16 @@ export function useTransactionsBetween(from: string, to: string) {
   });
 }
 
-/** The fixed costs that still run; ended ones neither cost nor come up. */
+/**
+ * The fixed costs that still run; ended ones neither cost nor come up, and
+ * ones the owner said are none don't count at all.
+ */
 export function useRecurringPayments() {
   const space = useSpace();
   return useQuery({
     queryKey: ["recurring", space.id],
     queryFn: () => api.recurring(space.id),
-    select: (data) => data.payments.filter((payment) => payment.status !== "ENDED"),
+    select: (data) => data.payments.filter((payment) => payment.status !== "ENDED" && !payment.ignored),
   });
 }
 

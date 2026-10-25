@@ -27,6 +27,7 @@ import java.util.UUID;
 @AllArgsConstructor(staticName = "create")
 public final class BankAccount {
   private static final long SYNC_INTERVAL = 1000L * 60 * 60 * 6;
+  private static final String NO_CURRENCY = "XXX";
   private static final List<String> SAVINGS_NAMES = List.of("tagesgeld",
     "spar", "saving", "depot", "festgeld", "anlage", "invest");
 
@@ -73,6 +74,18 @@ public final class BankAccount {
 
   public void updateBalance(BigDecimal balance) {
     this.balance = balance;
+  }
+
+  /**
+   * Multi-currency accounts such as PayPal report "XXX", the code for no
+   * currency, for the account itself; the currency of its balance is the
+   * one it is shown in.
+   */
+  public void adoptBalanceCurrency(String balanceCurrency) {
+    if (NO_CURRENCY.equals(currency) && balanceCurrency.matches("[A-Z]{3}") &&
+      !NO_CURRENCY.equals(balanceCurrency)) {
+      this.currency = balanceCurrency;
+    }
   }
 
   /**

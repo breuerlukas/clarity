@@ -397,7 +397,13 @@
     "reminder": "Cancel {{counterparty}} by {{date}}, or it renews on {{renewal}}.",
     "errors": {
       "3008": "Check the end date and notice period."
-    }
+    },
+    "ignore": "No fixed cost",
+    "count_again": "Count as fixed cost again",
+    "group_ignored": "Not fixed costs",
+    "bookings_one": "{{count}} booking",
+    "bookings_other": "{{count}} bookings",
+    "no_bookings": "No booking in the last 13 months."
   },
   "goals": {
     "title": "Savings goals",

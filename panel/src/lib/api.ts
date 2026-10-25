@@ -209,6 +209,8 @@ export interface RecurringPayment {
   cancelled_on: string | null;
   /** Set while the owner keeps a missing one running. */
   dismissed_last_date: string | null;
+  /** The owner said it is no fixed cost; left out everywhere but its list. */
+  ignored: boolean;
   notice_days: number | null;
   /** The last day to cancel before the next renewal, with a notice period. */
   cancel_by: string | null;
@@ -219,6 +221,7 @@ export interface RecurringSettingDraft {
   /** The last booking the owner said "not ended" for; empty for none. */
   dismissed_last_date: string;
   notice_days: string;
+  ignored: boolean;
 }
 
 export type BillingInterval = "MONTHLY" | "QUARTERLY" | "HALF_YEARLY" | "YEARLY";

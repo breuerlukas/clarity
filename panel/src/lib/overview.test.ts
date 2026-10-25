@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RecurringPayment, Transaction } from "@/lib/api";
-import { cancellationReminders, summarizeMonth, total, upcomingThisMonth, yearly } from "@/lib/overview";
+import { cancellationReminders, recurringBookings, summarizeMonth, total, upcomingThisMonth, yearly } from "@/lib/overview";
 import { monthRange, shiftMonth } from "@/lib/dates";
 
 const transaction = (
@@ -89,5 +89,26 @@ describe("cancellationReminders", () => {
       "2026-10-12",
     );
     expect(reminders.map((entry) => entry.key)).toEqual(["soon", "late"]);
+  });
+});
+
+describe("recurringBookings", () => {
+  const booking = (date: string, amount: number, counterparty: string, description = "", category = "SUBSCRIPTIONS") =>
+    ({ date, amount, counterparty, description, category }) as Transaction;
+
+  it("finds the debits of a fixed cost by its key, newest first", () => {
+    const bookings = recurringBookings({ key: "netflix international b.v." } as RecurringPayment, [
+      booking("2026-08-03", -13.99, "Netflix  International B.V."),
+      booking("2026-10-03", -15.99, "NETFLIX International B.V. "),
+      booking("2026-09-05", 13.99, "Netflix International B.V."),
+      booking("2026-09-03", -13.99, "Netflix International B.V.", "", "TRANSFER"),
+      booking("2026-09-04", -9.99, "Spotify AB"),
+    ]);
+    expect(bookings.map((entry) => entry.date)).toEqual(["2026-10-03", "2026-08-03"]);
+  });
+
+  it("falls back to the purpose without a counterparty", () => {
+    const bookings = recurringBookings({ key: "miete whg. 3" } as RecurringPayment, [booking("2026-10-01", -1050, " ", "Miete Whg. 3")]);
+    expect(bookings).toHaveLength(1);
   });
 });

@@ -39,6 +39,17 @@ final class RecurringStatusTest {
       setting(null, "2026-08-01")));
   }
 
+  @Test
+  void marksBookingsTheOwnerSaidAreNoFixedCost() {
+    var setting = setting(null, null).orElseThrow();
+    var today = LocalDate.parse("2026-09-10");
+    assertEquals(false, netflix().information(today, Optional.of(setting))
+      .get("ignored"));
+    setting.change(null, null, null, true);
+    assertEquals(true, netflix().information(today, Optional.of(setting))
+      .get("ignored"));
+  }
+
   private RecurringStatus status(String today) {
     return netflix().status(LocalDate.parse(today), Optional.empty());
   }
@@ -56,6 +67,6 @@ final class RecurringStatusTest {
       UUID.randomUUID(), "netflix",
       cancelledOn == null ? null : LocalDate.parse(cancelledOn),
       dismissedLastDate == null ? null : LocalDate.parse(dismissedLastDate),
-      null));
+      null, null));
   }
 }
