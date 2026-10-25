@@ -77,7 +77,7 @@ export function TransactionsPage() {
   return (
     <>
       <PageHeader title={t("transactions.title")}>
-        <PeriodPicker period={period} kinds={["month", "quarter", "year", "rolling"]} onChange={setPeriod} />
+        <PeriodPicker period={period} kinds={["month", "quarter", "year", "rolling", "custom", "all"]} onChange={setPeriod} />
         <ExportButton transactions={visible} category={category} fileName={`clarity-${from}-${to}.csv`} />
         <Button variant="outline" onClick={() => setCashEntry({ entry: null })}>
           <Plus />
