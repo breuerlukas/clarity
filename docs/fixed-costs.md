@@ -28,7 +28,7 @@ Detection runs anew each time, so the owner's decisions live apart in
 | `cancelled_on` | ended once the next booking would fall on or after it |
 | `dismissed_last_date` | "still running": active while the last booking is this one |
 | `notice_days` | `cancel_by` = next booking minus these days |
-| `ignored` | no fixed cost at all: left out of every total, the spending room, reminders and price-change mails; listed apart, to be counted again |
+| `ignored` | no fixed cost at all: left out of every list and total, the spending room, reminders and price-change mails |
 
 A dismissal only covers the gap it was made for; once the payment books
 again and stops later, it goes missing anew. The overview reminds of every

@@ -16,6 +16,7 @@ export function OverviewTab({
   connections,
   payments,
   from,
+  to,
 }: {
   transactions: Transaction[];
   untilToday: Transaction[];
@@ -23,6 +24,7 @@ export function OverviewTab({
   connections?: Connection[];
   payments?: RecurringPayment[];
   from: string;
+  to: string;
 }) {
   const { t } = useTranslation();
   const statistics = monthlyStatistics(transactions, months);
@@ -30,7 +32,7 @@ export function OverviewTab({
     (connections ?? []).flatMap((connection) => connection.accounts.map((account) => account.balance ?? 0)),
   );
   const curve = balanceHistory(untilToday, balance).filter(
-    (point) => point.date >= from && point.date <= `${months[months.length - 1]}-31`,
+    (point) => point.date >= from && point.date <= to,
   );
   return (
     <div className="grid gap-6">

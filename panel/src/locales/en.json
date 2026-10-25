@@ -349,7 +349,11 @@
     "year": "Year",
     "rolling": "12 months",
     "previous": "Previous period",
-    "next": "Next period"
+    "next": "Next period",
+    "custom": "Custom",
+    "all": "All",
+    "from": "From",
+    "to": "To"
   },
   "room": {
     "title_salary": "Available until payday on {{date}}",
@@ -400,7 +404,6 @@
     },
     "ignore": "No fixed cost",
     "count_again": "Count as fixed cost again",
-    "group_ignored": "Not fixed costs",
     "bookings_one": "{{count}} booking",
     "bookings_other": "{{count}} bookings",
     "no_bookings": "No booking in the last 13 months."
