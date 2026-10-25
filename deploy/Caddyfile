@@ -1,0 +1,7 @@
+# TLS for Clarity on a shared server. The edge proxy forwards port 80 (HTTP)
+# and passes port 443 through by SNI, so Caddy gets its certificate itself.
+# HSTS tells the browser to never try Clarity without TLS again.
+{$CLARITY_DOMAIN} {
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy panel:8080
+}
