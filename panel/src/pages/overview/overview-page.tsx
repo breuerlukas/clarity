@@ -7,10 +7,12 @@ import { SyncButton } from "@/components/sync-button";
 import { useCashWallet } from "@/hooks/use-cash";
 import { useBudgets } from "@/hooks/use-categories";
 import { useConnections, useHistory, useRecurringPayments } from "@/hooks/use-finances";
+import { useGoals } from "@/hooks/use-goals";
 import { useSpacePath } from "@/hooks/use-space";
 import { budgetUsage, cashAccount, spendingRoom } from "@/lib/budget";
 import { isoDate } from "@/lib/dates";
 import { formatDate } from "@/lib/format";
+import { setAsideForGoals } from "@/lib/goals";
 import { cancellationReminders } from "@/lib/overview";
 import { SpendingRoomCard } from "@/pages/overview/spending-room-card";
 import { BudgetsCard } from "@/pages/overview/budgets-card";
@@ -32,14 +34,16 @@ export function OverviewPage() {
   const history = useHistory();
   const cash = useCashWallet();
   const budgets = useBudgets();
+  const goals = useGoals();
   const path = useSpacePath();
   if (connections.data?.length === 0) {
     return <EmptyOverview />;
   }
   const accounts = connections.data?.flatMap((connection) => connection.accounts);
+  const everyday = accounts && cash.data ? [...accounts, cashAccount(cash.data, t("cash.title"))] : null;
   const room =
-    accounts && recurring.data && history.data && cash.data
-      ? spendingRoom([...accounts, cashAccount(cash.data, t("cash.title"))], recurring.data, history.data)
+    everyday && recurring.data && history.data && goals.data
+      ? spendingRoom(everyday, recurring.data, history.data, new Date(), setAsideForGoals(goals.data, everyday))
       : null;
   const usage = room && history.data && budgets.data?.length ? budgetUsage(budgets.data, history.data, room.cycleStart) : null;
   return (
@@ -47,7 +51,7 @@ export function OverviewPage() {
       <PageHeader title={t("nav.overview")}>
         <SyncButton connections={connections.data} />
       </PageHeader>
-      {(connections.isError || recurring.isError || history.isError || cash.isError) && (
+      {(connections.isError || recurring.isError || history.isError || cash.isError || goals.isError) && (
         <Notice className="mb-6">{t("common.error")}</Notice>
       )}
       {cancellationReminders(recurring.data ?? [], isoDate(new Date())).map((payment) => (

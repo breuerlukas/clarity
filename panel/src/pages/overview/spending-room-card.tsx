@@ -49,6 +49,11 @@ export function SpendingRoomCard({ room }: { room: SpendingRoom }) {
           <Row label={t("room.fixed_until_payday", { count: room.upcoming.length })}>
             <AmountBadge value={-room.reserved} />
           </Row>
+          {room.setAside > 0 && (
+            <Row label={t("room.set_aside")}>
+              <AmountBadge value={-room.setAside} />
+            </Row>
+          )}
         </div>
       </div>
       <div className="grid gap-1.5">

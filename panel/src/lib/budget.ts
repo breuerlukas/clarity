@@ -12,6 +12,8 @@ export interface SpendingRoom {
   /** Fixed costs still due before payday. */
   upcoming: RecurringPayment[];
   reserved: number;
+  /** Money on the everyday accounts meant for savings goals. */
+  setAside: number;
   /** What is left to spend until payday. */
   room: number;
   daysLeft: number;
@@ -50,7 +52,8 @@ export function cashAccount(wallet: CashWallet, name: string): Account {
 
 /**
  * The money that is really free until the next salary: the balance of the
- * everyday accounts minus every fixed cost due before payday. Payday is one
+ * everyday accounts minus every fixed cost due before payday and what is
+ * set aside for savings goals. Payday is one
  * month after the last salary booking, rolled forward until it lies ahead.
  */
 export function spendingRoom(
@@ -58,6 +61,7 @@ export function spendingRoom(
   payments: RecurringPayment[],
   transactions: Transaction[],
   today = new Date(),
+  setAside = 0,
 ): SpendingRoom {
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const lastSalary = transactions
@@ -81,7 +85,7 @@ export function spendingRoom(
     .sort((first, second) => first.next_date.localeCompare(second.next_date));
   const reserved = total(upcoming.map((payment) => payment.amount));
   const daysLeft = Math.max(1, Math.round((payday.getTime() - start.getTime()) / DAY));
-  const room = total([balance, -reserved]);
+  const room = total([balance, -reserved, -setAside]);
   const cycleDays = Math.max(1, Math.round((payday.getTime() - cycleStart.getTime()) / DAY));
   return {
     payday: paydayIso,
@@ -89,6 +93,7 @@ export function spendingRoom(
     balance,
     upcoming,
     reserved,
+    setAside,
     room,
     daysLeft,
     perDay: Math.max(0, Math.floor((room / daysLeft) * 100) / 100),

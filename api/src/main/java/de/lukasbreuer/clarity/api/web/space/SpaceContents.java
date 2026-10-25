@@ -5,6 +5,7 @@ import de.lukasbreuer.clarity.api.business.contract.ContractRepository;
 import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
 import de.lukasbreuer.clarity.api.business.mail.MailboxRepository;
 import de.lukasbreuer.clarity.api.space.Space;
+import de.lukasbreuer.clarity.api.space.goal.SavingsGoalRepository;
 import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
 import de.lukasbreuer.clarity.api.transaction.cash.CashWalletRepository;
 import de.lukasbreuer.clarity.api.transaction.receipt.ReceiptRepository;
@@ -16,9 +17,9 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Whether anything still belongs to a space: banks, cash entries, receipts,
- * contracts, mailboxes or invoices. A space only goes once it holds none of
- * them, so nothing is left behind without a space to show it in. An empty
- * cash wallet does not count; it stays behind unused.
+ * savings goals, contracts, mailboxes or invoices. A space only goes once
+ * it holds none of them, so nothing is left behind without a space to show
+ * it in. An empty cash wallet does not count; it stays behind unused.
  */
 @Component
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ final class SpaceContents {
   private final CashWalletRepository walletRepository;
   private final TransactionRepository transactionRepository;
   private final ReceiptRepository receiptRepository;
+  private final SavingsGoalRepository goalRepository;
 
   CompletableFuture<Boolean> isEmpty(Space space) {
     return connectionRepository.findAll()
@@ -43,6 +45,8 @@ final class SpaceContents {
     return hasBusinessData(spaceId)
       .thenCombine(hasCashEntries(spaceId), Boolean::logicalOr)
       .thenCombine(receiptRepository.existsBySpaceId(spaceId),
+        Boolean::logicalOr)
+      .thenCombine(goalRepository.existsBySpaceId(spaceId),
         Boolean::logicalOr);
   }
 

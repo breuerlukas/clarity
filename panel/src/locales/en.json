@@ -12,6 +12,7 @@
     "subscriptions": "Fixed costs",
     "contracts": "Contracts",
     "invoices": "Invoices",
+    "goals": "Savings goals",
     "hide_amounts": "Hide amounts",
     "show_amounts": "Show amounts"
   },
@@ -359,7 +360,8 @@
     "progress": "Day {{day}} of {{days}}",
     "fixed_until_payday_one": "Fixed costs until then",
     "fixed_until_payday_other": "Fixed costs until then ({{count}})",
-    "everyday": "Everyday accounts"
+    "everyday": "Everyday accounts",
+    "set_aside": "Set aside for goals"
   },
   "budgets": {
     "title": "Budgets until payday",
@@ -395,6 +397,41 @@
     "reminder": "Cancel {{counterparty}} by {{date}}, or it renews on {{renewal}}.",
     "errors": {
       "3008": "Check the end date and notice period."
+    }
+  },
+  "goals": {
+    "title": "Savings goals",
+    "create": "New goal",
+    "edit": "Edit goal",
+    "empty": "No goals yet. What are you saving for?",
+    "until": "by {{date}}",
+    "no_date": "No target date",
+    "of": "of {{target}}",
+    "reached": "Reached",
+    "per_month": "{{amount}} a month to make it",
+    "left": "{{amount}} to go",
+    "linked": "Balance of {{account}}",
+    "deposit": "Set aside",
+    "withdraw": "Take out",
+    "deposit_hint": "Set aside so far: {{saved}}. This money stays on your everyday accounts and is no longer free to spend.",
+    "amount": "Amount",
+    "name": "Name",
+    "name_placeholder": "e.g. Holiday",
+    "icon": "Icon",
+    "target": "Target",
+    "target_date": "Target date",
+    "target_date_hint": "Optional",
+    "source": "Saved",
+    "source_manual": "By hand",
+    "source_account": "On an account",
+    "account": "Account",
+    "delete": "Delete",
+    "errors": {
+      "5001": "This space no longer exists.",
+      "8200": "This goal no longer exists.",
+      "8201": "Check the name and target.",
+      "8202": "Choose an account of this space.",
+      "8203": "You can't take out more than was set aside."
     }
   },
   "interval": {

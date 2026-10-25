@@ -6,6 +6,7 @@ import {
   FileSignature,
   Landmark,
   LayoutDashboard,
+  PiggyBank,
   ReceiptText,
   Repeat,
 } from "lucide-react";
@@ -38,6 +39,7 @@ function spaceNavigation(
           { title: t("nav.overview"), url: path(), icon: LayoutDashboard },
           { title: t("nav.transactions"), url: path("/transactions"), icon: ArrowLeftRight },
           { title: t("nav.subscriptions"), url: path("/subscriptions"), icon: Repeat },
+          { title: t("nav.goals"), url: path("/goals"), icon: PiggyBank },
           { title: t("nav.statistics"), url: path("/statistics"), icon: ChartColumnBig },
         ];
   return [

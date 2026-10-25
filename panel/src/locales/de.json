@@ -12,6 +12,7 @@
     "subscriptions": "Fixkosten",
     "contracts": "Verträge",
     "invoices": "Rechnungen",
+    "goals": "Sparziele",
     "hide_amounts": "Beträge ausblenden",
     "show_amounts": "Beträge anzeigen"
   },
@@ -359,7 +360,8 @@
     "progress": "Tag {{day}} von {{days}}",
     "fixed_until_payday_one": "Fixkosten bis dahin",
     "fixed_until_payday_other": "Fixkosten bis dahin ({{count}})",
-    "everyday": "Alltagskonten"
+    "everyday": "Alltagskonten",
+    "set_aside": "Für Sparziele zurückgelegt"
   },
   "budgets": {
     "title": "Budgets bis zum Gehalt",
@@ -395,6 +397,41 @@
     "reminder": "{{counterparty}} bis {{date}} kündigen, sonst verlängert es sich am {{renewal}}.",
     "errors": {
       "3008": "Prüf Enddatum und Kündigungsfrist."
+    }
+  },
+  "goals": {
+    "title": "Sparziele",
+    "create": "Neues Ziel",
+    "edit": "Ziel bearbeiten",
+    "empty": "Noch keine Ziele. Worauf sparst du?",
+    "until": "bis {{date}}",
+    "no_date": "Kein Zieldatum",
+    "of": "von {{target}}",
+    "reached": "Erreicht",
+    "per_month": "{{amount}} im Monat, um es zu schaffen",
+    "left": "noch {{amount}}",
+    "linked": "Kontostand von {{account}}",
+    "deposit": "Zurücklegen",
+    "withdraw": "Entnehmen",
+    "deposit_hint": "Bisher zurückgelegt: {{saved}}. Das Geld bleibt auf deinen Alltagskonten, ist aber nicht mehr frei verfügbar.",
+    "amount": "Betrag",
+    "name": "Name",
+    "name_placeholder": "z. B. Urlaub",
+    "icon": "Symbol",
+    "target": "Ziel",
+    "target_date": "Zieldatum",
+    "target_date_hint": "Optional",
+    "source": "Gespart",
+    "source_manual": "Von Hand",
+    "source_account": "Auf einem Konto",
+    "account": "Konto",
+    "delete": "Löschen",
+    "errors": {
+      "5001": "Diesen Bereich gibt es nicht mehr.",
+      "8200": "Dieses Ziel gibt es nicht mehr.",
+      "8201": "Prüf Name und Zielbetrag.",
+      "8202": "Wähl ein Konto dieses Bereichs.",
+      "8203": "Du kannst nicht mehr entnehmen, als zurückgelegt ist."
     }
   },
   "interval": {

@@ -108,6 +108,22 @@ export interface CashWallet {
   started_on: string;
 }
 
+/** Something saved up for; `account` set means its balance is what is saved. */
+export interface SavingsGoal {
+  id: string;
+  space: string;
+  name: string;
+  icon: string;
+  target: number;
+  target_date: string | null;
+  account: string | null;
+  /** Set aside by hand; ignored while an account is linked. */
+  saved: number;
+  created_at: number;
+}
+
+export type SavingsGoalDraft = Pick<SavingsGoal, "name" | "icon" | "target" | "target_date" | "account">;
+
 export interface CashEntryDraft {
   date: string;
   /** Negative for money spent. */
@@ -407,6 +423,14 @@ export interface SetupAnswer {
   qr_code: string;
 }
 
+/** Amounts as strings and empty strings for none, as the api parses them. */
+const goalPayload = (draft: SavingsGoalDraft) => ({
+  ...draft,
+  target: String(draft.target),
+  target_date: draft.target_date ?? "",
+  account: draft.account ?? "",
+});
+
 export const api = {
   setupStatus: () => get<{ setup_required: boolean }>("/setup/status/"),
   setup: (setupCode: string, name: string, password: string) =>
@@ -476,6 +500,14 @@ export const api = {
     post<{ receipt: Receipt; transaction: Transaction }>("/receipts/attach/", { id, transaction }),
   bookReceiptAsCash: (id: string, category: Category) =>
     post<{ receipt: Receipt; transaction: Transaction }>("/receipts/cash/", { id, category }),
+  goals: (space: string) => get<{ goals: SavingsGoal[] }>(`/goals/?space=${space}`),
+  createGoal: (space: string, draft: SavingsGoalDraft) =>
+    post<{ goal: SavingsGoal }>("/goals/create/", { space, ...goalPayload(draft) }),
+  updateGoal: (id: string, draft: SavingsGoalDraft) =>
+    post<{ goal: SavingsGoal }>("/goals/update/", { id, ...goalPayload(draft) }),
+  depositToGoal: (id: string, amount: number) =>
+    post<{ goal: SavingsGoal }>("/goals/deposit/", { id, amount: String(amount) }),
+  deleteGoal: (id: string) => post("/goals/delete/", { id }),
   categories: () => get<{ categories: CategoryDetails[] }>("/categories/"),
   createCategory: (draft: CategoryDraft) =>
     post<{ category: CategoryDetails }>("/categories/create/", { ...draft, name: draft.name ?? "" }),

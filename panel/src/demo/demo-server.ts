@@ -15,6 +15,7 @@ import {
 } from "@/lib/api";
 import { createCategory, deleteCategory, resetCategory, updateBudget, updateCategory } from "@/demo/demo-categories";
 import { createDemoDatabase, detectedStatus, PERSONAL_SPACE } from "@/demo/demo-data";
+import { createGoal, deleteGoal, depositToGoal, updateGoal } from "@/demo/demo-goals";
 import { countCash, createCashEntry, deleteCashEntry, splitTransaction, updateCashEntry, wallet, walletId } from "@/demo/demo-cash";
 import {
   attachReceipt,
@@ -29,7 +30,8 @@ import { isoDate } from "@/lib/dates";
 
 /**
  * Answers the panel's api calls in the browser for the public demo. Changes
- * (categories, budgets, a new name, removed banks, cash entries, receipts) live in
+ * (categories, budgets, savings goals, a new name, removed banks, cash
+ * entries, receipts) live in
  * memory until reload; bank logins and password changes are refused with
  * code 9000.
  */
@@ -132,6 +134,16 @@ export async function handleDemoRequest(
       return attachReceipt(database, body);
     case "POST /receipts/cash/":
       return bookReceiptAsCash(database, body);
+    case "GET /goals/":
+      return ok({ goals: database.goals.filter((goal) => goal.space === url.searchParams.get("space")) });
+    case "POST /goals/create/":
+      return createGoal(database.goals, database.connections, body);
+    case "POST /goals/update/":
+      return updateGoal(database.goals, database.connections, body);
+    case "POST /goals/deposit/":
+      return depositToGoal(database.goals, body);
+    case "POST /goals/delete/":
+      return deleteGoal(database.goals, body.id);
     case "GET /categories/":
       return ok({ categories: database.categories });
     case "POST /categories/create/":
@@ -291,6 +303,7 @@ function deleteSpace(id: string) {
     database.connections.some((connection) => connection.space === id) ||
     database.contracts.some((contract) => contract.space === id) ||
     database.receipts.some((receipt) => receipt.space === id) ||
+    database.goals.some((goal) => goal.space === id) ||
     database.transactions.some((transaction) => transaction.account === walletId(id))
   ) {
     throw new ApiError(400, 5002);
