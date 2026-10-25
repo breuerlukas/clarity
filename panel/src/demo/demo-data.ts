@@ -1,12 +1,14 @@
 import type {
   Account,
   BusinessTransaction,
+  CashWallet,
   Category,
   CategoryDetails,
   Connection,
   Contract,
   Invoice,
   Mailbox,
+  Receipt,
   RecurringPayment,
   Space,
   Transaction,
@@ -20,6 +22,8 @@ import {
   demoContracts,
 } from "@/demo/demo-business";
 import { demoInvoices, demoMailboxes } from "@/demo/demo-invoices";
+import { demoCashEntries, demoWallet } from "@/demo/demo-cash";
+import { demoReceipts } from "@/demo/demo-receipts";
 
 /**
  * Made-up but believable finances for the demo: a salaried person in Munich
@@ -196,6 +200,9 @@ export interface DemoDatabase {
   contracts: Contract[];
   invoices: Invoice[];
   mailboxes: Mailbox[];
+  /** Started ones; the cash entries are among the transactions. */
+  wallets: CashWallet[];
+  receipts: Receipt[];
 }
 
 export function createDemoDatabase(today = TODAY()): DemoDatabase {
@@ -347,7 +354,9 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
       add("paypal", day(month, 23), 45, "Kleinanzeigen", "INCOME", "Verkauf Stehlampe");
     }
   }
+  transactions.push(...demoCashEntries(PERSONAL_SPACE, today, transactions));
   transactions.sort((first, second) => second.date.localeCompare(first.date));
+  const receipts = demoReceipts(PERSONAL_SPACE, today, transactions);
   const contracts = demoContracts(today);
   const businessTransactions = demoBusinessTransactions(today, contracts);
   return {
@@ -363,6 +372,8 @@ export function createDemoDatabase(today = TODAY()): DemoDatabase {
     contracts,
     invoices: demoInvoices(today, businessTransactions),
     mailboxes: demoMailboxes(today),
+    wallets: [demoWallet(PERSONAL_SPACE, today)],
+    receipts,
   };
 }
 

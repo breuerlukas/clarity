@@ -1,4 +1,4 @@
-import type { Account, RecurringPayment, Transaction } from "@/lib/api";
+import type { Account, CashWallet, RecurringPayment, Transaction } from "@/lib/api";
 import { isoDate } from "@/lib/dates";
 import { total } from "@/lib/overview";
 
@@ -29,6 +29,20 @@ function sameDayNextMonth(date: Date) {
   const last = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
   next.setDate(Math.min(day, last));
   return next;
+}
+
+/** The cash wallet as an everyday account: cash is money to spend. */
+export function cashAccount(wallet: CashWallet, name: string): Account {
+  return {
+    id: wallet.id,
+    name,
+    iban: null,
+    currency: wallet.currency,
+    balance: wallet.balance,
+    last_synced_at: 0,
+    sync_failure: null,
+    spending: true,
+  };
 }
 
 /**

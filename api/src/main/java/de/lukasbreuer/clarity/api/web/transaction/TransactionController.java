@@ -37,6 +37,7 @@ public final class TransactionController {
   private final CategoryRepository categoryRepository;
   private final CategoryRuleApplication ruleApplication;
   private final AccountScope accountScope;
+  private final TransactionDetails transactionDetails;
 
   @RequestMapping(path = "/transactions/", method = RequestMethod.GET)
   public CompletableFuture<ApiResponse> findTransactions(
@@ -54,8 +55,9 @@ public final class TransactionController {
     return accountScope.accountIds(spaceId.get())
       .thenCompose(accountIds -> transactionRepository.findByAccountsBetween(
         accountIds, range.get().from(), range.get().to()))
+      .thenCompose(transactionDetails::information)
       .thenApply(transactions -> ApiResponse.success(Map.of("transactions",
-        transactions.stream().map(Transaction::information).toList())));
+        transactions)));
   }
 
   /**

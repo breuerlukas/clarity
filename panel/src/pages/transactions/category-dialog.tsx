@@ -16,7 +16,7 @@ import { useCategories, useCategoryLook } from "@/hooks/use-categories";
 import { useConnections } from "@/hooks/use-finances";
 import { useOpenSettings } from "@/layouts/settings/settings-dialog-context";
 import { pickableCategories } from "@/lib/categories";
-import { api, type Category, type Transaction } from "@/lib/api";
+import { api, receiptFileUrl, type Category, type Transaction } from "@/lib/api";
 import { formatDate, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -63,6 +63,13 @@ function CategoryForm({ transaction, onClose }: { transaction: Transaction; onCl
       onClose();
     },
   });
+  const undoSplit = useMutation({
+    mutationFn: () => api.splitTransaction(transaction.id, []),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      onClose();
+    },
+  });
   const account = connections.data
     ?.flatMap((connection) => connection.accounts.map((entry) => ({ ...entry, bank: connection.bank_name })))
     .find((entry) => entry.id === transaction.account);
@@ -96,7 +103,35 @@ function CategoryForm({ transaction, onClose }: { transaction: Transaction; onCl
         )}
         <dt className="text-muted-foreground">{t("transactions.reference")}</dt>
         <dd className="break-words">{transaction.description || "–"}</dd>
+        {transaction.receipt && (
+          <>
+            <dt className="text-muted-foreground">{t("receipts.title")}</dt>
+            <dd>
+              <a href={receiptFileUrl(transaction.receipt)} className="font-bold text-brand-text hover:underline">
+                {t("transactions.show_receipt")}
+              </a>
+            </dd>
+          </>
+        )}
       </dl>
+      {Boolean(transaction.splits?.length) && (
+        <div className="grid gap-2 rounded-2xl bg-raised p-4 text-sm">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-bold text-label">{t("transactions.split")}</span>
+            <Button variant="link" size="sm" className="px-0" loading={undoSplit.isPending} onClick={() => undoSplit.mutate()}>
+              {t("transactions.undo_split")}
+            </Button>
+          </div>
+          <ul className="grid gap-1">
+            {transaction.splits!.map((part) => (
+              <li key={part.category} className="flex items-center justify-between gap-3">
+                <span className="truncate">{look(part.category).label}</span>
+                <span className="figures font-bold">{formatMoney(part.amount, transaction.currency)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <fieldset className="grid gap-3">
         <legend className="mb-3 flex w-full items-center justify-between gap-3 text-sm font-bold text-label">
           {t("transactions.change_category")}
@@ -135,7 +170,7 @@ function CategoryForm({ transaction, onClose }: { transaction: Transaction; onCl
           <Switch checked={remember} onCheckedChange={setRemember} />
         </label>
       )}
-      {save.isError && <Notice>{t("common.error")}</Notice>}
+      {(save.isError || undoSplit.isError) && <Notice>{t("common.error")}</Notice>}
       <div className="flex flex-wrap justify-end gap-2">
         <DialogClose asChild>
           <Button variant="outline">{t("common.cancel")}</Button>

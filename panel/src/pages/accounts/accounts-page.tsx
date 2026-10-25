@@ -8,6 +8,7 @@ import { SyncButton } from "@/components/sync-button";
 import { useConnections } from "@/hooks/use-finances";
 import { ConnectionCard } from "@/pages/accounts/connection-card";
 import { ConnectBankDialog } from "@/pages/accounts/connect-bank-dialog";
+import { CashCard } from "@/pages/accounts/cash-card";
 
 export function AccountsPage() {
   const { t } = useTranslation();
@@ -45,6 +46,7 @@ export function AccountsPage() {
             onReconnect={() => setConnecting(true)}
           />
         ))}
+        <CashCard />
       </div>
       <ConnectBankDialog open={connecting} onOpenChange={setConnecting} />
     </>
