@@ -202,7 +202,13 @@
     "empty_text": "Connect your bank to see accounts and transactions. Clarity only gets read access.",
     "not_configured": "Enable Banking isn't set up yet (see docs/enable-banking.md).",
     "spending": "Account type",
-    "spending_hint": "Everyday accounts count towards the money left until your next salary. Savings accounts stay out of it."
+    "spending_hint": "Everyday accounts count towards the money left until your next salary. Savings accounts stay out of it.",
+    "move": "Move",
+    "move_title": "Move {{account}}",
+    "move_hint": "Its transactions, fixed costs and statistics move along. The bank connection stays where it is.",
+    "hide": "Hide",
+    "show": "Show",
+    "hidden": "Hidden"
   },
   "connect": {
     "title": "Connect a bank",

@@ -14,12 +14,23 @@ export function useAllConnections() {
 }
 
 /** The open space's connections. */
-export function useConnections() {
+/**
+ * The bank connections with the accounts of the open space. A connection
+ * shows wherever one of its accounts is; one without any accounts stays in
+ * its own space, so it can be removed there. Hidden accounts only show
+ * where they can be shown again.
+ */
+export function useConnections({ withHidden = false } = {}) {
   const space = useSpace();
   return useQuery({
     queryKey: ["connections"],
     queryFn: api.connections,
-    select: (data) => data.connections.filter((connection) => connection.space === space.id),
+    select: (data) =>
+      data.connections.flatMap((connection) => {
+        const accounts = connection.accounts.filter((account) => account.space === space.id && (withHidden || !account.hidden));
+        const empty = connection.space === space.id && connection.accounts.length === 0;
+        return accounts.length > 0 || empty ? [{ ...connection, accounts }] : [];
+      }),
   });
 }
 

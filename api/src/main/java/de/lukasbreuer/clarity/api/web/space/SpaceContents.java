@@ -1,5 +1,6 @@
 package de.lukasbreuer.clarity.api.web.space;
 
+import de.lukasbreuer.clarity.api.banking.account.BankAccountRepository;
 import de.lukasbreuer.clarity.api.banking.connection.BankConnectionRepository;
 import de.lukasbreuer.clarity.api.business.contract.ContractRepository;
 import de.lukasbreuer.clarity.api.business.invoice.InvoiceRepository;
@@ -16,15 +17,17 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Whether anything still belongs to a space: banks, cash entries, receipts,
- * savings goals, contracts, mailboxes or invoices. A space only goes once
- * it holds none of them, so nothing is left behind without a space to show
- * it in. An empty cash wallet does not count; it stays behind unused.
+ * Whether anything still belongs to a space: banks, accounts moved there,
+ * cash entries, receipts, savings goals, contracts, mailboxes or invoices.
+ * A space only goes once it holds none of them, so nothing is left behind
+ * without a space to show it in. An empty cash wallet does not count; it
+ * stays behind unused.
  */
 @Component
 @RequiredArgsConstructor
 final class SpaceContents {
   private final BankConnectionRepository connectionRepository;
+  private final BankAccountRepository accountRepository;
   private final ContractRepository contractRepository;
   private final MailboxRepository mailboxRepository;
   private final InvoiceRepository invoiceRepository;
@@ -47,6 +50,8 @@ final class SpaceContents {
       .thenCombine(receiptRepository.existsBySpaceId(spaceId),
         Boolean::logicalOr)
       .thenCombine(goalRepository.existsBySpaceId(spaceId),
+        Boolean::logicalOr)
+      .thenCombine(accountRepository.existsBySpaceId(spaceId),
         Boolean::logicalOr);
   }
 

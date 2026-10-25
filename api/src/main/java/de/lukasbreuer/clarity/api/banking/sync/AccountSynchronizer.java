@@ -9,12 +9,15 @@ import de.lukasbreuer.clarity.api.transaction.TransactionRepository;
 import de.lukasbreuer.clarity.api.transaction.category.Categorizer;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -45,6 +48,7 @@ public final class AccountSynchronizer {
     return updateBalance(account, headers)
       .thenCompose(_ -> TransactionHistory.create(client, headers)
         .fetch(account.uid(), from))
+      .thenApply(transactions -> adoptBookedCurrency(account, transactions))
       .thenCompose(transactions -> TransactionImport.create(
         transactionRepository, categorizer).store(account, from, transactions))
       .thenApply(_ -> succeeded(account))
@@ -75,6 +79,20 @@ public final class AccountSynchronizer {
     balances.currency().ifPresent(account::adoptBalanceCurrency);
     balances.select().ifPresent(account::updateBalance);
     return balances.select();
+  }
+
+  /**
+   * When neither the account nor its balance names a currency, the one its
+   * latest booking was made in does.
+   */
+  private List<JSONObject> adoptBookedCurrency(
+    BankAccount account, List<JSONObject> transactions
+  ) {
+    transactions.stream().map(EnableBankingTransaction::of)
+      .max(Comparator.comparing(EnableBankingTransaction::bookingDate))
+      .map(EnableBankingTransaction::currency)
+      .ifPresent(account::adoptBalanceCurrency);
+    return transactions;
   }
 
   private BankAccount succeeded(BankAccount account) {

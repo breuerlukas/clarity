@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Notice } from "@/components/notice";
+import { HideAccount, MoveAccount } from "@/pages/accounts/account-actions";
 import { Panel } from "@/components/panel";
 import { Segmented } from "@/components/segmented";
 import { api, type Account, type Connection } from "@/lib/api";
@@ -50,7 +51,7 @@ export function ConnectionCard({
           <AccountRow key={account.id} account={account} business={business} />
         ))}
       </ul>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-divider pt-4">
+      <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-divider pt-4">
         <span className="mr-auto text-sm text-muted-foreground">
           {oldest ? t("accounts.last_synced", { time: formatRelative(oldest) }) : t("accounts.never_synced")}
         </span>
@@ -101,9 +102,16 @@ function AccountRow({ account, business }: { account: Account; business: boolean
   const { t } = useTranslation();
   return (
     <li className="grid gap-3 py-4">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2">
+      <div className={cn("grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2", account.hidden && "opacity-55")}>
         <span className="grid min-w-0">
-          <span className="truncate font-bold">{account.name}</span>
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-bold">{account.name}</span>
+            {account.hidden && (
+              <span className="shrink-0 rounded-full bg-raised px-2 py-px text-xs font-bold text-muted-foreground ring-1 ring-divider">
+                {t("accounts.hidden")}
+              </span>
+            )}
+          </span>
           {account.iban && (
             <span className="figures text-sm text-muted-foreground">{maskIban(account.iban)}</span>
           )}
@@ -114,7 +122,13 @@ function AccountRow({ account, business }: { account: Account; business: boolean
             : formatMoney(account.balance, account.currency)}
         </span>
       </div>
-      {!business && <SpendingChoice account={account} />}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {!business && !account.hidden && <SpendingChoice account={account} />}
+        <span className="ml-auto flex flex-wrap gap-1">
+          <HideAccount account={account} />
+          <MoveAccount account={account} />
+        </span>
+      </div>
       {account.sync_failure && (
         <Notice className="text-sm">
           {account.sync_failure === "consent"

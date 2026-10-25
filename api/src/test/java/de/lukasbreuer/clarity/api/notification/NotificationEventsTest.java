@@ -80,7 +80,8 @@ final class NotificationEventsTest {
   ) {
     return BankAccount.create(UUID.randomUUID(), connection.id(), "uid",
       null, "Giro", "EUR", BigDecimal.ZERO,
-      now.minus(sinceSync).toEpochMilli(), now.toEpochMilli(), failure, null);
+      now.minus(sinceSync).toEpochMilli(), now.toEpochMilli(), failure, null,
+      null, null);
   }
 
   private RecurringPayment payment(

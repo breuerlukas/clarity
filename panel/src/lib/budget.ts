@@ -40,6 +40,8 @@ function sameDayNextMonth(date: Date) {
 export function cashAccount(wallet: CashWallet, name: string): Account {
   return {
     id: wallet.id,
+    space: wallet.space,
+    hidden: false,
     name,
     iban: null,
     currency: wallet.currency,

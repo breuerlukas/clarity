@@ -15,8 +15,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Decides which accounts count towards the money left until payday. Error
- * code 2004: unknown account.
+ * Decides which accounts count towards the money left until payday, and
+ * which are hidden from every view for a while. Error code 2004: unknown
+ * account.
  */
 @RestController
 @RequiredArgsConstructor
@@ -35,6 +36,31 @@ public final class BankAccountController {
     var spending = body.getBoolean("spending");
     return accountRepository.findById(accountId)
       .thenCompose(account -> markSpending(account, spending));
+  }
+
+  @RequestMapping(path = "/accounts/hidden/", method = RequestMethod.POST)
+  public CompletableFuture<ApiResponse> hide(
+    @RequestBody String payload, HttpServletResponse response
+  ) {
+    var body = ApiRequestBody.of(payload, response);
+    var accountId = body.getUUID("id");
+    if (accountId == null) {
+      return ApiResponse.error(2004).future();
+    }
+    var hidden = body.getBoolean("hidden");
+    return accountRepository.findById(accountId)
+      .thenCompose(account -> hide(account, hidden));
+  }
+
+  private CompletableFuture<ApiResponse> hide(
+    Optional<BankAccount> account, boolean hidden
+  ) {
+    if (account.isEmpty()) {
+      return ApiResponse.error(2004).future();
+    }
+    account.get().hide(hidden);
+    return accountRepository.save(account.get())
+      .thenApply(_ -> ApiResponse.success());
   }
 
   private CompletableFuture<ApiResponse> markSpending(
