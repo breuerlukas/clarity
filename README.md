@@ -139,12 +139,13 @@ accounts page syncs right away.
 
 | Part | Stack | Run |
 |---|---|---|
-| `api/` | Java 25, Spring Boot, PostgreSQL | `./gradlew bootRun` (reads `api/config.ini`) |
+| `api/` | Java 25, Spring Boot, PostgreSQL | `cp config.example.ini config.ini`, then `./gradlew bootRun` |
 | `panel/` | React, TypeScript, Tailwind, shadcn/ui | `npm install && npm run dev` |
 
 For a local database:
 `docker run -d -p 127.0.0.1:5432:5432 -e POSTGRES_USER=clarity -e POSTGRES_PASSWORD=clarity -e POSTGRES_DB=clarity postgres:18`.
-The panel's dev server proxies `/v1` to `localhost:8080`.
+The panel's dev server proxies `/v1` to `localhost:8080`. `api/config.ini`
+is ignored by git, so the Enable Banking id you put there stays local.
 
 Checks: `./gradlew build` in `api/` compiles, lints (Checkstyle), looks for
 bugs and security patterns (SpotBugs with FindSecBugs) and runs the tests;

@@ -1,5 +1,6 @@
 # Secrets and local configuration
 .env
+api/config.ini
 secrets/*
 !secrets/.gitkeep
 *.pem
