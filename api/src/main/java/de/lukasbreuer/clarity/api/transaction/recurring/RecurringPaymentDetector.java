@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -24,6 +25,14 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor(staticName = "create")
 public final class RecurringPaymentDetector {
   private static final BigDecimal AMOUNT_TOLERANCE = new BigDecimal("0.15");
+  /**
+   * A payment reference after the merchant's name, as card payments carry
+   * one that changes every month ("SPOTIFY*P47BDD5092",
+   * "Spotify P445538918"): a word of at least five letters and digits, with
+   * a digit in it, after a star or a space.
+   */
+  private static final Pattern REFERENCE =
+    Pattern.compile("[*\\s]+(?=[a-z]*\\d)[a-z0-9]{5,}\\b");
 
   private final LocalDate today;
 
@@ -42,7 +51,9 @@ public final class RecurringPaymentDetector {
   private String groupKey(Transaction transaction) {
     var source = transaction.counterparty().isBlank() ?
       transaction.description() : transaction.counterparty();
-    return source.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
+    var name = source.trim().toLowerCase(Locale.ROOT);
+    return REFERENCE.matcher(name).replaceAll("").replaceAll("\\s+", " ")
+      .trim();
   }
 
   private Optional<RecurringPayment> detectInGroup(

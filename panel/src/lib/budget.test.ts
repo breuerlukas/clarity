@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Account, RecurringPayment, Transaction } from "@/lib/api";
-import { budgetUsage, spendingRoom } from "@/lib/budget";
+import { budgetUsage, monthlyBudget, regularIncome, spendingRoom } from "@/lib/budget";
 
 const account = (balance: number, spending: boolean) =>
   ({ id: String(balance), balance, spending }) as Account;
@@ -64,5 +64,54 @@ describe("budgetUsage", () => {
       ["GROCERIES", 80.1, "close"],
       ["HEALTH", 10, "fine"],
     ]);
+  });
+});
+
+describe("regularIncome", () => {
+  const income = (date: string, amount: number, counterparty: string, category = "INCOME") =>
+    ({ date, amount, counterparty, description: "", category }) as Transaction;
+
+  it("takes the largest monthly income as salary, whatever its category", () => {
+    const bookings = regularIncome([
+      income("2026-08-29", 2480, "Brightline GmbH"),
+      income("2026-09-30", 2480, "Brightline GmbH"),
+      income("2026-10-01", 450, "Minijob KG"),
+      income("2026-09-01", 450, "Minijob KG"),
+      income("2026-10-05", 5000, "Erbschaft"),
+      income("2026-10-02", 3000, "Brightline GmbH", "TRANSFER"),
+    ]);
+    expect(bookings.map((booking) => booking.date)).toEqual(["2026-08-29", "2026-09-30"]);
+  });
+
+  it("starts the pay cycle on it without the word Gehalt", () => {
+    const room = spendingRoom([], [], [income("2026-08-28", 2480, "Brightline GmbH"), income("2026-09-28", 2480, "Brightline GmbH")], new Date(2026, 9, 12));
+    expect(room.basedOnSalary).toBe(true);
+    expect(room.cycleStart).toBe("2026-09-28");
+    expect(room.salary).toBe(2480);
+  });
+});
+
+describe("monthlyBudget", () => {
+  const today = new Date(2026, 9, 12);
+  const room = spendingRoom([], [], [salary("2026-09-27")], today);
+  const rent = { key: "hausverwaltung", monthly_amount: 1050 } as RecurringPayment;
+  const booking = (date: string, amount: number, counterparty: string, category = "GROCERIES") =>
+    ({ date, amount, counterparty, description: "", category }) as Transaction;
+  const bookings = [
+    booking("2026-09-26", -80, "REWE"),
+    booking("2026-10-01", -1050, "Hausverwaltung"),
+    booking("2026-10-02", -120, "REWE"),
+    booking("2026-10-03", -40, "Geldautomat", "CASH"),
+    booking("2026-10-04", -30, "Lieferando"),
+  ];
+
+  it("suggests salary minus fixed costs and counts only variable spending since payday", () => {
+    const budget = monthlyBudget(null, room, [rent], bookings, today)!;
+    expect(budget).toMatchObject({ limit: 1950, suggested: true, spent: 150, left: 1800, perDay: 120 });
+  });
+
+  it("uses the owner's own budget, and none without salary or budget", () => {
+    expect(monthlyBudget(600, room, [rent], bookings, today)).toMatchObject({ limit: 600, suggested: false, left: 450, share: 0.25 });
+    expect(monthlyBudget(null, spendingRoom([], [], [], today), [], bookings, today)).toBeNull();
   });
 });

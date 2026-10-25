@@ -266,6 +266,8 @@ export interface Space {
   name: string;
   icon: string;
   kind: SpaceKind;
+  /** What to spend per pay cycle beyond fixed costs; null for the suggestion. */
+  monthly_budget: number | null;
 }
 
 /**
@@ -471,6 +473,9 @@ export const api = {
     post<{ space: Space }>("/spaces/create/", { name, icon, kind }),
   updateSpace: (id: string, name: string, icon: string) =>
     post<{ space: Space }>("/spaces/update/", { id, name, icon }),
+  /** Without an amount the panel suggests one again. */
+  changeMonthlyBudget: (id: string, amount: number | null) =>
+    post<{ space: Space }>("/spaces/budget/", { id, amount: amount === null ? "" : String(amount) }),
   deleteSpace: (id: string) => post("/spaces/delete/", { id }),
   transactions: (space: string, from: string, to: string) =>
     get<{ transactions: Transaction[] }>(
