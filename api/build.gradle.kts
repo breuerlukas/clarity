@@ -5,9 +5,9 @@
  */
 buildscript {
   dependencies {
-    classpath(platform("tools.jackson:jackson-bom:3.2.3"))
+    classpath(platform("tools.jackson:jackson-bom:3.2.4"))
     constraints {
-      classpath("org.apache.commons:commons-lang3:3.20.0")
+      classpath("org.apache.commons:commons-lang3:3.21.0")
     }
   }
 }
@@ -16,7 +16,7 @@ plugins {
   id("java")
   id("checkstyle")
   id("org.springframework.boot") version "4.1.1"
-  id("io.freefair.lombok") version "9.8.0"
+  id("io.freefair.lombok") version "9.8.2"
   id("com.github.spotbugs") version "6.5.13"
 }
 
@@ -76,7 +76,7 @@ dependencies {
    * platform lifts every Jackson module to the same fixed patch release;
    * drop it once Spring Boot brings 3.1.7 or later on its own.
    */
-  implementation(platform("tools.jackson:jackson-bom:3.2.3"))
+  implementation(platform("tools.jackson:jackson-bom:3.2.4"))
 
   constraints {
     /*
