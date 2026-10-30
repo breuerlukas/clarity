@@ -174,7 +174,8 @@ Clarity holds bank data, so a public address deserves more care than other
 services:
 
 - Every page and request needs the owner session with password and TOTP;
-  sessions are HttpOnly, Secure, SameSite=Strict cookies.
+  sessions are HttpOnly, Secure, SameSite=Strict cookies that end with the
+  browser, or five minutes after the last open tab is gone.
 - Caddy sends HSTS, so the browser never tries plain HTTP again.
 - The edge passes 443 through by SNI, so Caddy and Clarity see the edge
   proxy's address, not the visitor's. The login throttle and the session
