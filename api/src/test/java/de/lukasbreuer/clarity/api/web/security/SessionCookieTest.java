@@ -21,6 +21,18 @@ final class SessionCookieTest {
   }
 
   @Test
+  void endsWithTheBrowser() {
+    assertFalse(written(true).contains("Max-Age"));
+  }
+
+  @Test
+  void clearingExpiresTheCookieRightAway() {
+    var response = new MockHttpServletResponse();
+    sessionCookie(true).clear(response);
+    assertTrue(response.getHeader("Set-Cookie").contains("Max-Age=0"));
+  }
+
+  @Test
   void dropsSecureOnlyWhenConfiguredForPlainHttp() {
     assertFalse(written(false).contains("Secure"));
   }

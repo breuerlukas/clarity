@@ -44,8 +44,8 @@ bank hands out can't move money.
 It is built for exactly one person. The account is created with a one-time
 code that only shows up in the server log, and every sign-in needs the
 password and a code from an authenticator app. Sessions sit in HttpOnly
-cookies, only their hash is stored, and repeated failed sign-ins lock the
-address out for a while. The panel loads nothing from third parties, and out
+cookies, only their hash is stored, they end a few minutes after the last tab
+is closed, and repeated failed sign-ins lock the address out for a while. The panel loads nothing from third parties, and out
 of the box it only listens on `127.0.0.1`; the api and the database are never
 published.
 

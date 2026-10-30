@@ -20,13 +20,14 @@ import java.util.Optional;
 /**
  * The session token lives in an HttpOnly cookie, so no script on the page,
  * injected or not, can ever read it. SameSite=Strict keeps other sites from
- * riding along on it.
+ * riding along on it. A negative age leaves out Max-Age, so the browser
+ * forgets the cookie when it closes.
  */
 @Component
 @RequiredArgsConstructor
 public final class SessionCookie {
   private static final String NAME = "clarity_session";
-  private static final Duration LIFETIME = Duration.ofDays(30);
+  private static final Duration UNTIL_BROWSER_CLOSES = Duration.ofSeconds(-1);
 
   private final WebConfiguration webConfiguration;
   private final SecureRandom random = new SecureRandom();
@@ -51,7 +52,8 @@ public final class SessionCookie {
   }
 
   public void write(HttpServletResponse response, String token) {
-    response.addHeader(HttpHeaders.SET_COOKIE, build(token, LIFETIME));
+    response.addHeader(HttpHeaders.SET_COOKIE,
+      build(token, UNTIL_BROWSER_CLOSES));
   }
 
   public void clear(HttpServletResponse response) {

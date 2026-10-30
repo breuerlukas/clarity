@@ -9,7 +9,11 @@ export function useSetupStatus() {
   });
 }
 
-/** Resolves to null instead of failing when nobody is signed in. */
+/**
+ * Resolves to null instead of failing when nobody is signed in. While signed
+ * in it keeps asking, also from a background tab: the api ends a session
+ * minutes after the last request, which signs out once the tab is closed.
+ */
 export function useSession() {
   return useQuery({
     queryKey: ["session"],
@@ -24,5 +28,7 @@ export function useSession() {
       }
     },
     staleTime: 5 * 60_000,
+    refetchInterval: (query) => (query.state.data ? 60_000 : false),
+    refetchIntervalInBackground: true,
   });
 }

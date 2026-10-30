@@ -26,7 +26,7 @@ import java.util.UUID;
 @AllArgsConstructor(staticName = "create")
 public final class OwnerSession {
   private static final long MAXIMUM_LIFETIME = 1000L * 60 * 60 * 24 * 30;
-  private static final long MAXIMUM_IDLE_TIME = 1000L * 60 * 60 * 24 * 7;
+  private static final long MAXIMUM_IDLE_TIME = 1000L * 60 * 5;
   private static final long TOUCH_INTERVAL = 1000L * 60;
 
   @Id
@@ -47,8 +47,9 @@ public final class OwnerSession {
   private long lastSeenAt;
 
   /**
-   * A session dies 30 days after login at the latest, or after a week without
-   * use, whichever comes first.
+   * A session dies 30 days after login at the latest, or five minutes after
+   * the last request, whichever comes first. An open panel keeps asking for
+   * its session, so this is what ends it once the last tab is closed.
    */
   public boolean isValid() {
     var now = System.currentTimeMillis();
