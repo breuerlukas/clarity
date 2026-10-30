@@ -13,16 +13,16 @@
   },
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
-    "@tanstack/react-query": "^5.104.2",
+    "@tanstack/react-query": "^5.104.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "i18next": "^26.4.4",
+    "i18next": "^26.5.2",
     "i18next-browser-languagedetector": "^8.2.1",
-    "lucide-react": "^1.55.0",
-    "radix-ui": "^1.8.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "react-i18next": "^17.0.16",
+    "lucide-react": "^1.59.0",
+    "radix-ui": "^1.8.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-i18next": "^17.1.0",
     "react-router": "^8.4.0",
     "recharts": "^3.10.1",
     "tailwind-merge": "^3.7.0"
@@ -35,7 +35,7 @@
     "@types/react-dom": "^19.3.0",
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitejs/plugin-react": "^6.1.2",
-    "eslint": "^10.12.0",
+    "eslint": "^10.13.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
@@ -44,6 +44,6 @@
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.71.2",
     "vite": "^8.3.4",
-    "vitest": "^5.0.4"
+    "vitest": "^5.0.5"
   }
 }
