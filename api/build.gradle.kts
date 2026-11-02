@@ -15,7 +15,7 @@ buildscript {
 plugins {
   id("java")
   id("checkstyle")
-  id("org.springframework.boot") version "4.1.1"
+  id("org.springframework.boot") version "4.1.2"
   id("io.freefair.lombok") version "9.8.2"
   id("com.github.spotbugs") version "6.5.13"
 }
@@ -33,8 +33,8 @@ dependencies {
   testImplementation(platform("org.junit:junit-bom:6.1.3"))
   testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.3")
-  testImplementation("org.springframework:spring-test:7.0.9")
-  testImplementation("com.icegreen:greenmail:2.1.14")
+  testImplementation("org.springframework:spring-test:7.0.10")
+  testImplementation("com.icegreen:greenmail:2.1.15")
 
   implementation("com.google.guava:guava:33.7.2-jre")
 
@@ -49,10 +49,10 @@ dependencies {
   implementation("commons-beanutils:commons-beanutils:1.11.0")
 
   implementation("org.postgresql:postgresql:42.7.14")
-  implementation("org.hibernate.orm:hibernate-core:7.4.13.Final")
+  implementation("org.hibernate.orm:hibernate-core:7.4.14.Final")
 
-  implementation("org.springframework.boot:spring-boot-starter-web:4.1.1")
-  implementation("org.springframework.boot:spring-boot-starter-data-jpa:4.1.1")
+  implementation("org.springframework.boot:spring-boot-starter-web:4.1.2")
+  implementation("org.springframework.boot:spring-boot-starter-data-jpa:4.1.2")
 
   implementation("de.mkammerer:argon2-jvm:2.12")
 
