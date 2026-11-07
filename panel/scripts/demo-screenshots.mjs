@@ -15,8 +15,7 @@ const browser = await chromium.launch();
 for (const language of LANGUAGES) {
   for (const theme of THEMES) {
     const page = await browser.newPage({
-      viewport: { width: 1600, height: 900 },
-      deviceScaleFactor: 2,
+      viewport: { width: 1920, height: 1080 },
     });
     const failures = [];
     page.on("pageerror", (error) => failures.push(error.message));

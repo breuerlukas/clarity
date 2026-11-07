@@ -7,7 +7,7 @@ panel with the demo's sample data. Nothing is committed.
 `https://breuerlukas.github.io/clarity/screenshots/<language>-<theme>/overview.png`
 
 `<language>-<theme>` is `de-dark`, `de-light`, `en-dark` or `en-light`; each
-picture is 3200 x 1800 (1600 x 900 at 2x). The `Demo on GitHub Pages`
+picture is 1920 x 1080. The `Demo on GitHub Pages`
 workflow serves the demo build with `vite preview` and runs
 `panel/scripts/demo-screenshots.mjs`, which presets `clarity-language` and
 `clarity-theme` in `localStorage`, waits until no skeleton is left plus 1.5 s
