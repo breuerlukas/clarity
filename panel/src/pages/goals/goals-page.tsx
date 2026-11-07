@@ -19,7 +19,10 @@ export function GoalsPage() {
   const { t } = useTranslation();
   const goals = useGoals();
   const connections = useConnections();
-  const accounts = connections.data?.flatMap((connection) => connection.accounts) ?? [];
+  const accounts =
+    connections.data?.flatMap((connection) =>
+      connection.accounts.map((account) => ({ ...account, bank: connection.bank_name })),
+    ) ?? [];
   const [editing, setEditing] = useState<{ goal: SavingsGoal | null } | null>(null);
   const [depositing, setDepositing] = useState<SavingsGoal | null>(null);
   return (
