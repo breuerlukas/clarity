@@ -80,17 +80,9 @@ export function AppHeader() {
 /** Tells visitors of the public demo that nothing here is real. */
 function DemoBadge() {
   const { t } = useTranslation();
-  const source = import.meta.env.VITE_REPOSITORY_URL;
   return (
-    <span className="flex items-center gap-3 text-sm">
-      <span className="rounded-full bg-brand/12 px-3 py-1 font-bold text-brand-text">
-        {t("common.demo")}
-      </span>
-      {source && (
-        <a href={source} className="hidden font-bold text-muted-foreground hover:text-foreground sm:inline">
-          {t("common.demo_source")}
-        </a>
-      )}
+    <span className="rounded-full bg-brand/12 px-3 py-1 text-sm font-bold text-brand-text">
+      {t("common.demo")}
     </span>
   );
 }
