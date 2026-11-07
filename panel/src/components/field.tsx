@@ -10,7 +10,7 @@ export function Field({
   const id = useId();
   const hintId = `${id}-hint`;
   return (
-    <div className="grid gap-2">
+    <div className="grid content-start gap-2">
       <Label htmlFor={id}>{label}</Label>
       <Input id={id} aria-describedby={hint ? hintId : undefined} {...props} />
       {hint && (
