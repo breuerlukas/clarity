@@ -50,6 +50,17 @@ jobs:
           npx vite build --base="/${REPOSITORY_NAME}/"
           cp dist/index.html dist/404.html
 
+      # Photographs the overview into dist/screenshots/ (docs/screenshots.md),
+      # so the README's picture always shows the current panel.
+      - name: Take screenshots
+        env:
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+        run: |
+          npx playwright install --with-deps chromium
+          npx vite preview --base="/${REPOSITORY_NAME}/" --port 4173 --strictPort &
+          curl -sf --retry 30 --retry-connrefused --retry-delay 1 -o /dev/null "http://localhost:4173/${REPOSITORY_NAME}/"
+          node scripts/demo-screenshots.mjs "http://localhost:4173/${REPOSITORY_NAME}/" dist/screenshots
+
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
