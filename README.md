@@ -24,6 +24,8 @@ payments, several invoices in one transfer and early-payment discounts, notes
 payment advices (Zahlungsavis) from customers, and compares invoiced with
 received income and billed with paid expenses month by month.
 
+![Clarity's overview with the demo's sample data](https://breuerlukas.github.io/clarity/screenshots/en-dark/overview.png)
+
 React and Tailwind in the panel, Spring Boot on Java 25 and Postgres behind it.
 Bank access goes through [Enable Banking](https://enablebanking.com).
 
