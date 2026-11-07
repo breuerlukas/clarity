@@ -11,9 +11,11 @@ import { Segmented } from "@/components/segmented";
 import { useSpace } from "@/hooks/use-space";
 import { api, ApiError, type Account, type SavingsGoal, type SavingsGoalDraft } from "@/lib/api";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
+import { accountLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Source = "manual" | "account";
+type GoalAccount = Account & { bank: string };
 
 /**
  * Creates or changes a goal: name, icon, target, an optional date, and
@@ -27,7 +29,7 @@ export function GoalDialog({
 }: {
   open: boolean;
   goal: SavingsGoal | null;
-  accounts: Account[];
+  accounts: GoalAccount[];
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -42,7 +44,7 @@ export function GoalDialog({
   );
 }
 
-function GoalForm({ goal, accounts, onClose }: { goal: SavingsGoal | null; accounts: Account[]; onClose: () => void }) {
+function GoalForm({ goal, accounts, onClose }: { goal: SavingsGoal | null; accounts: GoalAccount[]; onClose: () => void }) {
   const { t } = useTranslation();
   const space = useSpace();
   const queryClient = useQueryClient();
@@ -125,7 +127,7 @@ function GoalForm({ goal, accounts, onClose }: { goal: SavingsGoal | null; accou
           >
             {accounts.map((option) => (
               <option key={option.id} value={option.id}>
-                {option.name}
+                {accountLabel(option.bank, option)}
               </option>
             ))}
           </select>

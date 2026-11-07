@@ -78,3 +78,11 @@ export function maskIban(iban: string | null): string {
   const compact = iban.replace(/\s/g, "");
   return `${compact.slice(0, 4)} •••• ${compact.slice(-4)}`;
 }
+
+/**
+ * Names an account together with its bank, so two "Girokonto" at different
+ * banks can be told apart; without a name the masked IBAN stands in.
+ */
+export function accountLabel(bank: string, account: { name: string; iban: string | null }): string {
+  return `${bank}, ${account.name || maskIban(account.iban)}`;
+}

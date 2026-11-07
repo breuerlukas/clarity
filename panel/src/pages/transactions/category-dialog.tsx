@@ -17,7 +17,7 @@ import { useConnections } from "@/hooks/use-finances";
 import { useOpenSettings } from "@/layouts/settings/settings-dialog-context";
 import { pickableCategories } from "@/lib/categories";
 import { api, receiptFileUrl, type Category, type Transaction } from "@/lib/api";
-import { formatDate, formatMoney } from "@/lib/format";
+import { accountLabel, formatDate, formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
@@ -97,7 +97,7 @@ function CategoryForm({ transaction, onClose }: { transaction: Transaction; onCl
           <>
             <dt className="text-muted-foreground">{t("transactions.account")}</dt>
             <dd className="font-bold">
-              {account.bank}, {account.name}
+              {accountLabel(account.bank, account)}
             </dd>
           </>
         )}
