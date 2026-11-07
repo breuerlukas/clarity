@@ -43,7 +43,6 @@ jobs:
       - name: Build the demo
         env:
           VITE_DEMO: 'true'
-          VITE_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
           REPOSITORY_NAME: ${{ github.event.repository.name }}
         run: |
           npx tsc -b

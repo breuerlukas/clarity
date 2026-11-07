@@ -25,8 +25,7 @@
     "view_all": "View all",
     "close": "Close",
     "demo_only": "Not available in the demo.",
-    "demo": "Demo",
-    "demo_source": "View on GitHub"
+    "demo": "Demo"
   },
   "category": {
     "SALARY": "Salary",
