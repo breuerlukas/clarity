@@ -8,7 +8,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginx:1.31.7-alpine
+FROM nginx:1.31.8-alpine
 
 RUN apk upgrade --no-cache
 
