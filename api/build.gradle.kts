@@ -5,9 +5,9 @@
  */
 buildscript {
   dependencies {
-    classpath(platform("tools.jackson:jackson-bom:3.2.4"))
+    classpath(platform("tools.jackson:jackson-bom:3.3.0"))
     constraints {
-      classpath("org.apache.commons:commons-lang3:3.21.0")
+      classpath("org.apache.commons:commons-lang3:3.22.0")
     }
   }
 }
@@ -36,7 +36,7 @@ dependencies {
   testImplementation("org.springframework:spring-test:7.0.10")
   testImplementation("com.icegreen:greenmail:2.1.15")
 
-  implementation("com.google.guava:guava:33.7.2-jre")
+  implementation("com.google.guava:guava:33.8.0-jre")
 
   implementation("org.projectlombok:lombok:1.18.48")
   annotationProcessor("org.projectlombok:lombok:1.18.48")
@@ -49,7 +49,7 @@ dependencies {
   implementation("commons-beanutils:commons-beanutils:1.11.0")
 
   implementation("org.postgresql:postgresql:42.7.14")
-  implementation("org.hibernate.orm:hibernate-core:7.4.14.Final")
+  implementation("org.hibernate.orm:hibernate-core:7.4.16.Final")
 
   implementation("org.springframework.boot:spring-boot-starter-web:4.1.2")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa:4.1.2")
@@ -76,7 +76,7 @@ dependencies {
    * platform lifts every Jackson module to the same fixed patch release;
    * drop it once Spring Boot brings 3.1.7 or later on its own.
    */
-  implementation(platform("tools.jackson:jackson-bom:3.2.4"))
+  implementation(platform("tools.jackson:jackson-bom:3.3.0"))
 
   constraints {
     /*
@@ -85,9 +85,9 @@ dependencies {
      * GHSA-9xv2-5v5q-p794, GHSA-h3x4-894j-xpx5). Drop these once Spring
      * Boot brings 11.0.25 or later on its own.
      */
-    implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.27")
-    implementation("org.apache.tomcat.embed:tomcat-embed-el:11.0.27")
-    implementation("org.apache.tomcat.embed:tomcat-embed-websocket:11.0.27")
+    implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.29")
+    implementation("org.apache.tomcat.embed:tomcat-embed-el:11.0.29")
+    implementation("org.apache.tomcat.embed:tomcat-embed-websocket:11.0.29")
   }
 }
 
